@@ -1,0 +1,5 @@
+#<parameter>: <value>                #<comment>
+breezeparam:    1.000000000000e+00   #Fraction of sound speed at critical point
+rapidity:       1.000000000000e+02   #Rapidity of linearization transition
+erfn:           2.500000000000e+00   #Closest non-unity weight is erf(erfn)
+mach_limit:     0.990000000000       #Limit past which dvdr is purely linearized

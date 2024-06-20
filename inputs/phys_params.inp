@@ -1,0 +1,7 @@
+#<parameter>: <value>         #<units>;         <comment>
+HX:            8.000126349015e-01, 1.999873650985e-01       #;  Mass fractions
+species_name:HI,HeI#; Species name in Roman Numeral format
+atomic_mass:      1.673300000000e-24, 6.646479072198e-24    #; Atomic mass in gs
+Z:             1, 2                                                   #; Atomic number
+Ne:            1, 2                                                   #; Number of electrons in species
+Molec_adjust:            2.300   #; Weighting factor to account for molecules below atomic wind
