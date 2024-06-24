@@ -193,7 +193,7 @@ class wind_simulation:
                 print(error_output)
                 return
         # If all is sucessful update wind_simulation object
-        Popen(["cp", 'inputs/guess.inp', 'saves/windsoln.csv'], stdout=PIPE, stderr=PIPE)
+        sub = Popen(["cp", 'inputs/guess.inp', 'saves/windsoln.csv'], stdout=PIPE, stderr=PIPE)
         sub.wait()
         output, error_output = sub.communicate()
         if error_output:
@@ -2792,6 +2792,8 @@ class wind_simulation:
             units - str; default='eV'. Options = 'cm', 'nm'. Units of range values
             normalize - bool; default=True. If true, flux in new range
                               will be normalized to Fnorm in norm_spec_range.
+            kind - str; 'full' or 'mono' - spectrum frequency type
+            plot - bool; default = False.
 
         Returns:
             0  - ramping successful
@@ -2867,8 +2869,11 @@ class wind_simulation:
         if kind != self.windsoln.spec_kind:
             print("Warning: Ramper sometimes has difficulty changing from 'full' to 'mono'.")
             print("Consider ramping from existing monofrequency solution.")
-
-        spec = spectrum()
+        
+        if self.windsoln.spec_src_file == 'scaled-solar':
+            spec = spectrum(date=self.windsoln.spec_date)
+        else:
+            spec = spectrum(lisird=False,spectrum_file=self.windsoln.spec_src_file)
         for sps in self.windsoln.species_list:
             spec.add_species(sps)
 
@@ -2901,14 +2906,14 @@ class wind_simulation:
         while abs(sum((goal_span-self.windsoln.spec_resolved/self.spectrum.wl_norm)/goal_span)) > 1e-3:
             avg_diff = abs(sum((goal_span-self.windsoln.spec_resolved/self.spectrum.wl_norm)/goal_span))
             print(f'\r Current: {self.windsoln.spec_resolved/self.spectrum.wl_norm} nm',
-                  end='                                                 ')
+                  end='                                                      ')
 
             step_span = self.windsoln.spec_resolved/self.spectrum.wl_norm + delta / 2
-            print(f'Fail 1: Attempting [{step_span[0]:.1f},{step_span[1]:.1f}]',
-                  end='                                        ')
-            spec = spectrum()
-            for sps in self.windsoln.species_list:
-                spec.add_species(sps)
+            print(f'\rFail 1: Attempting [{step_span[0]:.1f},{step_span[1]:.1f}]',
+                  end='                                          ')
+#             spec = spectrum()
+#             for sps in self.windsoln.species_list:
+#                 spec.add_species(sps)
             spec.set_resolved(*step_span) #
             spec.set_normalized(*step_span) 
             spec.set_window(*step_span,kind='full')
@@ -2934,16 +2939,16 @@ class wind_simulation:
                     print('To ramp manually, see tutorial.')
                     return 1
                 step_span = self.windsoln.spec_resolved/self.spectrum.wl_norm + delta*factor
-                print(f'Fail {fail}: Attempting {step_span}nm',
+                print(f'\rFail {fail}: Attempting {step_span}nm',
                       end='                                              ')
-                spec = spectrum()
-                for sps in self.windsoln.species_list:
-                    spec.add_species(sps)
+#                 spec = spectrum()
+#                 for sps in self.windsoln.species_list:
+#                     spec.add_species(sps)
                 spec.set_resolved(*step_span) #
                 spec.set_normalized(*step_span) 
                 spec.set_window(*step_span,kind='full')
                 spec.generate(kind='full', savefile='inputs/spectrum.inp') 
-            print(f'Success! Current: [{self.windsoln.spec_resolved/ self.spectrum.wl_norm}]nm')
+#             print(f'Success! Current: [{self.windsoln.spec_resolved/ self.spectrum.wl_norm}]nm')
         else:
             if normalize == True:
                 print(f'\rRamped spectrum wavelength range, now normalizing spectrum. \n ..Fnorm = {Fnorm:.0f} ergs/s/cm2. Norm range = [{norm_span[0]:.2f},{norm_span[1]:.2f}]nm',
@@ -3021,11 +3026,33 @@ class wind_simulation:
 
         return 0
 
-    def ramp_to_user_spectrum(self,spectrum_filename,species_list=[],Fnorm=0.0,
-                              norm_spec_range=[],
-                           goal_spec_range=[],units='eV',normalize=True,
-                           plot=True):
-        #NOTE add scaling for flux to stay the same
+    
+    def ramp_to_user_spectrum(self,spectrum_filename,species_list=[],
+                              Fnorm=0.0,norm_spec_range=[],goal_spec_range=[],
+                              units='eV',normalize=True,plot=True):
+        
+        '''Description: Ramping stellar spectrum wavelength/energy range to 
+                        new wavelength/energy range.
+        Arguments:
+            spectrum_filename - str; Name of the formatted spectrum file saved 
+                                    in McAstro/stars/additional_spectra/
+            species_list - list of str; default = [] sets to species list of 
+                                    the loaded windsoln.
+            Fnorm - float; default=0.0 ergs/s/cm2 AT SEMIMAJOR AXIS OF PLANET.
+                              When Fnorm=0.0, flux is normalized to the current value 
+                              in norm_spec_range. Else, ramps to given Fnorm.
+                              If fails, can ramp independently using self.ramp_var('Ftot')
+            norm_spec_range  - list or array; default=[] is desired range over
+                                which to normalize in units of 'units'.
+            goal_spec_range - list or array; default=[] is current range.
+                                        Else, custom upper and lower limits
+                                        of spectrum in units of 'units'.
+            units - str; default='eV'. Options = 'cm', 'nm'. Units of range values
+            normalize - bool; default=True. If true, flux in new range
+                              will be normalized to Fnorm in norm_spec_range.
+            kind - str; 'full' or 'mono' - spectrum frequency type
+            plot - bool; default = False.
+            '''
         #generating a smoothed and binned version of the user-input code
         wl_norm=1e-7
         spec = spectrum(lisird=False,spectrum_file=spectrum_filename,wl_norm=wl_norm)
@@ -3042,20 +3069,24 @@ class wind_simulation:
         spec.set_window(*self.windsoln.spec_window/wl_norm,kind='full')
         spec.generate(kind='full', savefile='inputs/goal_spectrum.inp')
     #     spec.generate(kind='full', savefile='inputs/spectrum.inp')
-        names_list = ['E','wPhi']
-        for sp in self.windsoln.species_list:
-            names_list = np.append(names_list,'sigma_'+sp)
-            
+    #     names_list = ['E','wPhi']
+    #     for sp in self.windsoln.species_list:
+    #         sp = sp.replace(' ','')
+    #         names_list = np.append(names_list,'sigma_'+sp)
+
         new = np.genfromtxt('inputs/goal_spectrum.inp',
-                            delimiter=',',skip_header=10,
-                           names=names_list)
+                            delimiter=',',skip_header=10)#/,
+    #                        names=names_list)
+
 
         old_E = self.windsoln.sim_spectrum['E']
 
         start_wPhi = si.Akima1DInterpolator(np.flip(old_E),
                                             np.flip(self.windsoln.sim_spectrum['wPhi']))
-        goal_wPhi = si.Akima1DInterpolator(np.flip(new['E']),np.flip(new['wPhi']))
+        goal_wPhi = si.Akima1DInterpolator(np.flip(new[:,0]),np.flip(new[:,1]))
+    #     plt.plot(old_E,start_wPhi(old_E),label='old')
         wPhi = goal_wPhi(old_E)
+    #     print(wPhi)
         wPhi[0] = wPhi[1] #deals with edge errors
         wPhi[-1] = wPhi[-2]
 
@@ -3067,11 +3098,14 @@ class wind_simulation:
 
     #         self.windsoln.spectrum_tuple[9] = step_wPhi
         self.inputs.write_spectrum(*self.windsoln.spectrum_tuple[:3],
-                                  spectrum_file,
+                                  spectrum_filename,
                                   *self.windsoln.spectrum_tuple[4:10],
                                   step_wPhi,
                                   *self.windsoln.spectrum_tuple[11:])
-        self.run_wind()
+        self.inputs.write_flags(*sim.windsoln.flags_tuple,
+                                integrate_out=False)
+        result = self.run_wind()
+    #     print(wPhi)
 
         while np.average((wPhi - self.windsoln.sim_spectrum['wPhi'])/self.windsoln.sim_spectrum['wPhi'])>1e-10:
             avg = np.average((wPhi - self.windsoln.sim_spectrum['wPhi']))
@@ -3098,20 +3132,36 @@ class wind_simulation:
                 if fail > 10:
                     print("Failed to ramp to new stellar spectrum.")
                     return 1
-        if len(spec_range) == 0:
-            spec_range = self.windsoln.spec_resolved/self.spectrum.wl_norm
+
+        if plot == True:
+            plt.semilogy(const.hc/old_E/1e-7,start_wPhi(old_E),label='Original')
+            plt.semilogy(const.hc/old_E/1e-7,wPhi,label='Goal')
+            plt.semilogy(const.hc/old_E/1e-7,self.windsoln.sim_spectrum['wPhi'],
+                         label='Current',ls='--')
+            plt.xlabel('Wavelength (nm)')
+            plt.ylabel('Photon Density')
+            plt.legend()
+            plt.show()
+
+        #Ramping to desired spectral range and flux
+        print(f'Success ramping to {spectrum_filename} spectrum shape!')
+        print('     Now ramping flux and spectral range.')
+        if len(goal_spec_range) == 0:
+            goal_spec_range = self.windsoln.spec_resolved/self.spectrum.wl_norm
             units = 'nm'
 
-        print(f'\rRamping to desired spectral range ({spec_range} {units}) and flux.',
-             end='                                                                       ')
+    #     print(f'\rRamping to desired spectral range ({spec_range} {units}) and flux.',
+    #          end='                                                                       ')
         if self.ramp_spectrum(Fnorm,norm_spec_range,
                       goal_spec_range,units,normalize,
                       kind='full',plot=plot) == 0:
-            print("Success! Ramped to user-input stellar spectrum "+spectrum_file)
+            print("Success! Ramped to user-input stellar spectrum "+spectrum_filename)
             return 0
         else:
             print("Ramped successfully to user-input spectrum, but ramping spectral range and/or flux was not successful.")
             return 2
+
+        
         
     def format_user_spectrum(self,wl,flux_1au,wl_units='cm',spectrum_name='',
                             comment='',overwrite=False):
@@ -3149,7 +3199,7 @@ class wind_simulation:
 
         g = open(file,'w')
         if len(comment) > 0:
-            g.write(comment+'\n')
+            g.write('#'+comment+'\n')
 
         if wl_units == 'm':
             wl_cm = wl*1e2
@@ -3181,6 +3231,6 @@ class wind_simulation:
         df.to_csv(g, header=True, index=False)
         g.close()
 
-        print('Spectrum saved in readable format at',file)
+        print('Spectrum saved in Wind-AE readable format at',file)
 
         return
