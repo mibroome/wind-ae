@@ -678,32 +678,63 @@ class wind_solution:
         return
 
 
-    def calc_tau_sp(self):
-        int_bounds = self.soln_norm.r >= self.soln_norm['z']+1
-        self.act_tau_sp = integrate.simps(self.soln['nHI'][int_bounds]*
-                                          6.304e-18*(13.6/16)**3,
-                                          x=self.soln['r'][int_bounds])
-        self.last_tau = np.asarray(self.soln['tau'])[-1]
-        return
+#     def calc_tau_sp(self):
+#         int_bounds = self.soln_norm.r >= self.soln_norm['z']+1
+#         self.act_tau_sp = integrate.simps(self.soln['nHI'][int_bounds]*
+#                                           6.304e-18*(13.6/16)**3,
+#                                           x=self.soln['r'][int_bounds])
+#         self.last_tau = np.asarray(self.soln['tau'])[-1]
+#         return
 
 
-    def calc_tau_one(self):
-        try:
-            index = self.soln_norm[self.soln.tau > 1].index[-1]
-        except IndexError:
-            self.error += 1
-            return
-        if (index+1 == len(self.soln['tau'])):
-            self.error += 1
-            return
-        dtaudr = ((self.soln.iloc[index]['tau']-
-                   self.soln.iloc[index+1]['tau'])/
-                  (self.soln_norm.iloc[index]['r']-
-                   self.soln_norm.iloc[index+1]['r']))
-        self.r_tau1 = (self.soln_norm.iloc[index]['r']+
-                       (1.-self.soln.iloc[index]['tau'])/dtaudr)
-        self.tau_index = index
-        return
+#     def calc_tau_one(self):
+#         try:
+#             index = self.soln_norm[self.soln.tau > 1].index[-1]
+#         except IndexError:
+#             self.error += 1
+#             return
+#         if (index+1 == len(self.soln['tau'])):
+#             self.error += 1
+#             return
+#         dtaudr = ((self.soln.iloc[index]['tau']-
+#                    self.soln.iloc[index+1]['tau'])/
+#                   (self.soln_norm.iloc[index]['r']-
+#                    self.soln_norm.iloc[index+1]['r']))
+#         self.r_tau1 = (self.soln_norm.iloc[index]['r']+
+#                        (1.-self.soln.iloc[index]['tau'])/dtaudr)
+#         self.tau_index = index
+#         return
+
+    def tau_array(self,photon,units='eV'):
+        '''Returns an array with the optical depth for the provided photon 
+        energy (or wavelength) for each radius in the windsoln.'''
+        if units=='cm':
+            photon = const.hc/(photon)/const.eV
+        elif units=='nm':
+            photon = const.hc/(photon*1e-7)/const.eV
+        elif units=='eV':
+            photon=photon
+        else:
+            print("Valid units are 'cm', 'nm', 'eV'.")
+        spec_max_E = const.hc/self.spec_normalized[0] / const.eV
+        if photon > spec_max_E:
+            print(f"Note: Stellar spectrum in current sim has max energy of {spec_max_E:.0f} eV, so simulated atmosphere is not recieving {photon:.0f} eV photns.")
+
+        tau = np.zeros_like(self.soln['r'])
+        spaced_species = McAtom.formatting_species_list(self.species_list)
+        for sp in spaced_species:
+            sigma = McAtom.atomic_species(sp).cross_section(photon)
+            Ncol = self.soln['Ncol_'+sp.replace(' ','')]
+            tau += Ncol*sigma
+        return tau
+    
+    def tau1(self,photon,units='eV'):
+        '''Returns radius in Rp and index where tau=1 surface is for the photon
+        of the provided energy (or wavelength).'''
+        taus = self.tau_array(photon,units)
+        idx = len(taus) - np.searchsorted(np.flip(taus),1)
+        r = self.soln_norm['r'][idx]
+        return r,idx
 
 
     def calc_r_exo(self, Kn='Kn_hb'):
@@ -861,72 +892,72 @@ class wind_solution:
         return
 
 
-    def repair_interior(self, csv_file='saves/windsoln.csv'):
-        """
-        Description:
-            Replace inward integration with idealized adiabatic static
-            atmosphere
-        """
-        print("ERROR: Broke in multifrequency update, never repaired, glhf.")
-        print("ERROR: Never repaired for multispecies - mib.")
-        return
-        temp = self.soln_norm.copy(deep=True)
-        temp.loc[temp['r'] < self.Rmin, 'rho'] = (
-            self.soln.loc[self.soln['r'] < self.Rp, 'static_rho']
-            /self.scales[1])
-        temp.loc[temp['r'] < self.Rmin, 'v'] = (0.0)
-        temp.loc[temp['r'] < self.Rmin, 'T'] = (
-            self.soln.loc[self.soln['r'] < self.Rp, 'static_T']/self.scales[3])
-        temp.loc[temp['r'] < self.Rmin, 'tau'] = (
-            integrate.cumtrapz(self.crosssec/const.mH*self.scales[1]
-                               *temp.loc[temp['r'] < self.Rmin, 'rho'][::-1],
-                               -self.scales[0]*temp.loc[temp['r']
-                                                        < self.Rmin, 'r'][::-1],
-                               initial=0)[::-1]
-            + temp.loc[temp['r'] == self.Rmin, 'tau'].values[0])
-        with open(csv_file, 'w') as file_:
-                    #Header
-#             self.nspecies = len(self.Ys_rmin)
-            file_.write("#nspecies: %d\n" %self.nspecies)
-            Ncol_string = ''
-            Ys_string = ''
-            string = ''
-            floats = ''
-            for n in range(self.nspecies):
-                floats += '{:.17e},'
-                string += '{:s},'
-                Ncol_string += 'Ncol_'+self.species_list[n]+','
-                Ys_string   += 'Ys_'+self.species_list[n]+','
-            file_.write("#vars: r,rho,v,T,"+Ys_string+Ncol_string+"q,z\n")
-            file_.write('#scales: '+(','.join('%.17e' %i for i in self.scales))+ '\n')
-            file_.write('#plnt_prms: '+(','.join('%.17e' %i for i in (self.planet_tuple)))+ '\n')
-            file_.write('#phys_prms: '+(floats+string+floats).format(*self.HX,*self.species_list,*self.atomic_masses)[:-1]+'\n')
-            file_.write('#bcs: '+(','.join('{:.17e}' for i in range(5+2*self.nspecies))).format(*self.bcs_tuple[:4], *self.Ys_rmin, *self.Ncol_sp, *self.erf_drop)+'\n')
-            file_.write('#tech: '+(','.join('%.17e' %i for i in self.tech_tuple))+ '\n')
-            file_.write('#flags: '+(','.join('%d' %i for i in self.flags_tuple))+ '\n')
-#             file_.write('#spec_prms: {:d},{:d},'.format(self.npts,self.nspecies)+self.spec_date+','+self.spec_kind+
-#                     ',{:.17e},{:.17e},{:.17e},{:.17e},{:.17e},{:.17e},'.format(*self.spec_window,*self.spec_resolved, 
-#                                                                                *self.spec_normalized))
-#             file_.write(floats[:-1].format(*self.ion_pot)+'\n')  
-#             file_.write('#vars: r,rho,v,T,Ys,Ncol,q,z\n')
-#             file_.write('#scales: {:.17e},{:.17e},{:.17e},{:.17e},{:.17e},'
-#                         '{:.17e},{:.17e},{:.17e}\n'
-#                         .format(self.scales[0], self.scales[1], self.scales[2],
-#                                 self.scales[3], self.scales[4], self.scales[5],
-#                                 self.scales[6], self.scales[7]))
-#             file_.write('#plnt_prms: {:.17e},{:.17e},{:.17e},{:.17e},{:.17e},'
-#                         '{:.17e},{:.17e}\n'.format(*self.planet_tuple))
-#             file_.write('#phys_prms: {:.17e},{:.17e},{:.17e},{:.17e},{:.17e},'
-#                         '{:.17e},{:.17e}\n'
-#                         .format(*self.physics_tuple))
-#             file_.write('#bcs: {:.17e},{:.17e},{:.17e},{:.17e},{:.17e},{:.17e},'
-#                         '{:.17e}\n'.format(*self.bcs_tuple))
-#             file_.write('#tech: {:.17e},{:.17e},{:.17e},{:.17e}\n'
-#                         .format(*self.tech_tuple))
-#             file_.write('#flags: {:d},{:d},{:d},{:d},{:d},{:d}\n'
-#                         .format(*self.flags_tuple))
-            temp.to_csv(file_, float_format='%.17e', index=False, header=False)
-        return
+#     def repair_interior(self, csv_file='saves/windsoln.csv'):
+#         """
+#         Description:
+#             Replace inward integration with idealized adiabatic static
+#             atmosphere
+#         """
+#         print("ERROR: Broke in multifrequency update, never repaired, glhf.")
+#         print("ERROR: Never repaired for multispecies - mib.")
+#         return
+#         temp = self.soln_norm.copy(deep=True)
+#         temp.loc[temp['r'] < self.Rmin, 'rho'] = (
+#             self.soln.loc[self.soln['r'] < self.Rp, 'static_rho']
+#             /self.scales[1])
+#         temp.loc[temp['r'] < self.Rmin, 'v'] = (0.0)
+#         temp.loc[temp['r'] < self.Rmin, 'T'] = (
+#             self.soln.loc[self.soln['r'] < self.Rp, 'static_T']/self.scales[3])
+#         temp.loc[temp['r'] < self.Rmin, 'tau'] = (
+#             integrate.cumtrapz(self.crosssec/const.mH*self.scales[1]
+#                                *temp.loc[temp['r'] < self.Rmin, 'rho'][::-1],
+#                                -self.scales[0]*temp.loc[temp['r']
+#                                                         < self.Rmin, 'r'][::-1],
+#                                initial=0)[::-1]
+#             + temp.loc[temp['r'] == self.Rmin, 'tau'].values[0])
+#         with open(csv_file, 'w') as file_:
+#                     #Header
+# #             self.nspecies = len(self.Ys_rmin)
+#             file_.write("#nspecies: %d\n" %self.nspecies)
+#             Ncol_string = ''
+#             Ys_string = ''
+#             string = ''
+#             floats = ''
+#             for n in range(self.nspecies):
+#                 floats += '{:.17e},'
+#                 string += '{:s},'
+#                 Ncol_string += 'Ncol_'+self.species_list[n]+','
+#                 Ys_string   += 'Ys_'+self.species_list[n]+','
+#             file_.write("#vars: r,rho,v,T,"+Ys_string+Ncol_string+"q,z\n")
+#             file_.write('#scales: '+(','.join('%.17e' %i for i in self.scales))+ '\n')
+#             file_.write('#plnt_prms: '+(','.join('%.17e' %i for i in (self.planet_tuple)))+ '\n')
+#             file_.write('#phys_prms: '+(floats+string+floats).format(*self.HX,*self.species_list,*self.atomic_masses)[:-1]+'\n')
+#             file_.write('#bcs: '+(','.join('{:.17e}' for i in range(5+2*self.nspecies))).format(*self.bcs_tuple[:4], *self.Ys_rmin, *self.Ncol_sp, *self.erf_drop)+'\n')
+#             file_.write('#tech: '+(','.join('%.17e' %i for i in self.tech_tuple))+ '\n')
+#             file_.write('#flags: '+(','.join('%d' %i for i in self.flags_tuple))+ '\n')
+# #             file_.write('#spec_prms: {:d},{:d},'.format(self.npts,self.nspecies)+self.spec_date+','+self.spec_kind+
+# #                     ',{:.17e},{:.17e},{:.17e},{:.17e},{:.17e},{:.17e},'.format(*self.spec_window,*self.spec_resolved, 
+# #                                                                                *self.spec_normalized))
+# #             file_.write(floats[:-1].format(*self.ion_pot)+'\n')  
+# #             file_.write('#vars: r,rho,v,T,Ys,Ncol,q,z\n')
+# #             file_.write('#scales: {:.17e},{:.17e},{:.17e},{:.17e},{:.17e},'
+# #                         '{:.17e},{:.17e},{:.17e}\n'
+# #                         .format(self.scales[0], self.scales[1], self.scales[2],
+# #                                 self.scales[3], self.scales[4], self.scales[5],
+# #                                 self.scales[6], self.scales[7]))
+# #             file_.write('#plnt_prms: {:.17e},{:.17e},{:.17e},{:.17e},{:.17e},'
+# #                         '{:.17e},{:.17e}\n'.format(*self.planet_tuple))
+# #             file_.write('#phys_prms: {:.17e},{:.17e},{:.17e},{:.17e},{:.17e},'
+# #                         '{:.17e},{:.17e}\n'
+# #                         .format(*self.physics_tuple))
+# #             file_.write('#bcs: {:.17e},{:.17e},{:.17e},{:.17e},{:.17e},{:.17e},'
+# #                         '{:.17e}\n'.format(*self.bcs_tuple))
+# #             file_.write('#tech: {:.17e},{:.17e},{:.17e},{:.17e}\n'
+# #                         .format(*self.tech_tuple))
+# #             file_.write('#flags: {:d},{:d},{:d},{:d},{:d},{:d}\n'
+# #                         .format(*self.flags_tuple))
+#             temp.to_csv(file_, float_format='%.17e', index=False, header=False)
+#         return
 
 
     def calc_norm_fits(self, degree=1):
@@ -1117,19 +1148,5 @@ class wind_solution:
             file_.write('#bcs: '+(','.join('{:.17e}' for i in range(5+2*self.nspecies))).format(*self.bcs_tuple[:4], *self.Ys_rmin,*self.Ncol_sp,*self.erf_drop)+'\n')
             file_.write('#tech: '+(','.join('%.17e' %i for i in self.tech_tuple))+ '\n')
             file_.write('#flags: '+(','.join('%d' %i for i in self.flags_tuple))+ '\n')
-#             file_.write(('#vars: '+('{:s},'*len(self.soln_norm.columns[:8]))[:-1]
-#                          +'\n').format(*self.soln_norm.columns[:8]))
-#             file_.write(('#scales: '+('{:.17e},'*len(self.scales))[:-1]
-#                          +'\n').format(*self.scales))
-#             file_.write(('#plnt_prms: '+('{:.17e},'*len(self.planet_tuple))[:-1]
-#                          +'\n').format(*self.planet_tuple))
-#             file_.write(('#phys_prms: '+('{:.17e},'*len(self.physics_tuple))[:-1]
-#                          +'\n').format(*self.physics_tuple))
-#             file_.write(('#bcs: '+('{:.17e},'*len(self.bcs_tuple))[:-1]
-#                          +'\n').format(*self.bcs_tuple))
-#             file_.write(('#tech: '+('{:.17e},'*len(self.tech_tuple))[:-1]
-#                          +'\n').format(*self.tech_tuple))
-#             file_.write(('#flags: '+('{:d},'*len(self.flags_tuple))[:-1]
-#                          +'\n').format(*self.flags_tuple))
             df.to_csv(file_, header=False, index=False, float_format='%.17e')
         return df

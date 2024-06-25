@@ -293,6 +293,44 @@ class wind_simulation:
         if error_output:
             print(error_output)
         return
+    
+    def easy_output_file(self,outputs=['v','T','rho'],
+                         output_file='saves/simplified_outputs/output.dat',
+                         comments=''):
+        '''Description: Writes desired solution variables to csv that can be 
+                        easily shared.
+
+           Arguments: 
+               outputs - list of str; desired solution columns. 'r' not required.
+               output_file - str; default='output.dat'. Can include path.
+               comments - str; default=''. Planet info always included in header
+        '''
+        f = open(output_file,'w')
+        self.windsoln.add_user_vars()
+        s = self.windsoln
+    #     if len(comments) == 0:
+        header = f'#Planet: {s.Mp/const.Mjupiter:.4f} Mjup, {s.Rp/const.Rjupiter:.4f} Rjup, {s.semimajor/const.au:.3f} au \n'
+        header += f'#Star: {s.Mstar/const.Msun:.3f} Msun, {s.Lstar/const.Lsun:.3f} Lsun \n'
+        header += f'#Spectrum: {s.Ftot:.0f} ergs/s/cm2, {s.spectrum_tuple[3]}, [{s.spec_normalized[0]/1e-7:.3f},{s.spec_normalized[1]/1e-7:.3f}] nm\n'
+        comments = header + '#'+comments+'\n'    
+        f.write(comments)
+        col_line='r,r/Rp'
+        for var in outputs:
+            if var != 'r':
+                col_line += f',{var}'
+        col_line+='\n'
+        f.write(col_line)
+
+        for i in range(len(s.soln['r'])):
+            line = '%.1f,%.3f' %(s.soln['r'][i],s.soln_norm['r'][i])    
+            for var in outputs:
+                if var != 'r':
+                    line += ',%.5e' %s.soln[var][i]
+            line+='\n'
+            f.write(line)
+        f.close() 
+        
+        return
 
 
     def run_wind(self, retry=False, expedite=False, verbose=False):
@@ -1818,7 +1856,22 @@ class wind_simulation:
                     If the loaded solution base BC is at higher pressure, though,
                     the base_press will stay that value in subsequent iterations.
         Arguments:
-            base_press - int (or float); default=1.
+            base_press - int (or float); default=1. Integer pressure at base of sim
+                                        in units of microbars. Will be overridden
+                                        if loaded solution has different base press
+            user_override_press - bool; default=False. To lower or raise pressure
+                                        of base, set True.
+            Kappa_opt - float; default = 4e-3. Optical opacity. Sets bolometric
+                                               heating/cooling in molecular region
+                                               below wind.
+            Kappa_IR  - float; default = 1e-2. IR opacity. See above.
+            molec_adjust - float; default=2.3. Dimensionless mean MOLECULAR weight.
+                                  Mu of H2 is 2.3*mH.
+            adiabat - bool; default=False. A mostly defunct feature that computes 
+                            base bcs assuming atmo is adiabatic below wind.
+            expedite - bool; default=False.
+            
+            
         '''        
         #be careful with this. Could mean no ramping base bcs when I want to.
 #         if self.failed_deeper_bcs_ramp==True:
@@ -1833,11 +1886,10 @@ class wind_simulation:
         #the base pressure saved to solution
         if user_override_press == False:
             P = self.windsoln.soln['rho'][0]*const.kB*self.windsoln.soln['T'][0]/(self.windsoln.molec_adjust*const.mH)
-            OOM_base_press = 10**np.floor(np.log10(P))
-            if OOM_base_press != base_press:
-#                 print(f'\rSim base currently at {P:.0f} microbars. Maintaining this.',
-#                       end='                                                      ')
-                base_press = OOM_base_press #=P would prob be more accurate in case someone sets it to 2
+#             OOM_base_press = 10**np.floor(np.log10(P))
+            rounded_base = np.round(P)
+            if rounded_base != base_press:
+                base_press = rounded_base #=P would prob be more accurate in case someone sets it to 2
 
         goal_bcs = self.base_bcs(self.windsoln.molec_adjust,
                                  Kappa_opt,Kappa_IR,adiabat,base_press,
@@ -1928,12 +1980,10 @@ class wind_simulation:
             P = self.windsoln.soln['rho'][0]*const.kB*self.windsoln.soln['T'][0]/(self.windsoln.molec_adjust*const.mH)
             if (P >= 0.7) and (P<= 1): #avoids errors in rounding (may raise in future)
                 P = 1.01
-            OOM_base_press = 10**np.floor(np.log10(P))
-#             print(P,OOM_base_press)
-            if OOM_base_press != base_press:
-#                 print(f'\rSim base currently at {P:.0f} microbars. Maintaining this.',
-#                       end='                                 ')
-                base_press = OOM_base_press #=P would prob be more accurate in case someone sets it to 2
+#             OOM_base_press = 10**np.floor(np.log10(P))
+            rounded_base = np.round(P)
+            if rounded_base != base_press:
+                base_press = rounded_base #=P would prob be more accurate in case someone sets it to 2
         
         Rp = self.windsoln.Rp
         if molec_adjust <= 1:
