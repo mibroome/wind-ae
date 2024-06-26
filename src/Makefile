@@ -8,6 +8,7 @@ EXEDIR=../bin/
 CC=gcc
 CFLAGS=-O3 -Wall
 LDFLAGS=-lm
+LDFLAGS=-lm -fcommon
 
 NRDIR=../ext/nrecipes
 NRSRCS=${NRDIR}/bksub.c \
