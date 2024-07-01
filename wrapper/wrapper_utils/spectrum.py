@@ -23,7 +23,7 @@ class spectrum:
             date: Date of solar observation (format: %Y-%m-%d)
             wl_norm: Converts cm to another wavelength unit via division
             spectrum_file: str; if lisird=False, csv file of user spectrum saved in McAstro/stars/spectrum/additional_spectra/.
-                           File should contain headers of: 'wl' (cm),'F_wl' (erg/s/cm^3),'unc'(???),'nu'(1/s),'F_nu'
+                           File should contain headers of: 'wl' (cm),'F_wl' (erg/s/cm^2/cm),'unc'(???),'nu'(1/s),'F_nu'
         """
         #Scaled and smoothed solar spectrum from LISIRD mission
         if lisird == True:
@@ -44,6 +44,7 @@ class spectrum:
         self.set_resolved(*self.norm_span)
         self.set_normalized(*self.norm_span)
         self.set_window(*self.rslv_span)
+        self.spectrum_file = spectrum_file
         return
 
 
@@ -176,7 +177,7 @@ class spectrum:
         self.glq_spectrum.plot(var,xaxis,plot_polys)
         return
         
-    def plot(self, var='F_wl',xaxis='wl'):
+    def plot(self, var='F_wl',xaxis='wl',semimajor_au=1,highlight_euv=True):
         """
         Description:
             Plot the spectrum. Displays the observations, smoothed, and spans.
@@ -193,58 +194,99 @@ class spectrum:
               &(self.data_norm['wl']<=self.glq_spectrum.bin_breaks[-1]))
         if var == 'F_wl':
             smth = 'f_wl_smth'
-            norm = self.glq_spectrum.F_tot/self.glq_spectrum.wl_norm
-            ax.set_ylabel('Spectral irradiance at 1 au\n'
-                          r'($F_{\lambda}$) [erg cm$^{-2}$ s$^{-1}$ nm$^{-1}$]')
+            norm = self.glq_spectrum.F_tot/self.glq_spectrum.wl_norm * (1/semimajor_au)**2
+            ax.set_ylabel(f'Spectral irradiance at {semimajor_au:.2f} au\n'
+                          r'($F_{\lambda}$) [erg cm$^{-2}$ s$^{-1}$ cm$^{-1}$]')
         elif var == 'Phi_wl':
             smth = 'phi_wl_smth'
-            norm = self.glq_spectrum.Phi_tot/self.glq_spectrum.wl_norm
-            ax.set_ylabel('Spectral photon irradiance at 1 au\n'
-                      r'($\Phi_{\lambda}$) [cm$^{-2}$ s$^{-1}$ nm$^{-1}$]')
+            norm = self.glq_spectrum.Phi_tot/self.glq_spectrum.wl_norm * (1/semimajor_au)**2
+            ax.set_ylabel(f'Spectral photon irradiance at {semimajor_au:.2f} au\n'
+                      r'($\Phi_{\lambda}$) [cm$^{-2}$ s$^{-1}$ cm$^{-1}$]')
         else:
             print(f"ERROR: var: {var}, not recognized. Use 'F_wl' or 'Phi_wl.")
             return
         if xaxis=='wl':
-            l1, = ax.plot(self.data_norm['wl'][mk], self.data[var][mk], lw=1,
+            l1, = ax.plot(self.data_norm['wl'][mk], 
+                          self.data[var][mk]*(1/semimajor_au)**2, lw=1,
                           label='Spectrum')
             l2, = ax.plot(self.data_norm['wl'][mk], norm*self.data_norm[smth][mk],
                           lw=2, label='Smoothed')
             v1 = ax.axvline(self.wndw_span[0], zorder=0, ls='--', c='y', lw=3,
-                            label='Window')
+                            label=f'Window: {self.wndw_span[0]:.2f} - {self.wndw_span[1]:.1f} nm ')
+            
+            if highlight_euv == True:
+                wl_range = np.array(self.data_norm['wl'][mk])
+                flux = norm*self.data_norm[smth][mk]
+                delta_wl = wl_range[1]-wl_range[0]
+                flux *= np.diff(wl_range,prepend=wl_range[0]-delta_wl)*1e-7
+                max_F = max(self.data[var][mk]*(1/semimajor_au)**2)*0.8
+
+                euv_range = [max(12.4,min(wl_range)),
+                             max(wl_range)]
+                ax.axvspan(euv_range[0],euv_range[1],color='tab:purple',alpha=0.1)
+                if max(self.data_norm['wl'][mk])>91:
+                    xuv_range = [min(wl_range),12.4]
+                    ax.axvspan(xuv_range[0],xuv_range[1],color='c',alpha=0.1)
+                    F_xuv = sum(flux[(wl_range>xuv_range[0]) & (wl_range<xuv_range[1])])
+                    ax.text(xuv_range[0]+np.diff(xuv_range)/4,max_F,
+                            r'F$_{XUV}\sim$%.0f'%F_xuv,color='darkcyan',
+                            fontsize=14,weight='bold')
+                F_euv = sum(flux[(wl_range>euv_range[0])&(wl_range<euv_range[1])])
+                ax.text(euv_range[0]+np.diff(euv_range)/3,max_F,
+                         r'F$_{EUV}\sim$%.0f'%F_euv,color='tab:purple',
+                        fontsize=14,weight='bold')
+
+            
             ax.axvline(self.wndw_span[1], zorder=0, ls='--', c='y', lw=3)
-            v2 = ax.axvline(self.rslv_span[0], zorder=-1, ls='-.', c='m', lw=3,
-                            label='Resolved')
-            ax.axvline(self.rslv_span[1], zorder=-1, ls='-.', c='m', lw=3)
-            v3 = ax.axvline(self.norm_span[0], zorder=-2, ls='-', c='r', lw=3,
-                            label='Normalized')
-            ax.axvline(self.norm_span[1], zorder=-2, ls='-', c='r', lw=3)
             ax.set_xlabel(r'Wavelength ($\lambda$) [nm]')
+        
         if xaxis=='energy':
             convert = const.hc/(self.wl_norm*const.eV)
-            l1, = ax.plot(convert/self.data_norm['wl'][mk], self.data[var][mk], lw=1,
+            l1, = ax.plot(convert/self.data_norm['wl'][mk], 
+                          self.data[var][mk]*(1/semimajor_au)**2, lw=1,
                           label='Spectrum')
-            l2, = ax.plot(convert/self.data_norm['wl'][mk], norm*self.data_norm[smth][mk],
+            l2, = ax.plot(convert/self.data_norm['wl'][mk],
+                          norm*self.data_norm[smth][mk],
                           lw=2, label='Smoothed')
             v1 = ax.axvline(convert/self.wndw_span[0], zorder=0, ls='--', c='y', lw=3,
-                            label='Window')
+                            label=f'Window: {const.hc/(self.wndw_span[1]*self.glq_spectrum.wl_norm)/const.eV:.2f} - {const.hc/(self.wndw_span[0]*self.glq_spectrum.wl_norm)/const.eV:.0f} eV')
+            
+            if highlight_euv == True:
+                wl_range = np.array(self.data_norm['wl'][mk])
+                flux = norm*self.data_norm[smth][mk]
+                delta_wl = wl_range[1]-wl_range[0]
+                flux *= np.diff(wl_range,prepend=wl_range[0]-delta_wl)*1e-7
+                wl_range = convert/wl_range #converting to eV
+                max_F = max(self.data[var][mk]*(1/semimajor_au)**2)*0.8
+
+                euv_range = [max(10,min(wl_range)),min(100,max(wl_range))]
+                ax.axvspan(euv_range[0],euv_range[1],color='tab:purple',alpha=0.1)
+                if max(self.data_norm['wl'][mk])>91:
+                    xuv_range = [100,max(wl_range)]
+                    ax.axvspan(xuv_range[0],xuv_range[1],color='c',alpha=0.1)
+                    F_xuv = sum(flux[(wl_range>xuv_range[0]) & (wl_range<xuv_range[1])])
+                    ax.text(xuv_range[0]+np.diff(xuv_range)/4,max_F,
+                            r'F$_{XUV}\sim$%.0f'%F_xuv,color='darkcyan',
+                            fontsize=14,weight='bold')
+                F_euv = sum(flux[(wl_range>euv_range[0])&(wl_range<euv_range[1])])
+                ax.text(euv_range[0]+np.diff(euv_range)/5,max_F,
+                         r'F$_{EUV}\sim$%.0f'%F_euv,color='tab:purple',
+                        fontsize=14,weight='bold')
+
+
             ax.axvline(convert/self.wndw_span[1], zorder=0, ls='--', c='y', lw=3)
-            v2 = ax.axvline(convert/self.rslv_span[0], zorder=-1, ls='-.', c='m', lw=3,
-                            label='Resolved')
-            ax.axvline(convert/self.rslv_span[1], zorder=-1, ls='-.', c='m', lw=3)
-            v3 = ax.axvline(convert/self.norm_span[0], zorder=-2, ls='-', c='r', lw=3,
-                            label='Normalized')
-            ax.axvline(convert/self.norm_span[1], zorder=-2, ls='-', c='r', lw=3)
             ax.set_xlabel(r'Energy ($E$) [eV]')
             ax.set_xticks([20,60],labels=['20','60'])
-#             ax[2,0].set_yticks([1,2,4,6,10],labels=['1','2','4','6','10'])
 
             ax.set_xscale('log')
-        ax.set_title(f'Sol: {self.date}')
+        if self.spectrum_file == '':
+            self.spectrum_file = f'Scaled_solar: {self.date}'
+        ax.set_title(self.spectrum_file)
         ax.set_yscale('log')
         fig.tight_layout(pad=0.3)
         fig.subplots_adjust(bottom=0.3, top=0.9)
-        lines = [v1, l1, v2, l2, v3]
+        lines = [l1, l2, v1]
         labels = [l.get_label() for l in lines]
-        fig.legend(lines, labels, bbox_to_anchor=(0.5, -0.1), loc='lower center',
-                   ncol=3)
+        fig.legend(lines, labels, bbox_to_anchor=(0.5, -0.00), loc='lower center',
+                   ncol=3, fontsize=14)
         return fig, ax

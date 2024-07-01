@@ -246,11 +246,11 @@ def quick_plot(soln, Mdot_legend=True, line_color='k', line_style='-', line_labe
         ax - axes object (if first_plotted=True)
         title
     '''
-    try: # Check if r_cori has be calculated. If not, calculate all post-facto user variables
-        soln.r_cori
+    try: # Check if R_cori has be calculated. If not, calculate all post-facto user variables
+        soln.R_cori
     except AttributeError:
         if soln.integrate_outward == 0:
-            soln.r_cori = 1e10
+            soln.R_cori = 1e10
         else:
             soln.add_user_vars()
     
@@ -270,10 +270,10 @@ def quick_plot(soln, Mdot_legend=True, line_color='k', line_style='-', line_labe
         ax[1,0].axvline(radius_norm*(soln.soln_norm['z'][1]+1.),
                         c=line_color, alpha=alpha, ls='--', zorder=3,label='Sonic Point')
         ax[1,0].axvline(R_H,ls=':',c=line_color,label='Hill Radius')
-        if soln.Rmax > soln.r_cori:
+        if soln.Rmax > soln.R_cori:
             ax[1,0].fill_betweenx((0,np.max(soln.soln['rho'])),
-                                  soln.r_cori,soln.Rmax,alpha=0.3,color=line_color,
-                                  label=r'R$_{cori}$ = %.2fR$_p$' %soln.r_cori)
+                                  soln.R_cori,soln.Rmax,alpha=0.3,color=line_color,
+                                  label=r'R$_{cori}$ = %.2fR$_p$' %soln.R_cori)
         ax[1,0].legend()
     #Density (+Hill Radius and sonic point for legend purposes)
     ax[0,0].semilogy(soln.soln_norm['r'], soln.soln['rho'],c=line_color,ls=line_style,
@@ -312,15 +312,15 @@ def quick_plot(soln, Mdot_legend=True, line_color='k', line_style='-', line_labe
     if ion_label==True:
         ax[1,1].legend(fontsize=fontsize,ncol=columns)
     #Plotting shared lines
-    if soln.Rmax > soln.r_cori:
+    if soln.Rmax > soln.R_cori:
         if first_plotted==False:
             ax[0,0].fill_betweenx((0,np.max(soln.soln['rho'])),
-                                  soln.r_cori,soln.Rmax,alpha=0.3,color=line_color)
+                                  soln.R_cori,soln.Rmax,alpha=0.3,color=line_color)
         ax[0,1].fill_betweenx((0,np.max(soln.soln['T'])),
-                              soln.r_cori,soln.Rmax,alpha=0.3,color=line_color)
+                              soln.R_cori,soln.Rmax,alpha=0.3,color=line_color)
         ax[1,0].fill_betweenx((0,np.max(soln.soln['v']/(10*100*1000))),
-                              soln.r_cori,soln.Rmax,alpha=0.3,color=line_color)
-        ax[1,1].fill_betweenx((0,1),soln.r_cori,soln.Rmax,alpha=0.3,color=line_color)
+                              soln.R_cori,soln.Rmax,alpha=0.3,color=line_color)
+        ax[1,1].fill_betweenx((0,1),soln.R_cori,soln.Rmax,alpha=0.3,color=line_color)
     for k in range(2):
         ax[1,k].set_xlabel(r'Radius (R$_p$)')
         for m in range(stack):
@@ -360,11 +360,11 @@ def six_panel_plot(soln,Mdot_legend=True,line_color='k',line_style='-',line_labe
         SixPlot(sim2.windsoln, ax=ax1)
         SixPlot(sim3.windsoln, ax=ax1)
     '''
-    try: # Check if r_cori has be calculated
-        soln.r_cori
+    try: # Check if R_cori has be calculated
+        soln.R_cori
     except AttributeError:
         if soln.integrate_outward == 0:
-            soln.r_cori = 1e10
+            soln.R_cori = 1e10
         else:
             soln.add_user_vars()
     
@@ -389,15 +389,15 @@ def six_panel_plot(soln,Mdot_legend=True,line_color='k',line_style='-',line_labe
         ax[1,0].axvline(radius_norm*(soln.soln_norm['z'][1]+1.),
                      c=line_color, alpha=alpha, ls='--', zorder=3,label='Sonic Point')
         ax[1,0].axvline(R_H,ls=':',c=line_color,label='Hill Radius')
-        if soln.Rmax > soln.r_cori:    
+        if soln.Rmax > soln.R_cori:    
             ax[1,0].fill_betweenx((0,np.max(soln.soln['rho'])),
-                                  soln.r_cori,soln.Rmax,alpha=0.3,color=line_color,
-                                  label=r'R$_{cori}$ = %.2fR$_p$' %soln.r_cori)
+                                  soln.R_cori,soln.Rmax,alpha=0.3,color=line_color,
+                                  label=r'R$_{cori}$ = %.2fR$_p$' %soln.R_cori)
     
     #Density (+Hill Radius and sonic point for legend purposes)
-    if first_plotted == False and soln.Rmax > soln.r_cori:
+    if first_plotted == False and soln.Rmax > soln.R_cori:
         ax[0,0].fill_betweenx((0,np.max(soln.soln['rho'])),
-                              soln.r_cori,soln.Rmax,alpha=0.3,color=line_color)
+                              soln.R_cori,soln.Rmax,alpha=0.3,color=line_color)
     ax[0,0].semilogy(soln.soln_norm['r'], soln.soln['rho'],c=line_color,
                      ls=line_style,label=line_label)
     ax[0,0].legend(loc='upper left', 
@@ -407,9 +407,9 @@ def six_panel_plot(soln,Mdot_legend=True,line_color='k',line_style='-',line_labe
     ax[1,0].plot(soln.soln_norm['r'], soln.soln['v']/1e6,c=line_color,ls=line_style)
     ax[1,0].legend()
     
-    if soln.Rmax > soln.r_cori:
+    if soln.Rmax > soln.R_cori:
         ax[1,0].fill_betweenx((0,np.max(soln.soln['v']/1e6)),
-                              soln.r_cori,soln.Rmax,alpha=0.3,color=line_color)
+                              soln.R_cori,soln.Rmax,alpha=0.3,color=line_color)
     ax[1,0].set_ylabel(r'Velocity (10 km/s)')
 
     #Temperature
@@ -424,9 +424,9 @@ def six_panel_plot(soln,Mdot_legend=True,line_color='k',line_style='-',line_labe
     ax[2,0].get_yaxis().set_minor_formatter(ticker.ScalarFormatter())
     
 
-    if soln.Rmax > soln.r_cori:
+    if soln.Rmax > soln.R_cori:
         ax[2,0].fill_betweenx((0,np.max(soln.soln['T'])),
-                              soln.r_cori,soln.Rmax,alpha=0.3,color=line_color)
+                              soln.R_cori,soln.Rmax,alpha=0.3,color=line_color)
     if Mdot_legend==True:
         leg = ax[2,0].legend(edgecolor='k')
         leg.get_frame().set_linewidth(1.5)
@@ -450,8 +450,8 @@ def six_panel_plot(soln,Mdot_legend=True,line_color='k',line_style='-',line_labe
         ax[0,1].semilogy(soln.soln_norm['r'],soln.soln[ionized],
                          ls=':',c=colormap[j],label=r'$%s_{%s}$'%(element_name,highest_state))
         max_n = np.append(max_n,np.max(soln.soln[total]))
-    if soln.Rmax > soln.r_cori:
-        ax[0,1].fill_betweenx((0,np.max(max_n)),soln.r_cori,soln.Rmax,alpha=0.3,color=line_color)
+    if soln.Rmax > soln.R_cori:
+        ax[0,1].fill_betweenx((0,np.max(max_n)),soln.R_cori,soln.Rmax,alpha=0.3,color=line_color)
     ax[0,1].legend(ncol=2,fontsize=fontsize) 
     ax[0,1].set_ylim(bottom=1e3)
     ax[0,1].set_ylabel(r'n (cm$^{-3}$)')
@@ -464,8 +464,8 @@ def six_panel_plot(soln,Mdot_legend=True,line_color='k',line_style='-',line_labe
         ax[1,1].semilogy(soln.soln_norm['r'],1-soln.soln['Ys_'+spname],label=spname,c=line_color)
         title += spname+': %.2f, '%(soln.HX[j])
     ax[1,1].set_ylabel(r'Ionization Fraction')
-    if soln.Rmax > soln.r_cori:
-        ax[1,1].fill_betweenx((0,1),soln.r_cori,soln.Rmax,alpha=0.3,color=line_color)
+    if soln.Rmax > soln.R_cori:
+        ax[1,1].fill_betweenx((0,1),soln.R_cori,soln.Rmax,alpha=0.3,color=line_color)
     ax[1,1].set_ylim((1e-3,0.99999999))
     if ion_label==True:
         ax[1,1].legend(fontsize=fontsize,ncol=columns)
@@ -479,8 +479,8 @@ def six_panel_plot(soln,Mdot_legend=True,line_color='k',line_style='-',line_labe
         max_ncol = np.append(max_ncol,np.max(soln.soln['Ncol_'+spname]))
     ax[2,1].set_ylabel(r'Ncol (cm$^{-2}$)')
     ax[2,1].legend(fontsize=fontsize,ncol=columns)
-    if soln.Rmax > soln.r_cori:
-        ax[2,1].fill_betweenx((0,np.max(max_ncol)),soln.r_cori,soln.Rmax,alpha=0.3,color=line_color)
+    if soln.Rmax > soln.R_cori:
+        ax[2,1].fill_betweenx((0,np.max(max_ncol)),soln.R_cori,soln.Rmax,alpha=0.3,color=line_color)
 
     #Plotting shared lines
     for k in range(2):
@@ -489,11 +489,11 @@ def six_panel_plot(soln,Mdot_legend=True,line_color='k',line_style='-',line_labe
             ax[m,k].axvline(radius_norm*(soln.soln_norm['z'][1]+1.),
                              c=line_color, alpha=alpha, ls='--', zorder=3)
             ax[m,k].axvline(R_H,ls=':',c=line_color)
-#             if soln.Rmax > soln.r_cori:
+#             if soln.Rmax > soln.R_cori:
 #             if soln.Rmax > 10:
-#                 ax[m,k].fill_betweenx((0,1e100),soln.r_cori,soln.Rmax,alpha=0.3,color='k')
+#                 ax[m,k].fill_betweenx((0,1e100),soln.R_cori,soln.Rmax,alpha=0.3,color='k')
 #                 custom_lines = [Line2D([0], [0], color='tab:gray', lw=4)]
-#                 ax[0,0].legend(custom_lines, [r'R$_{cori}$ = %.2f' %soln.r_cori])
+#                 ax[0,0].legend(custom_lines, [r'R$_{cori}$ = %.2f' %soln.R_cori])
     plt.gca().set_xlim(left=soln.Rmin)
     plt.gca().set_xlim(right=soln.Rmax)
     if first_plotted==True:
@@ -660,13 +660,13 @@ def coriolis_plot(windsoln, ax, var='position', label_system=None):
               "Aviable variables: 'position', 'velocity', "
               "'pos_angle', 'vel_angle'\n"
              .format(var))
-    ax.axvline(windsoln.r_cori, c=cori_vert_color, ls='--', zorder=0)
+    ax.axvline(windsoln.R_cori, c=cori_vert_color, ls='--', zorder=0)
     return
 
 
 def ballistic_plot(windsoln, ax, show_star=False, t_end=None):
     if t_end is None:
-        t_end = np.log10(windsoln.stream_time(windsoln.r_cori)
+        t_end = np.log10(windsoln.stream_time(windsoln.R_cori)
                          -windsoln.stream_time(windsoln.R_sp))
     if show_star:
         def semimajor_ball_time(t):
@@ -686,7 +686,7 @@ def ballistic_plot(windsoln, ax, show_star=False, t_end=None):
     # Overlay length scales
     circle1 = plt.Circle((0, 0), windsoln.R_sp, color='r', lw=5, fill=False,
                          zorder=0, alpha=0.8)
-    circle2 = plt.Circle((0, 0), windsoln.r_cori, color='m', lw=5, fill=False,
+    circle2 = plt.Circle((0, 0), windsoln.R_cori, color='m', lw=5, fill=False,
                          zorder=0, alpha=0.8)
     circle3 = plt.Circle((0, 0), windsoln.Rmin, color='k', lw=5, zorder=10,
                          alpha=0.8)

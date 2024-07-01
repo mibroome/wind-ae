@@ -38,7 +38,7 @@ class observation:
         if onlyrcrit == 1:
             sphere_extent = min(r_star, self.windsoln.R_sp)
         elif onlyHill == 1:
-            sphere_extent = min(r_star, self.windsoln.rHill)
+            sphere_extent = min(r_star, self.windsoln.R_Hill)
         else:
             sphere_extent = min(r_star, self.windsoln.Rmax)
         vert_extent = self.windsoln.vert_extent
@@ -47,7 +47,7 @@ class observation:
         if onlyrcrit == 1:
                 b_arr = np.linspace(Rmin, min(r_star, self.windsoln.R_sp), 50)
         elif onlyHill == 1:
-            b_arr = np.linspace(Rmin, min(r_star, self.windsoln.rHill), 50)
+            b_arr = np.linspace(Rmin, min(r_star, self.windsoln.R_Hill), 50)
         else:
             b_arr = np.linspace(Rmin, min(r_star, self.windsoln.Rmax), 50)
         tau_arr = np.zeros((len(self.v_arr), len(b_arr)))
@@ -56,7 +56,7 @@ class observation:
         if onlyrcrit == 1:
             pop_s = np.linspace(Rmin, 0.95*self.windsoln.R_sp, 20)
         elif onlyHill == 1:
-            pop_s = np.linspace(Rmin, 0.95*self.windsoln.rHill, 20)
+            pop_s = np.linspace(Rmin, 0.95*self.windsoln.R_Hill, 20)
         else:
             pop_s = np.linspace(Rmin, 0.95*self.windsoln.Rmax, 20)
         temp = self.windsoln.T_fit(pop_s)
@@ -79,14 +79,14 @@ class observation:
                 if onlyrcrit == 1:
                     s =  np.linspace(-self.windsoln.R_sp, self.windsoln.R_sp, 100)
                 elif onlyHill == 1:
-                    s =  np.linspace(-self.windsoln.rHill, self.windsoln.rHill, 100)
+                    s =  np.linspace(-self.windsoln.R_Hill, self.windsoln.R_Hill, 100)
                 else:
                     s = np.linspace(-self.windsoln.Rmax, self.windsoln.Rmax, 100)
                 rs = np.sqrt(b**2 + s**2)
                 if onlyrcrit == 1:
                     sim_mask = rs < self.windsoln.R_sp
                 elif onlyHill == 1:
-                    sim_mask = rs < self.windsoln.rHill
+                    sim_mask = rs < self.windsoln.R_Hill
                 else:
                     sim_mask = rs < self.windsoln.Rmax
                 rs = rs[sim_mask]

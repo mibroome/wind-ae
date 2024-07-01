@@ -251,7 +251,7 @@ class wind_solution:
         self.gamma = 5./3. #Read this in from somewhere?
         self.Omega = np.sqrt(const.G*(self.Mp+self.Mstar)/self.semimajor**3)
         self.semimajor_normed = self.semimajor/self.Rp
-        self.rHill = (self.semimajor_normed*(self.Mp/(3.*self.Mstar))**(1./3.))
+        self.R_hill = (self.semimajor_normed*(self.Mp/(3.*self.Mstar))**(1./3.))
         self.v_esc = np.sqrt(2*const.G*self.Mp/self.Rp)
         # Calculate sim_spectrum totals/means
         self.Phi0 = self.Ftot*self.sim_spectrum['wPhi'].sum()
@@ -841,7 +841,7 @@ class wind_solution:
                                                       self.cori_vel(s)[0]))
             phi_0 = np.arctan2(self.cori_vel(s_int[0])[1],
                                self.cori_vel(s_int[0])[0])
-            self.r_cori = optimize.fsolve(calc_vel_deflect_one_rad, self.R_sp,
+            self.R_cori = optimize.fsolve(calc_vel_deflect_one_rad, self.R_sp,
                                          args=(phi_0))[0]
         return
 
