@@ -13,14 +13,14 @@
 #define SQR(x) ((x)*(x))
 
 /* Relaxation code parameters */
-#define NSPECIES 7
+#define NSPECIES 4
 #define NE (4+2*NSPECIES)         /* number of equations */
 #define M 1501            /* number of points */
 #define NB (2+NSPECIES)          /* number of boundary conditions at first point */
 #define ITMAX 100     /* max number of iterations */
 #define CONV 1.0E-10  /* convergence criterion */
 #define SLOWC 1.0E-2  /* slow down when far from convergence */
-#define N_ADD_PARAMS 0  /* Number of additional parameters. Allows future users to easily add params */
+#define N_ADD_PARAMS 0
 // #define NADD 0.0  /*Number of additional parameters Allows future users to easily add params */
 
 /* odeint continuation parameters */

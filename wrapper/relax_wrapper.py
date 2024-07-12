@@ -282,7 +282,7 @@ class wind_simulation:
                                      self.windsoln.nspecies, self.windsoln.spectrum_tuple[3])) +
                     '.csv')
         if not overwrite and os.path.isfile(name):
-            print('File already exist.\n'
+            print('File already exists.\n'
                   '  To overwrite use save_planet(overwrite=True).')
             return
         print("Saving %s" % name)
@@ -296,7 +296,7 @@ class wind_simulation:
     
     def easy_output_file(self,outputs=['v','T','rho'],
                          output_file='saves/simplified_outputs/output.dat',
-                         comments=''):
+                         comments='', overwrite=False):
         '''Description: Writes desired solution variables to csv that can be 
                         easily shared.
 
@@ -305,6 +305,10 @@ class wind_simulation:
                output_file - str; default='output.dat'. Can include path.
                comments - str; default=''. Planet info always included in header
         '''
+        if not overwrite and os.path.isfile(output_file):
+            print('File already exists.\n'
+                  '  To overwrite use set overwrite=True.')
+            return
         f = open(output_file,'w')
         self.windsoln.add_user_vars()
         s = self.windsoln
@@ -1616,13 +1620,13 @@ class wind_simulation:
 
                 #improves odds of ramping successfully if Ncol_sp is self consistently converged at some point
                 if first_run == True:
-                    self.converge_Ncol_sp(expedite=True,warning=False)
+                    self.converge_Ncol_sp(expedite=True,quiet=True)
                     first_run = False
 
                 Ncols = self.windsoln.Ncol_sp 
 
             print(f"{ns:s} successfully added and ramped to mass fraction {goal_mfs[-1]:.2e}. Now converging Ncol_sp.")
-            self.converge_Ncol_sp(warning=False)
+            self.converge_Ncol_sp(quiet=True)
 
 #         desired_species = desired_species_list
 #         if Ncol_sp_tot == 0:
@@ -1708,7 +1712,7 @@ class wind_simulation:
 #                             else:
 #                                 step+=delta
 
-#                 print(f'Sucess! {ns:s} has been successfully ramped to {Z:d}xZ')
+#                 print(f'Success! {ns:s} has been successfully ramped to {Z:d}xZ')
 
         return 0
     
@@ -1734,7 +1738,15 @@ class wind_simulation:
 
     
     def ramp_metallicity(self,goal_Z=1,custom_mfs=[]):
-        if len(goal_mass_fracs) != 0:
+        '''Description: Ramps up the metallicity of the species present in the simulation.
+                        Can do in multiples of solar Z or set custom mass fractions.
+           
+           Arguments: 
+               goal_Z - float; default=1. Multiples of Lodders (2008) solar metallicity.
+               custom_mfs - list of floats; default=[]. If [], will default to goal_Z. 
+                                           If not empty, will use the custom_mfs.
+        '''
+        if len(custom_mfs) != 0:
             if len(custom_mfs) != len(self.windsoln.species_list):
                 sys.exit("ERROR: Mass fraction and species list must be the same length.")
             if np.round(np.sum(custom_mfs),5) != 1:
@@ -1772,7 +1784,13 @@ class wind_simulation:
                     self.converge_Ncol_sp(expedite=True)
                 print(f'Mass fractions successfully ramped to: {self.windsoln.HX}')
                 
-        else:        
+        else: 
+            grid = np.zeros(200)
+            for i in range(200):
+                grid[i] = abs(self.metallicity(self.windsoln.species_list,Z=i+1)[0]-
+                              self.windsoln.HX[0])
+            start_Z = np.where(grid==min(grid))[0][0]+1
+            print("Starting metallicity: %d xSolar"%start_Z)
             current_Z = start_Z
             while (1-current_Z/goal_Z) > 1e-5:
                 if goal_Z - current_Z > 5:
@@ -1793,10 +1811,11 @@ class wind_simulation:
                         print('Failed at Z = ',current_Z)
                         sys.exit(1)
                     fail+=1
-                print(f'\r Sucess! Attemping to ramp Z from {current_Z-2:.1f} to {current_Z:.1f}',
+                print(f'\r Success! Attemping to ramp Z from {current_Z-2:.1f} to {current_Z:.1f}',
                  end='                                                                               ')
                 stepsize=2
-            print('Sucess! Ramped to goal metallicity, Z = %.f Z_solar'%current_Z)
+            print('Success! Ramped to goal metallicity, Z = %.0f x Solar'%current_Z)
+            self.converge_Ncol_sp(expedite=True)
             return
 
 #     def converge_all_bcs(self, expedite=False):
@@ -1841,7 +1860,7 @@ class wind_simulation:
 #                 return
 #             self.converge_Rmax()
 #             self.converge_Ncol_sp()
-#             print('\rSucessfuly polished & converged all boundary conditions!',
+#             print('\rSuccessfuly polished & converged all boundary conditions!',
 #                   end='                                                   ')
 #         return
 
@@ -2394,7 +2413,7 @@ class wind_simulation:
                                 return #self.turn_off_bolo()
                             elif fail <= 2: #try smoothing out erf
                                 step_erfs = np.copy(current_erfs)
-                                step_erfs[1] *= 3*fail
+                                step_erfs[1] *= 5*fail
                                 self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
                                                       step_erfs)
                                 print(f"\r Erf Fail {fail:d}: Smoothing transition: {step_erfs[1]}",
@@ -3192,7 +3211,7 @@ class wind_simulation:
 
         while np.average((wPhi - self.windsoln.sim_spectrum['wPhi'])/self.windsoln.sim_spectrum['wPhi'])>1e-10:
             avg = np.average((wPhi - self.windsoln.sim_spectrum['wPhi']))
-            print(f"\r Sucess! Average difference now {avg:.2e}",
+            print(f"\r Success! Average difference now {avg:.2e}",
                  end='                                                  ')
 
             fail = 0
