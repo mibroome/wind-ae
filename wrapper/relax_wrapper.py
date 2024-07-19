@@ -21,6 +21,8 @@ from scipy.optimize import fsolve
 from os.path import exists
 import math
 import sys
+import pylab as pl
+from IPython import display
 
 from .wrapper_utils import constants as const
 from .wrapper_utils.atmosphere import atmosphere
@@ -46,27 +48,9 @@ class wind_simulation:
     def __init__(self, csv_file='inputs/guess.inp', name='Init. Planet',
                  expedite=True):
         self.strat_kappa = 1e-2
-#         self.failed_deeper_bcs_ramp = False
-
         self.inputs = input_handler()
         self.first_print = True
         self.skip = False
-#         self.windsoln = wind_solution(file=csv_file, expedite=True)
-#         self.guess = None # Set by next line's call to self.load_planet()
-#         self.load_planet(csv_file, expedite=expedite)
-#         self.system = system(self.guess.Mp, self.guess.Rp, self.guess.Mstar,
-#                              self.guess.semimajor, self.guess.Ftot, self.guess.Lstar, name=name) 
-# #         self.mu = self.physics.calc_mu()
-#         self.atmosphere = atmosphere(self.system,
-#                                      self.guess.T_rmin*self.guess.scales[3],
-#                                      self.mu, #H2 and He
-#                                      kappa_opt=self.strat_kappa)
-#         self.atmosphere.windbase_radius(self.guess.rho_rmin
-#                                         *self.guess.scales[1])
-#         self.physics = physics(*self.windsoln.physics_tuple) #imports variables from guess file here
-#         #needs to be in tuple rather than individual input form b/c user may not include atomic masses and opt to use default instead.
-#         for j in range(self.windsoln.nspecies):
-#             self.windsoln.species_list[j] = (self.windsoln.species_list[j]).replace(' ','')
 
     def load_nonexpedited(self, csv_file=None):
         if csv_file is None:
@@ -93,6 +77,7 @@ class wind_simulation:
         return
 
 
+    
     def load_planet(self, csv_file, expedite=True, name='Loaded Planet',print_atmo_composition=True):
         '''
         Loading planet solution file into inputs/guess.inp as new guess. 
@@ -222,6 +207,7 @@ class wind_simulation:
             self.load_spectrum()
         self.last_load = csv_file
 
+        
 
     def load_spectrum(self, generate=False, wl_norm=1e-7):
         if self.windsoln.spec_src_file != 'scaled-solar':
@@ -243,6 +229,7 @@ class wind_simulation:
             self.spectrum.generate(kind=self.windsoln.spec_kind, savefile='inputs/spectrum.inp')
         return
 
+    
 
     def make_string_from_scinum(self, x):
         exp = np.log10(x)
@@ -253,6 +240,8 @@ class wind_simulation:
         exp = int(np.log10(x/base))
         return base, exp
 
+    
+    
     
     def save_planet(self, name=None, folder='', overwrite=False,polish=False,
                     repo='saves/'):
@@ -293,6 +282,8 @@ class wind_simulation:
         if error_output:
             print(error_output)
         return
+    
+    
     
     def easy_output_file(self,outputs=['v','T','rho'],
                          output_file='saves/simplified_outputs/output.dat',
@@ -376,229 +367,9 @@ class wind_simulation:
             # saves/windsoln.csv and inputs/guess.inp are the same
             self.guess = self.windsoln
             return 0
-        
-    def quick_calc_heat_cool(self):
-        n_tot = np.zeros_like(self.windsoln.soln['rho'])
-        
-        unspaced_list = [sp.replace(' ','') for sp in McAtom.formatting_species_list(self.windsoln.species_list)]
-        for j,species in enumerate(unspaced_list):
-            n = self.windsoln.HX[j]*self.windsoln.soln['rho']
-            n /= self.windsoln.atomic_masses[j]
-            n_tot += n
-            self.windsoln.soln['n_'+species] = n
-            
-        n_HII = (1-self.windsoln.soln['Ys_HI'])*self.windsoln.soln['n_HI']
+                     
 
-        # Multifrequency calculations
-        background_ioniz_frac = n_HII/n_tot #only based on H fraction
-        background_ioniz_frac[background_ioniz_frac<0] = 1e-10
-
-        #Re-written for speed, so most is reshaping 
-        heating_rate = np.zeros((len(self.windsoln.soln), self.windsoln.nspecies))
-        total_heating = np.zeros(len(self.windsoln.soln))
-
-        Ncol_arr    = self.windsoln.soln.iloc[:,4+self.windsoln.nspecies:4+2*self.windsoln.nspecies]
-        Ncol_arr[Ncol_arr<0] = 0      #less than 0 because unconverged soln returns negative Ncols. This feels sus.
-        sigmas = self.windsoln.sim_spectrum.iloc[:,2:2+self.windsoln.nspecies]
-        taus = np.dot(Ncol_arr,sigmas.T)
-        wPhi = np.multiply(np.tile(self.windsoln.sim_spectrum['wPhi'],(len(taus),1)),np.exp(-taus))*self.windsoln.Ftot
-
-        # Adapted from Mocassin (Shull & Steenberg 1985)
-        # Accounts for secondary ionizations due to highly energetic (>100eV) incoming photons
-        frac_in_heat = 0.9971 * (1 - pow(1-pow(background_ioniz_frac,0.2663),1.3163))
-    #     print(frac_in_heat)
-        for s, species in enumerate(self.windsoln.species): #48s
-            E_matrix = np.tile(self.windsoln.E_wl,(len(background_ioniz_frac),1))
-            Ncol_matrix = np.tile(Ncol_arr.iloc[:,s],(self.windsoln.npts,1)).T
-            sig_matrix = np.tile(sigmas.iloc[:,s],(len(background_ioniz_frac),1))
-
-            f = np.nan_to_num(sig_matrix*Ncol_matrix / taus) #frac of incoming photon energy that will interact with species s
-            E0_matrix = E_matrix - self.windsoln.ion_pot[s]
-
-            heatfrac_matrix = (np.tile(frac_in_heat,(len(self.windsoln.E_wl),1))).T
-            heatfrac_matrix[E0_matrix<6.408707e-11] = 1 #zeroing where E_0 too low for secondary ionizations (100eV)
-
-            heating_rate[:,s] = np.sum((heatfrac_matrix)*E0_matrix*sig_matrix*f*wPhi,axis=1)
-            n_abs = self.windsoln.soln['n_'+species]
-            heating_rate[:,s] *= n_abs #/rho temporary
-
-        heat = np.sum(heating_rate,axis=1)
-
-        P = self.windsoln.soln['rho']*const.kB*self.windsoln.soln['T']/(self.windsoln.molec_adjust*const.mH)
-        cool = P*self.windsoln.soln['v']/self.windsoln.soln['rho']
-        cool *= np.gradient(self.windsoln.soln['rho'], self.windsoln.soln['r'])
-
-        return heat, cool
-    
-    
-    def turn_off_bolo(self):
-        self.load_planet('saves/windsoln.csv',print_atmo_composition=False)
-#         if failed_bolo_turn_off == True:
-#             print("Previously failed to turn off bolometric heating and cooling, so not trying here.")
-#             return
-        if self.windsoln.bolo_heat_cool == 1:
-            print('..Turning off bolometric heating/cooling.')
-        #turning off bolo_heat_cool
-        while self.windsoln.bolo_heat_cool > 0:
-            flags = self.windsoln.flags_tuple
-            bolo_flag = np.copy(flags[2])
-            delta = -flags[2]
-            flags[2] = 0 #turning off bolo heating and cooling
-            self.inputs.write_flags(*flags)
-            fail = 0
-            while self.run_wind(expedite=True) != 0:
-                fail+=1
-                if fail>5:
-                    print(f"WARNING: Failed to turn off bolometric heating/cooling. This is unusual. Current multiplicative factor: {self.windsoln.bolo_heat_cool}. Goal: 0.")
-                    self.windsoln.flags_tuple[2] = 1
-                    self.inputs.write_flags(*self.windsoln.flags_tuple)
-                    return 1
-                delta /= 2
-                flags[2] = bolo_flag + delta
-                print(f'\rTurning off bolometric heating & cooling. Trying factor of {flags[2]:.2f}',
-                      end='                                                  ')
-                self.inputs.write_flags(*flags) 
-                
-        return 0
-    
-    
-        
-    def erf_velocity(self,return_idx=False,called_in_ramp_bcs=False, 
-                     polish=False,width_factor=1):
-        '''Description: Defines the drop-off radius at which the complementary 
-                        error function that governs the drop off of the bolometric
-                        heating and cooling and of the mean molecular weight
-                        in the isothermal part of the wind as photoionization
-                        heating begins to dominate and the atmosphere becomes
-                        atomic and non-isothermal.
-                        
-           Arguments: return_idx - bool; default=False. If true, returns radial
-                                         index where drop-off occurs.
-                      called_in_ramp_bcs - bool; avoids recursion of ramping bases
-                                                  if called in ramp_base_bcs()
-           Returns: v[drop_index] - velocity of drop-off in units of cm/s.
-        '''
-                    
-        
-        #now turns off boloheat/cool if sim base not deep enough
-        heat, cool = self.quick_calc_heat_cool()
-        if polish == True:
-            self.windsoln.add_user_vars()
-            heat = self.windsoln.soln['heat_ion']
-            cool = self.windsoln.soln['cool_PdV']
-        v = self.windsoln.soln_norm['v']
-        r = self.windsoln.soln_norm['r']
-
-        try:
-            #finds where photoion heating first starts to dominate over PdV cool
-            drop_index = np.where(heat>-cool)[0][0]
-        except IndexError:
-            drop_index = 0 
-        
-        #Drop-off rate / gradient of erf
-        def rate_calc(idx):
-            #Approximate pressure scaleheight at drop radius in units of Rp
-            Hsc =  const.kB*self.windsoln.soln['T'][idx]*self.windsoln.soln['r'][idx]
-            Hsc /= (const.mH*self.windsoln.molec_adjust*const.G*self.windsoln.Mp) 
-            #approximates mu as molecular value
-            #Compute the desired rate of erfc drop-off as 
-            if idx >= 10:
-                slope = (v[idx+10] - v[idx-10])/(r[idx+10] - r[idx-10])
-            else:
-                slope = (v[idx+10] - v[idx])/(r[idx+10] - r[idx])
-            width = width_factor*Hsc 
-            rate = slope*width
-            return rate
-            
-        #If the base of the simulation is still within the photoionization heating
-        #region, try to lower the base of the simulation.
-#         if (drop_index<=10) and (called_in_ramp_bcs==False) and (self.failed_deeper_bcs_ramp==False) and (expedite==False):
-#             rmin = self.windsoln.Rmin
-#             print(f"Current sim base ({rmin:.3f}Rp) may not capture all",
-#                   " photoion heating.\n",
-#                  "   Setting lower BC radius deeper in atmosphere.")
-#             #while the photoionization doesn't drop below PdV cooling, 
-#             #lower base BCs x2 attempts
-#             fail=0
-#             while len(np.where(-cool[:20]>heat[:20])[0]) < 3:
-#                 P =  self.windsoln.soln['rho'][0]*const.kB
-#                 P *= self.windsoln.soln['T'][0]/(self.windsoln.molec_adjust*const.mH)
-#                 OOM_base_press_old = 10**np.floor(np.log10(P))
-#                 if OOM_base_press_old >= 100:
-#                     print("Lowering base past 100 microbars unlikely to lower",
-#                           " Rmin sufficiently to capture all photoionization",
-#                           " heating for this high gravity planet.")
-#                     print("  Bolometric heating/cooling turned off.")
-#                     self.failed_deeper_bcs_ramp = True #don't waste time trying
-#                     self.turn_off_bolo()
-#                     return v[0],rate_clac(0)
-                
-#                 #don't try to lower more than 2 times b/c very expensive
-#                 if fail>=2:
-#                     print(f"Current base P: {OOM_base_press_old:.0f} microbars.",
-#                           "\nStopping here, but user can ramp manually",
-#                           " to higher pressure.\n  Still not capturing all ",
-#                           "photoion heating, so bolometric heating/cooling",
-#                           " turned off.")
-#                     self.failed_deeper_bcs_ramp = True #don't waste time trying
-#                     self.turn_off_bolo()
-#                     if return_idx==True:
-#                         return v[0],rate_calc(0),0
-#                     else:
-#                         return v[0],rate_calc(0)
-                
-#                 #ramping to 10xlower base pressure
-#                 result = self.ramp_base_bcs(base_press=OOM_base_press_old*10,
-#                                           user_override_press=True)
-#                 if result == 0:
-#                     heat, cool = self.quick_calc_heat_cool()
-#                 else:
-#                     print("Failed to ramp BCs lower in atmo.")
-#                     self.failed_deeper_bcs_ramp = True #don't waste time trying
-#                     self.turn_off_bolo()
-                    
-#                     if return_idx==False:
-#                         return v[0],rate_calc(0)
-#                     else:
-#                         return v[0],rate_calc(0),0
-#                 fail+=1
-        
-        #If this is being called inside of the ramping function, do this 
-        #to avoid recursion
-        if (drop_index<=10) and (called_in_ramp_bcs==True):
-            if return_idx==False:
-                return v[0],rate_calc(0)
-            else:
-                return v[0],rate_calc(0),0
-        
-        #If it has previously failed to ramp deeper 
-        elif (drop_index<=10):# and (self.failed_deeper_bcs_ramp==True):
-            self.turn_off_bolo()
-            if return_idx==False:
-                return v[0],rate_calc(0)
-            else:
-                return v[0],rate_calc(0),0
-            
-#         #If expediting, should skip ramping base deeper and just turn off bolo.    
-#         elif (drop_index<=10) and (expedite==True):
-# #             self.failed_deeper_bcs_ramp = True #don't waste time trying
-#             self.turn_off_bolo()
-#             if return_idx==False:
-#                 return v[0],rate_calc(0)
-#             else:
-#                 return v[0],rate_calc(0),0
-            
-        if drop_index > 500: #low grav superearths need no drop off
-            rate = 10*rate_calc(drop_index)
-        else:
-            rate = rate_calc(drop_index)
-        #If none of the above conditions are triggered, simply return v
-        if return_idx == True:
-            return v[drop_index],rate,drop_index
-        else:
-            return v[drop_index],rate                
-
-
+#Ramping Functions
     def ramp_to(self, system=None, converge=True,
                 make_plot=False,integrate_out=True): #physics=None, bcs=None,
         if (system is None):# and physics is None):
@@ -634,19 +405,6 @@ class wind_simulation:
             
         if integrate_out == True:
             self.converge_Rmax()
-            
-#         if physics is not None:
-#             self.ramp_class = "physics"
-#             result = self.ramp_var("HX", physics.value("HX"),
-#                                   converge_bcs=converge,converge_Ncol=False,
-#                                   make_plot=make_plot,
-#                                   expedite=True,
-#                                   integrate_out=integrate_out)
-#             fail += result
-#         self.ramp_base_bcs() 
-#         if converge:
-#             if result < 5: #if last run already failed to ramp BCs don't waste time trying again
-#                 self.polish_bcs(converge_Rmax=integrate_outwards)
 
         return fail
 
@@ -964,9 +722,6 @@ class wind_simulation:
                     R_delta /= 2.
                 # Try converging. Can be expensive, so only try every once in a while
                 if failed == 4:
-#                 current_base_bcs = self.windsoln.bcs_tuple[0:4] 
-#                 goal_base_bcs = np.array(self.base_bcs())
-#                 if np.mean(abs((current_base_bcs-goal_base_bcs)/goal_base_bcs)) > 1e-3:
                     print("...Intermediate Ramping BCs activated.")
 #                     self.isotherm_start(run_wind=False) #updates where bolometric heat/cool dominate
                     self.ramp_base_bcs() 
@@ -984,13 +739,6 @@ class wind_simulation:
                 if converge and (conv_cntr >= conv_every_n or
                                 prcnt_chng >= conv_every_pc):
                     # converge boundary conditions on partial solution
-                    # First update atmosphere to update Rmin location
-#                     self.atmosphere = atmosphere(temp,
-#                                                  (self.windsoln.T_rmin
-#                                                   *self.windsoln.scales[3]),
-#                                                  self.mu,
-#                                                  kappa_opt=self.strat_kappa)
-#                     self.converge_all_bcs(expedite=True)
 #                     self.isotherm_start(run_wind=False) #updates where bolometric heat/cool dominate
                     self.ramp_base_bcs(intermediate=True,tolerance=0.1) #only converge if >10% diff in goal BC
                     self.run_isotherm()
@@ -1500,9 +1248,13 @@ class wind_simulation:
                 print(f'\nERROR: Failure at the end game... result={result}')
                 return 1
     
+    
+#Metals functions    
     def metallicity(self,metals_list,Z):
         self.metals = metal_class(self.windsoln)
         return self.metals.metallicity(metals_list,Z)
+        
+        
         
     
     def add_metals(self, desired_species_list, Z=1, custom_mfs=[], Ncol_sp_tot=0, integrate_out=True):
@@ -1627,94 +1379,9 @@ class wind_simulation:
 
             print(f"{ns:s} successfully added and ramped to mass fraction {goal_mfs[-1]:.2e}. Now converging Ncol_sp.")
             self.converge_Ncol_sp(quiet=True)
-
-#         desired_species = desired_species_list
-#         if Ncol_sp_tot == 0:
-#             Ncol_sp_tot = sum(self.windsoln.Ncol_sp)
-#         McAtom.formatting_species_list(desired_species)
-#         unspaced_list = [sp.replace(' ','') for sp in desired_species]
-
-#         new_species = np.setdiff1d(unspaced_list,self.windsoln.species_list,
-#                                   assume_unique=True)
-#         for ns in new_species:
-#             print(ns)
-#             self.metals.add_species_to_guess(ns)
-#             if self.run_wind() != 0:
-#                 print("Failed to add new species. That shouldn't have happened.",
-#                       "Try reloading your initial solution.")
-#                 sys.exit(2)
-#             else:
-#             #Ramping Mass Fractions
-#                 #If user defined custom mass fractions, use those values
-#                 if len(custom_mfs) > 0: 
-#                     if len(custom_mfs) != len(desired_species):
-#                         sys.exit("ERROR: Mass fraction and species list must be the same length.")
-#                     if np.round(np.sum(custom_mfs),5) != 1:
-#                         print('WARNING: Total Mass Fraction must sum to 1. ',
-#                               'sum(ZX) = %.3f' %np.sum(goal_mass_fracs))
-#                     species_mf_dict = dict(zip(unspaced_list,custom_mfs))
-#                     temp_custom_mfs = []
-#                     for name in self.windsoln.species_list:
-#                         temp_custom_mfs = np.append(temp_custom_mfs,species_mf_dict[name])
-#                     goal_mfs = temp_custom_mfs
-#                 else:
-#                     goal_mfs = self.metals.metallicity(self.windsoln.species_list,Z) 
-#                     #mass fractions of updated species list for metallicity Z
-#                 current_mfs = self.windsoln.HX
-#                 start_mfs = self.windsoln.HX
-#                 total_delta = goal_mfs - current_mfs
-#                 print(f'{ns:s} successfully added. Current mass fractions: {current_mfs}',
-#                       f'Goal mass fractions: {goal_mfs}')
-#                 failure_counter = 0
-#                 while np.mean((goal_mfs-current_mfs)/goal_mfs) > 3e-10:
-#                     delta = goal_mfs - current_mfs
-#                     self.metals.rewrite_mass_frac(goal_mfs,Ncol_sp_tot=Ncol_sp_tot,integrate_out=integrate_out)
-#                     fail = 1
-#                     while self.run_wind() != 0:
-#                         if fail == 2:
-#                             failure_counter+=1
-#                         last_fail = fail
-#                         step_mfs = current_mfs+delta/10**(fail)
-#                         temp_delta = (1-np.sum(step_mfs))
-#                         step_mfs[0] += temp_delta #ensuring mass fractions sum to 1
-#                         print(f'\r...Failure {fail:d}. Attempting mass fractions: {step_mfs}',
-#                              end = '                                                                       ')
-#                         self.metals.rewrite_mass_frac(step_mfs,Ncol_sp_tot=Ncol_sp_tot,integrate_out=integrate_out)
-#                         if fail>10:
-#                             print(f'Failed to ramp {sp:s}.',
-#                                   ' Current mass frac: {current_mfs}, Goal: {goal_mfs}.')
-#                             print('Ramper is not currently equipped to skip faulty species,',
-#                                   ' so we suggest reordering the species list so the faulty',
-#                                   ' species is ramped in last.')
-#                             return 1
-#                         fail+=1
-#                     current_mfs = self.windsoln.HX
-
-#                     if failure_counter >= 3: #switch to slow linear ramp, often necessary for He.
-#                         print("---Switching to the slower, linear ramping of mass fraction.---")
-#                         Nsteps = 10**last_fail
-#                         delta = (goal_mfs-current_mfs)/Nsteps
-#                         step = current_mfs + delta
-#                         for i in range(Nsteps):
-#                             print(f'\rStep {i:d}/{Nsteps:d}: {step}',
-#                                   end='                                              ')
-#                             step[0] += (1-np.sum(step)) #so that the total sums to 1
-#                             self.metals.rewrite_mass_frac(step,sum(self.windsoln.Ncol_sp))
-#                             fail=1
-#                             while self.run_wind() != 0:
-#                                 raising_Ncol = sum(self.windsoln.Ncol_sp)*(1+0.1*fail)
-#                                 print(f"Fail {fail:d} - Trying higher total Ncol:",raising_Ncol)
-#                                 self.metals.rewrite_mass_frac(step,raising_Ncol)
-#                                 fail+=1
-#                                 if fail>10:
-#                                     print(f"Permanent Failure at {steps}.")
-#                                     sys.exit()
-#                             else:
-#                                 step+=delta
-
-#                 print(f'Success! {ns:s} has been successfully ramped to {Z:d}xZ')
-
         return 0
+    
+    
     
     def remove_metals(self, remove_species_list, run_wind=True):
         self.metals = metal_class(self.windsoln)
@@ -1737,6 +1404,7 @@ class wind_simulation:
         return
 
     
+    
     def ramp_metallicity(self,goal_Z=1,custom_mfs=[]):
         '''Description: Ramps up the metallicity of the species present in the simulation.
                         Can do in multiples of solar Z or set custom mass fractions.
@@ -1758,7 +1426,7 @@ class wind_simulation:
             self.inputs.write_physics_params(goal_mass_fracs,*self.windsoln.physics_tuple[1:])
             if self.run_wind(expedite=True) == 0:
                 print(f'Mass fractions successfully ramped to: {self.windsoln.HX}')
-                return self.converge_Ncol_sp()
+                return self.converge_Ncol_sp(expedite=True)
             else:
                 print('\r Taking smaller steps...')
                 percent = 0.2
@@ -1818,54 +1486,105 @@ class wind_simulation:
             self.converge_Ncol_sp(expedite=True)
             return
 
-#     def converge_all_bcs(self, expedite=False):
-#         """
-#         Description:
-#             Converges the boundary conditions of the relaxation code, such
-#             that there is an internal consistency. The boundaries are split
-#             into critical and non-critical ones, where critical boundaries
-#             are of greater importance, such as rho_rmin to ensure all the
-#             energy is deposited within the simulation. A non-critical
-#             boundary is Ncol_sp, as while this can alter the total incoming
-#             flux of the star, it is not nearly as important as rho_rmin. Therefore,
-#             it has be relagated to a non-critical status and should only be
-#             performed when polishing the results and should be skipped when
-#             ramping between systems as the results should not vary greatly
-#             and adds significant cost.
-
-#             Currently no ramping for Ys_rmin, as currently we always want
-#             to be 1.0 for all species. This is enforced by proxy from the
-#             rho_rmin boundary, which has the ionization rate go to zero at
-#             the inner boundary. In the future if one wants to include
-#             collisional ionization then the boundary should be set to
-#             converge to the thermal equilibrium species fraction.
-
-#             T_rmin is also neglected as that is something that the end user
-#             needs to set by hand depending on the system. If the results of
-#             Murray-Clay et al. 2009, Appendix A are to be correct then this
-#             boundary does not greatly alter the structure (but as mentioned
-#             elsewhere it will effect Rmin), as long as the temperature is
-#             less than the outflow temperature (which I'll assert is moreso
-#             to do with blowoff, i.e., the atmosphere being thermally
-#             unbound).
-#         """
-#         #shouldn't need these after bolometric heating and cooling added
-# #         self.converge_rho_rmin(expedite=True)  
-# #         self.converge_Rmin(expedite=True)
-# #         self.ramp_rho_Rp(expedite=True)
-#         if not expedite:
-#             if not self.windsoln.integrate_outward:
-#                 print("\nERROR: Attempted to converge non-critical bcs, but\n"
-#                       "         solution isn't integrated past critical point.")
-#                 return
-#             self.converge_Rmax()
-#             self.converge_Ncol_sp()
-#             print('\rSuccessfuly polished & converged all boundary conditions!',
-#                   end='                                                   ')
-#         return
 
 
+#Polishing Boundary Conditions functions (many of these these enforce self-consistency, and are not neccessary for
+#precision, but are for maximal accuracy (within the inherent uncertainty in the model))
+    def polish_bcs(self,converge_Rmax=True):
+        '''Description: 
+        '''
+        #Checking that base bcs (Rmin, rho, T) have been converged
+        print('Polishing up boundary conditions...')
+        self.ramp_base_bcs() 
+        goal_bcs = self.base_bcs()
+        curr_bcs = np.array(self.windsoln.bcs_tuple[:4])   
+        avg_diff = sum(np.array((abs(curr_bcs-goal_bcs)/goal_bcs)[[0,2,3]]))
 
+        #Checking that the molecular to atomic transition is occuring at the correct radius
+#         isotherm = self.run_isotherm(polish=True)
+        isotherm = self.run_isotherm() #temporary fix
+        width = 1
+        self.windsoln.add_user_vars()
+        idx = np.searchsorted(self.windsoln.soln_norm['v'],
+                              self.windsoln.erf_drop[0])
+        while any(-self.windsoln.soln['heat_advect'][idx-10:idx+10]>
+                  self.windsoln.soln['heat_ion'][idx-10:idx+10]):
+#         while any(-self.windsoln.soln['heat_advect'] > self.windsoln.soln['heat_ion']):
+            width+=1
+            if width > 10:
+                print("Warning: 20 scaleheights is an unlikely width for the error function",
+                      " transitioning between molecular and atomic regions.",
+                      "\nCheck energy_plot(). Stopping here.")
+                break
+            print(f"\r...Smoothing transition from molecular to atomic region. Erf width = {width:d} Hsc",
+                 end="                                                                ")
+            isotherm = self.run_isotherm(polish=True,width_factor=width/2)
+            if isotherm != 0:
+                print("Failed to smooth transition from molecular to atomic region.",
+                      "Unphysical kinks in wind profile may be present at base of wind. ",
+                      "\n       Mass loss rate relatively unaffected.")
+                break
+            self.windsoln.add_user_vars()
+        
+#         #if not capturing all of photoionization heating, print this warning
+#         heat = self.windsoln.soln['heat_ion']
+#         cool = self.windsoln.soln['cool_PdV']
+#         try:
+#             #finds where photoion heating first starts to dominate over PdV cool
+#             idx = np.where(heat>-cool)[0][0]
+#         except IndexError:
+#             idx = 0
+#         if idx <= 10:
+#             P = self.windsoln.soln['P'][0]
+#             note = f'''\nNOTE: Simulation currently does not capture all photoionization heating. Error in mass loss rate may be up to 10% in this case. \nTo set sim base deeper in wind, use ramp_base_bcs(user_override_press=True, base_press=__) where the base pressure is in units of microbars. This is an expensive calculation and may take a while - consider doing it on a H-He atmosphere. \n         Current sim base pressure: {10**np.floor(np.log10(P))} '''
+#             print(note)
+        #Converging Rmax (sets Rmax=r_cori) and/or Ncol_sp
+        rcori_result = 'Success'
+        if converge_Rmax==True:
+            Ncol = self.converge_Ncol_sp()
+            Rmax = self.converge_Rmax()
+            rcori_str = f'\n   Setting Rmax to R_coriolis:         %s'
+        else:
+            Ncol = self.converge_Ncol_sp()
+            rcori_str = ''
+        
+        warn = ''
+        bc_result = 'Success'
+        iso_result = 'Success'
+        ncol_result = 'Success'
+        warn2=f'''-\nPolishing boundary conditions:\n   Base boundary conditions:           %s\n   Molec. to atomic transition:        %s\n   Self-consist. Ncol at sonic point:  %s'''+rcori_str
+        fails = 0
+        if avg_diff > 1e-2:
+            fails += 1
+            warn += ' base boundary conditions (ramp_base_bcs),'
+            bc_result = 'Failed'
+        if isotherm != 0 and self.windsoln.bolo_heat_cool != 0:
+            fails += 1
+            warn += ' bolometric heating/cooling (run_isotherm),'
+            iso_result = 'Failed'
+        if Ncol != 0:
+            fails += 1
+            warn += ' Ncol at sonic point (converge_Ncol_sp),'
+            ncol_result = 'Failed'
+        try:
+            if Rmax != 0:
+                fails += 1
+                warn += ' setting Rmax to R_coriolis (converge_Rmax)'
+                rcori_result = 'Failed'
+        except NameError:
+            warn += ''
+       
+        if (len(warn)>0) and (warn[-1] == ','):
+            warn = warn[:-1]
+        
+        if fails == 0:
+            return 0
+        else:
+            if converge_Rmax == True:
+                print(warn2 %(bc_result,iso_result,ncol_result,rcori_result))
+            else:
+                print(warn2 %(bc_result,iso_result,ncol_result))
+            return 5
     def ramp_base_bcs(self,base_press=1,
                       user_override_press=False,
                       Kappa_opt=4e-3,Kappa_IR=1e-2,molec_adjust=2.3, 
@@ -1897,13 +1616,6 @@ class wind_simulation:
             
             
         '''        
-        #be careful with this. Could mean no ramping base bcs when I want to.
-#         if self.failed_deeper_bcs_ramp==True:
-#             if self.first_print == True:
-#                 print("Elsewhere in run, simulation failed to ramp to deeper BCs. Not wasting time trying again.",
-#                      "\nBolometric heating/cooling set to 0. (Note: Sim may not capture all photoion heating).")
-#                 self.first_print = False
-#             return
         rho_scale = self.windsoln.scales_dict['rho']
         T_scale = self.windsoln.scales_dict['T']
         #Unless user wants to override the base pressure, take the pressure to be
@@ -1958,7 +1670,7 @@ class wind_simulation:
         ''' Sets base of simulation below XUV tau=1 surface and assumes bolometric 
         heating & cooling of molecules dominates there.
 
-        Computes the density and temperature at either R_mbar (millibar 
+        Computes the density and temperature at either R_ubar (microbar 
         pressure radius) or R_IR (*vertical* tau=1 surface to IR radiation 
         - between this radius and the nanobar radius where wind is launched, 
         the temperature profile is an isotherm at the skin temperature). 
@@ -2046,213 +1758,20 @@ class wind_simulation:
         else:
             return R_mbar/Rp,self.windsoln.Rmax,rho_mbar/1e-15,T_skin/1e4
 
-#     def isotherm_start(self, run_wind=True):
-#         '''Description: Computes an approximate error function transition value.
-#         Users can opt to ramp to this value or simply to write it to input file
-#         and ramp on the next explicit call of run_wind().
         
-#         Parameters:
-#             run_wind: bool; default = True. True -> run_wind(). False just writes
-#                                             erf_drop to bcs input file to be run by 
-#                                             next instance of run_wind().
-#         Returns:
-#             goal_erf_drop: float; the approximate error function transition value.
-#         '''
-#         self.load_uservars('inputs/guess.inp')
-#         r = self.windsoln.soln_norm['r']
-#         T = self.windsoln.soln['T']
-#         slope = np.diff(T)/T[1:]
-#         #peak = where ionization heating first dominates
-#         peak = np.where(slope[10:]==max(slope[10:]))[0][0] 
-#         heat_ion = self.windsoln.soln['heat_ion']
-#         cool_pdv = -self.windsoln.soln['cool_PdV']
-#         #cool = where PdV cooling begins to dominate (towards base of wind)
-#         cool = np.where(cool_pdv[:peak]>heat_ion[:peak])[0][-1]
-
-#         #some point between those radii to which we approximately want 
-#         #bolometric heat/cool to dominate
-#         intersect = cool+np.floor((peak-cool)*0.7)
-
-#         #defining a function so we can solve for the necessary erf transition point
-#         def bolo(trans_array,intersect):
-#             length = len(trans_array)
-#             boloheat_P = np.zeros_like(trans_array)
-#             v = self.windsoln.soln_norm['v']
-#             for j,P in enumerate(trans_array):    
-#                 smoothing_erf = np.zeros_like(v)
-#                 for i in range(len(smoothing_erf)):
-#                     smoothing_erf[i] = 1-math.erf(v[i]*P)
-#                 smoothing_erf /= np.max(smoothing_erf)
-#                 kappa_opt = 4e-3*smoothing_erf; kappa_IR = 1e-2*smoothing_erf  
-#                 #need pressure BC (smooth using erf) because kappas are not valid in wind
-#                 F_opt = self.windsoln.Lstar/(4*np.pi*self.windsoln.semimajor**2)
-#                 boloheat_P[j] = (F_opt*(kappa_opt+0.25*kappa_IR)*self.windsoln.soln['rho'])[intersect] 
-#             return boloheat_P
-
-#         #solving for the transition point
-#         trans_array = np.logspace(-2,3,100)
-#         bolospline = CubicSpline(trans_array,bolo(trans_array,intersect)-heat_ion[intersect])
-#         goal_erf_drop = np.round(fsolve(bolospline,0))[0]
-#         if goal_erf_drop <0.01: #below this, erf transition does not really advance to higher radii
-#             goal_erf_drop = 0.01
-
-#         #Ramping to erf_drop
-#         if run_wind==True: 
-#             current_erf_drop = self.windsoln.erf_drop
-#             print(f"\rGoal bolometric transition: {goal_erf_drop}. Current: {current_erf_drop:.2f}")
-#             while abs((goal_erf_drop-self.windsoln.erf_drop)/goal_erf_drop) >0.05:
-#                 delta = (goal_erf_drop-current_erf_drop)
-#                 self.windsoln.bcs_tuple[-1] = goal_erf_drop
-#                 self.inputs.write_bcs(*self.windsoln.bcs_tuple)
-#                 fail = 0
-#                 while self.run_wind() != 0:
-#                     fail += 1
-#                     step_erf_drop = current_erf_drop + delta/(fail+1)
-#                     print(f"\rFail {fail}: Attempting bolometric erf transition {step_erf_drop:.2f}",
-#                           end="                                                   ")
-#                     self.windsoln.bcs_tuple[-1] = step_erf_drop
-#                     self.inputs.write_bcs(*self.windsoln.bcs_tuple)
-#                     if fail > 10:
-#                         print(f"Failure at {step_erf_drop:.2f}")
-#                         return 1
-
-#         return goal_erf_drop         
-
-#     def check_bolocool_mag(self,plot=False):
-#         T = self.windsoln.soln['T']
-#         slope = np.diff(T)/T[1:]
-#         #peak = where ionization heating first dominates
-#         peak = np.where(slope[10:]==max(slope[10:]))[0][0]
-# #         print('bolomag 1',self.windsoln.Rp/const.Rearth)
-# #         self.load_uservars() 
-#         self.load_uservars('saves/windsoln.csv')
-# #         print('bolomag 2',self.windsoln.Rp/const.Rearth)
-#         #FIX: Risky b/c could load unrealted solution, but guess.inp loads old 
-#         #maybe match windsoln to input params to see if same planet, then load that
-#         high = np.where(-self.windsoln.soln['bolocool'][peak+20:]>0.5*self.windsoln.soln['heat_ion'][peak+20:])[0]
-#         if len(high) == 0:
-#             return 0
-#         while len(high) != 0:
-#             self.windsoln.bcs_tuple[-1] = self.windsoln.erf_drop+50
-#             print(f"\rUnphysical bolometric cooling. Shifting bolometric erf inward: {self.windsoln.erf_drop:.0f}",
-#                   end="                                                                                                                                    ")
-#             self.inputs.write_bcs(*self.windsoln.bcs_tuple)
-#     #         out = self.run_wind()
-#             if self.run_wind() != 0:
-#                 print("That shouldn't have happened...Integration error.")
-#                 return
-#             # Plot current state before ramping
-#             if plot == True:
-#                 fig, ax = plt.subplots(1, 1)
-#                 r = self.windsoln.soln_norm['r'][1:]
-#                 ax.axvspan(self.windsoln.Rmin,r[peak+20],color='k',
-#                            alpha=0.3)
-#                 ax.plot(r,-self.windsoln.soln['bolocool'][1:],
-#                          ls=(0, (3, 1, 1, 1, 1, 1)),
-#                          c='lightblue',label='Bolometric Cool')
-#                 ax.plot(r,self.windsoln.soln['heat_ion'][1:],c='r',
-#                         label='Photoion. Heat')
-#                 ax.plot(r,self.windsoln.soln['heat_ion'][1:]*0.5,c='r',
-#                          ls='--',label='50$\%$ Ion. Heat')
-#                 ax.set_yscale('log')
-#                 ax.set_ylim(1e-10)
-#                 ax.set_xlim(1,2)
-#                 ax.set_xlabel('r ($R_p$)')
-#                 ax.set_ylabel('Energy (ergs s$^{-1}$ cm$^{-2}$)')
-#                 fig.tight_layout()
-#                 fig.canvas.draw()
-#             T = self.windsoln.soln['T']
-#             slope = np.diff(T)/T[1:]
-#             peak = np.where(slope[10:]==max(slope[10:]))[0][0]     
-#             high = np.where(-self.windsoln.soln['bolocool'][peak+20:]>0.5*self.windsoln.soln['heat_ion'][peak+20:])[0]
-#         return self.windsoln.erf_drop
-    
-#     def check_isotherm(self,plot=False):
-#         '''Description: For most planets (except super-Earths), below
-#         the wind, where the atmosphere is molecular and in radiative
-#         equilibrium, there should be an isotherm at the skin temperature.
-#         The skin temp is set by the balance of bolometric heating and 
-#         cooling (computed in base_bcs()).
-
-#         Above nanobar pressures, within the wind, the atmopshere is 
-#         (mostly) atomic, so the opacities (Kappa_opt & Kappa_IR) used
-#         to compute the bolometric heating and cooling are no longer valid
-#         and the mean molecular weight (~2.3 mH) should become the mean
-#         atomic weight (a func of ionization fraction and density).
-
-#         Therefore, we send these Kappas to 0 by multiplying them by a complementary 
-#         error function (1-erf((v-erf_drop)*1e5)). The radius of the
-#         erf drop off is parameterized by the value erf_drop. Rapidity of 
-#         drop is constant at 1e5. erf_drop is set as the velocity corresponding
-#         to the radius where photoionization heating begins to dominate over 
-#         PdV cooling.
         
-
-#         '''
-#         #don't go any lower than 50 in erf(v*50), otherwise = unphysical
-#         #as long as the bolometric cool isn't unphysical, accept this soln
-#         min_erf_drop = self.check_bolocool_mag()
-#         #compute the OOM minimum erf_drop that it can be and not have
-#         #bolometric cooling magnitude be too large
-#         if self.windsoln.erf_drop <= 50:
-#             return
-#         T = self.windsoln.soln_norm['T']
-#         r = self.windsoln.soln_norm['r']
-#         Tmin = np.min(T[(r>self.windsoln.Rmin) & (r<1.6)])
-#         Tskin = self.windsoln.T_rmin
-#         percent_diff = abs(np.min(Tmin-Tskin)/Tskin)
-#         current_erf_drop = self.windsoln.erf_drop
-#         niter = 0
-#         while percent_diff > 0.01 and self.windsoln.erf_drop>51:
-#             if self.check_bolocool_mag() != 0:
-#                 return
-#             print(f"\r Success! Current percent difference between T_skin & min(T) = {percent_diff*100:.1f}",
-#                  end="                                                                                  ")
-#             stepsize = 50
-#             erf_drop_step = current_erf_drop - stepsize #pushes erf to higher radii
-#             self.windsoln.bcs_tuple[-1] = erf_drop_step
-#             print(f"\r..Isotherm not achieved. Shifting bolometric drop-off outward: {erf_drop_step:.0f}",
-#                  end="                                                                                  ")
-#             self.inputs.write_bcs(*self.windsoln.bcs_tuple)
-#             fail = 1
-#             while self.run_wind() != 0:
-#                 fail+=1
-#                 erf_drop_step = current_erf_drop - stepsize/fail
-#                 print(f"\r Fail {fail:d}: Trying transition point: {erf_drop_step:.0f}")
-#                 self.windsoln.bcs_tuple[-1] = erf_drop_step
-#                 self.inputs.write_bcs(*self.windsoln.bcs_tuple)
-#                 if fail > 5:
-#                     print(f"That shouldn't have happened! Failed at transition {erf_drop_step:.0f}.")
-#                     print(f"Visually confirm if the deviation from isothermal is acceptable.")
-#                     if plot == True:
-#                         T = self.windsoln.soln_norm['T']
-#                         Tmin = np.min(T[(r>self.windsoln.Rmin) & (r<1.6)])
-#                         Tskin = self.windsoln.T_rmin
-#                         percent_diff = abs(np.min(Tmin-Tskin)/Tskin)
-#                         plt.plot(r,T)
-#                         Tnorm = self.windsoln.scales_dict['T']
-#                         plt.ylabel(f'T ({Tnorm:.0e} K)')
-#                         plt.xlabel('r (Rp)')
-#                         plt.xlim(self.windsoln.Rmin-0.1,np.array(r[T>Tskin])[0]+0.2)
-#                         plt.axhspan(Tskin,Tmin,alpha=0.2,color='k',
-#                                     label=r'%.1f percent' %(100*percent_diff))
-#                         plt.legend()
-#                         plt.show()
-#                     return
-#             T = self.windsoln.soln_norm['T']
-#             Tmin = np.min(T[(r>self.windsoln.Rmin) & (r<1.6)])
-#             Tskin = self.windsoln.T_rmin
-#             percent_diff = abs(np.min(Tmin-Tskin)/Tskin)
-#             current_erf_drop = self.windsoln.erf_drop 
-
-#         return        
-        
-    def converge_Rmax(self,const_Rmax=True,final_converge_Ncol=True):
+    def converge_Rmax(self,final_converge_Ncol=True):
         """
         Description:
-            Equates Rmax to be the Coriolis length. Does not worry about
-            converging other boundaries. Cannot be expedited as we
-            specifically need to have the Coriolis length calculated.
+            Self-consistently sets Rmax to be the Coriolis length. 
+            Does not worry about converging other boundaries. Cannot 
+            be expedited as we specifically need to have the Coriolis 
+            length calculated.
+            
+        Arguments:
+            final_converge_Ncol - bool; default=True. Converges Ncol_sp self-
+                                        consistently again after Rmax has been 
+                                        set to Rcori.
         """
 #         print(self.windsoln.R_cori)
 #         self.run_wind()#need to populate saves/windsoln.csv with windsoln
@@ -2287,9 +1806,7 @@ class wind_simulation:
                         self.load_nonexpedited('inputs/guess.inp') #shouldn't it be windsoln?
             else:
                 self.windsoln.add_user_vars()
-#                 self.load_nonexpedited('inputs/guess.inp')
     
-#             print(self.windsoln.R_cori)
         # First while statement extends domain far past true Coriolis length
         while (self.windsoln.Rmax < self.windsoln.R_cori):
             print("\r..Rmax {:.4e}, r_Cori {:.4e}"
@@ -2344,10 +1861,106 @@ class wind_simulation:
                   end="                                                       ")
         return 0
     
+
+    def converge_Ncol_sp(self,expedite=False,quiet=False):
+        """
+        Description:
+            Self-consistently converges Ncol at the sonic point, such that the 
+            column density boundary condition for each species, Ncol_sp,
+            matches the number density at the sonic point.
+
+        Inputs:
+            expedite - bool; default = False. True does not integrate past Sonic Point.
+            quiet - bool; default = False. Prints warnings about Ncol_sp being only estimates if
+                                            integrate_out = False.
+        """
+        scale = self.windsoln.scales_dict['Ncol_HI'] #scales the same across species
+        #self-consistent Ncol finder
+        Ncol_current,Ncol_goal = self.self_consistent_Ncol(warning=False)
+        Ncol_goal[Ncol_goal==0] = 1e-10*Ncol_goal[0]
+#         print(Ncol_goal)
+        Ncol_current = np.copy(self.windsoln.Ncol_sp)
+        
+        if expedite == True:
+            self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=False)
+        else:
+            self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=True)
+
+        #needs large convergence condition, otherwise will iterate indefinitely
+        niter = 0 #a check
+        while np.abs(np.mean((Ncol_goal-Ncol_current)/Ncol_goal)) > 0.08:
+            niter += 1
+            if niter > 10:
+                print(f'Too many iterations (current average diff {avg:.2e}).')
+                return 1
+            avg = np.abs(np.mean((Ncol_goal-Ncol_current)/Ncol_goal))
+            print(f'\r ...Ramping Ncol Iter {niter:d}: Current average diff {avg:.2e}', 
+                  end='                                                          ')
+
+            self.windsoln.bcs_tuple[5][:] = Ncol_goal  
+            self.inputs.write_bcs(*self.windsoln.bcs_tuple)
+            fail = 1
+            result = self.run_wind(expedite=expedite)
+            while result != 0:
+                attempt = 0
+                if result == 4:
+                    print("\rIntegration error. Turning off outward integration.",
+                         end="                                                          ")
+                    self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=False)
+                    result = self.run_wind(expedite=expedite)
+                else:
+                    delta = (Ncol_goal - Ncol_current)/(2*fail)
+                    Ncol_step = Ncol_current + delta
+                    self.windsoln.bcs_tuple[5][:] = Ncol_step 
+                    self.inputs.write_bcs(*self.windsoln.bcs_tuple)
+                    print(f'\r...Fail {fail:d}: Attempting Ncol_sp = { Ncol_step*scale}.',
+                          end='                                                                        ')
+
+                    if fail > 10:
+                        print(f"Failed at Ncol_sp = {Ncol_current} ",
+                              f"& Summed neutral number density = {Ncol_goal}.")
+                        return 2
+                    result = self.run_wind(expedite=expedite)
+                    fail += 1
+
+            Ncol_current,Ncol_goal = self.self_consistent_Ncol(warning=False) 
+            Ncol_current = np.copy(self.windsoln.Ncol_sp)
+
+        Ncol_current,Ncol_goal = self.self_consistent_Ncol(warning=False) 
+        avg = np.abs(np.mean((Ncol_goal-Ncol_current)/Ncol_goal))
+        if quiet == False:
+            print(f'\r Success! Average Ncol difference: {avg:.2e}', 
+                  end='                                                   ')
+
+        #Final converence of all species at once (MAY NOT WANT THIS BECAUSE WILL MOVE IT again)
+        if niter != 0:
+            if expedite == True:
+                if quiet == False:
+                    print('\r...Attempting Final Ncol Convergence. (Note: This is an estimate. Cannot converge precisely without outward integration).',
+                          end='                                                              ')  
+            if expedite == False:
+                if quiet == False:
+                    print('\r...Attempting Final Ncol Convergence.',
+                          end='                                                              ')  
+
+            self.windsoln.bcs_tuple[5][:] = Ncol_goal
+            self.inputs.write_bcs(*self.windsoln.bcs_tuple)
+            if self.run_wind(expedite=expedite) == 4:
+                print('Failure at last Ncol convergence.',
+                      f' Last working solution should be fine for most purposes. Average diff: {avg:.2e}')
+                return 6
+        return 0
+
+    
     
     def self_consistent_Ncol(self,method=1,warning=True):
-        #computes the self-consistent column density sonic point boundary condition
-        #from the neutral number density of a given species,j
+        '''Description: Computes the self-consistent column density sonic point boundary condition
+                        from the neutral number density of a given species.
+           
+           Returns:
+               current - array of current Ncol_sp values
+               goals - array of self-consistent Ncol_sp values
+        '''
         #sonic_index = index of sonic point radius
         scale = self.windsoln.scales_dict['Ncol_HI'] #scales the same across species
         goals = np.zeros(self.windsoln.nspecies)
@@ -2377,8 +1990,35 @@ class wind_simulation:
             return currents, goals 
         
         
-    def run_isotherm(self,return_idx=False,called_in_ramp_bcs=False,
-                     polish=False,width_factor=1):
+        
+    def run_isotherm(self,width_factor=1.,return_idx=False,called_in_ramp_bcs=False,
+                     polish=False):
+        '''Description: Ramps the complementary error function that governs the 
+                        transition from the molecular to atomic regions to the atmosphere.
+                        Criterion for transition: when photoionization heating begins to
+                        dominate over the PdV cooling and a wind will launch.
+                        
+                        Below the wind, for an average planet, molecules have not 
+                        photodissociated so mu should be mean molecular weight instead of
+                        mean atomic weight and the erf enforces this. Molec. opacities mean 
+                        that bolometric heating and cooling dominate the energy budget and 
+                        create an isotherm in molecular region below the wind. In the optically 
+                        thin atomic wind, bolometric heating and cooling are negligible, so the 
+                        erf also enforces the drop off bolometric heating and cooling.
+                        
+                        If a user needs to call this function for some reason, width_factor is the
+                        only argument they should need to change. For numerical or physical reasons
+                        it may be neccessary for the transition to occur over more than 1 scaleheight.
+                        In this case, increase width_factor.
+                        
+           Arguments: 
+               width_factor - float; default = 1. Sets the width in scaleheights over which the 
+                                                  erf drops off. 
+               return_idx - bool; default=False.
+               called_in_ramp_bcs - bool; default=False.
+               polish - bool; default=False
+               
+        '''
         if (self.windsoln.bolo_heat_cool == 0) and (polish==False):
             return
         if (polish==False) and (self.skip==True):
@@ -2463,219 +2103,256 @@ class wind_simulation:
                 return 1
         else:
             return 0
-
-    def polish_bcs(self,converge_Rmax=True):
-        #Checking that base bcs (Rmin, rho, T) have been converged
-        print('Polishing up boundary conditions...')
-        self.ramp_base_bcs() 
-        goal_bcs = self.base_bcs()
-        curr_bcs = np.array(self.windsoln.bcs_tuple[:4])   
-        avg_diff = sum(np.array((abs(curr_bcs-goal_bcs)/goal_bcs)[[0,2,3]]))
-
-        #Checking that the molecular to atomic transition is occuring at the correct radius
-        isotherm = self.run_isotherm(polish=True)
-        width = 1
-#         self.load_uservars('inputs/guess.inp')
-        self.windsoln.add_user_vars()
-        idx = np.searchsorted(self.windsoln.soln_norm['v'],
-                              self.windsoln.erf_drop[0])
-        while any(-self.windsoln.soln['heat_advect'][idx-10:idx+10]>
-                  self.windsoln.soln['heat_ion'][idx-10:idx+10]):
-#         while any(-self.windsoln.soln['heat_advect'] > self.windsoln.soln['heat_ion']):
-            width+=1
-            if width > 10:
-                print("Warning: 20 scaleheights is an unlikely width for the error function",
-                      " transitioning between molecular and atomic regions.",
-                      "\nCheck energy_plot(). Stopping here.")
-                break
-            print(f"\r...Smoothing transition from molecular to atomic region. Erf width = {width:d} Hsc",
-                 end="                                                                ")
-            isotherm = self.run_isotherm(polish=True,width_factor=width/2)
-            if isotherm != 0:
-                print("Failed to smooth transition from molecular to atomic region.",
-                      "Unphysical kinks in wind profile may be present at base of wind. ",
-                      "\n       Mass loss rate relatively unaffected.")
-                break
-            self.windsoln.add_user_vars()
         
-#         #if not capturing all of photoionization heating, print this warning
-#         heat = self.windsoln.soln['heat_ion']
-#         cool = self.windsoln.soln['cool_PdV']
-#         try:
-#             #finds where photoion heating first starts to dominate over PdV cool
-#             idx = np.where(heat>-cool)[0][0]
-#         except IndexError:
-#             idx = 0
-#         if idx <= 10:
-#             P = self.windsoln.soln['P'][0]
-#             note = f'''\nNOTE: Simulation currently does not capture all photoionization heating. Error in mass loss rate may be up to 10% in this case. \nTo set sim base deeper in wind, use ramp_base_bcs(user_override_press=True, base_press=__) where the base pressure is in units of microbars. This is an expensive calculation and may take a while - consider doing it on a H-He atmosphere. \n         Current sim base pressure: {10**np.floor(np.log10(P))} '''
-#             print(note)
-        #Converging Rmax (sets Rmax=r_cori) and/or Ncol_sp
-        rcori_result = 'Success'
-        if converge_Rmax==True:
-            Ncol = self.converge_Ncol_sp()
-            Rmax = self.converge_Rmax()
-            rcori_str = f'\n   Setting Rmax to R_coriolis:         %s'
-        else:
-            Ncol = self.converge_Ncol_sp()
-            rcori_str = ''
         
-        warn = ''
-        bc_result = 'Success'
-        iso_result = 'Success'
-        ncol_result = 'Success'
-        warn2=f'''-\nPolishing boundary conditions:\n   Base boundary conditions:           %s\n   Molec. to atomic transition:        %s\n   Self-consist. Ncol at sonic point:  %s'''+rcori_str
-        fails = 0
-        if avg_diff > 1e-2:
-            fails += 1
-            warn += ' base boundary conditions (ramp_base_bcs),'
-            bc_result = 'Failed'
-        if isotherm != 0 and self.windsoln.bolo_heat_cool != 0:
-            fails += 1
-            warn += ' bolometric heating/cooling (run_isotherm),'
-            iso_result = 'Failed'
-        if Ncol != 0:
-            fails += 1
-            warn += ' Ncol at sonic point (converge_Ncol_sp),'
-            ncol_result = 'Failed'
-        try:
-            if Rmax != 0:
-                fails += 1
-                warn += ' setting Rmax to R_coriolis (converge_Rmax)'
-                rcori_result = 'Failed'
-        except NameError:
-            warn += ''
-       
-        if (len(warn)>0) and (warn[-1] == ','):
-            warn = warn[:-1]
-        
-        if fails == 0:
-            return 0
-        else:
-            if converge_Rmax == True:
-                print(warn2 %(bc_result,iso_result,ncol_result,rcori_result))
-            else:
-                print(warn2 %(bc_result,iso_result,ncol_result))
+    def quick_calc_heat_cool(self):
+        ''' Description: Inexpensively calculates the photoionization heating and PdV cooling as 
+                         a function of radius. Used to compute the arguments in the complementary
+                         error function that enforces the molecular to atomic transition.
                 
-#             else:
-#                 print('Failed to polish'+warn+'.\n')
-            return 5
-
+        '''
+        n_tot = np.zeros_like(self.windsoln.soln['rho'])
         
-    def converge_Ncol_sp(self,expedite=False,quiet=False):
-        """
-        Description:
-            Self-consistently converges Ncol at the sonic point, such that the 
-            column density boundary condition for each species, Ncol_sp,
-            matches the number density at the sonic point.
+        unspaced_list = [sp.replace(' ','') for sp in McAtom.formatting_species_list(self.windsoln.species_list)]
+        for j,species in enumerate(unspaced_list):
+            n = self.windsoln.HX[j]*self.windsoln.soln['rho']
+            n /= self.windsoln.atomic_masses[j]
+            n_tot += n
+            self.windsoln.soln['n_'+species] = n
+            
+        n_HII = (1-self.windsoln.soln['Ys_HI'])*self.windsoln.soln['n_HI']
 
-        Inputs:
-            expedite - bool; default = False. True does not integrate past Sonic Point.
-        """
-        scale = self.windsoln.scales_dict['Ncol_HI'] #scales the same across species
-        #self-consistent Ncol finder
-        Ncol_current,Ncol_goal = self.self_consistent_Ncol(warning=False)
-        Ncol_goal[Ncol_goal==0] = 1e-10*Ncol_goal[0]
-#         print(Ncol_goal)
-        Ncol_current = np.copy(self.windsoln.Ncol_sp)
-        
-        if expedite == True:
-            self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=False)
-        else:
-            self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=True)
+        # Multifrequency calculations
+        background_ioniz_frac = n_HII/n_tot #only based on H fraction
+        background_ioniz_frac[background_ioniz_frac<0] = 1e-10
 
-        #needs large convergence condition, otherwise will iterate indefinitely
-        niter = 0 #a check
-        while np.abs(np.mean((Ncol_goal-Ncol_current)/Ncol_goal)) > 0.08:
-            niter += 1
-            if niter > 10:
-                print(f'Too many iterations (current average diff {avg:.2e}).')
-                return 1
-            avg = np.abs(np.mean((Ncol_goal-Ncol_current)/Ncol_goal))
-            print(f'\r ...Ramping Ncol Iter {niter:d}: Current average diff {avg:.2e}', 
-                  end='                                                          ')
+        #Re-written for speed, so most is reshaping 
+        heating_rate = np.zeros((len(self.windsoln.soln), self.windsoln.nspecies))
+        total_heating = np.zeros(len(self.windsoln.soln))
 
-            self.windsoln.bcs_tuple[5][:] = Ncol_goal  
-            self.inputs.write_bcs(*self.windsoln.bcs_tuple)
-            fail = 1
-            result = self.run_wind(expedite=expedite)
-            while result != 0:
-                attempt = 0
-                if result == 4:
-                    print("\rIntegration error. Turning off outward integration.",
-                         end="                                                          ")
-                    self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=False)
-                    result = self.run_wind(expedite=expedite)
-                else:
-                    delta = (Ncol_goal - Ncol_current)/(2*fail)
-                    Ncol_step = Ncol_current + delta
-                    self.windsoln.bcs_tuple[5][:] = Ncol_step 
-                    self.inputs.write_bcs(*self.windsoln.bcs_tuple)
-                    print(f'\r...Fail {fail:d}: Attempting Ncol_sp = { Ncol_step*scale}.',
-                          end='                                                                        ')
+        Ncol_arr    = self.windsoln.soln.iloc[:,4+self.windsoln.nspecies:4+2*self.windsoln.nspecies]
+        Ncol_arr[Ncol_arr<0] = 0      #less than 0 because unconverged soln returns negative Ncols. This feels sus.
+        sigmas = self.windsoln.sim_spectrum.iloc[:,2:2+self.windsoln.nspecies]
+        taus = np.dot(Ncol_arr,sigmas.T)
+        wPhi = np.multiply(np.tile(self.windsoln.sim_spectrum['wPhi'],(len(taus),1)),np.exp(-taus))*self.windsoln.Ftot
 
-                    if fail > 10:
-                        print(f"Failed at Ncol_sp = {Ncol_current} ",
-                              f"& Summed neutral number density = {Ncol_goal}.")
-                        return 2
-                    result = self.run_wind(expedite=expedite)
-                    fail += 1
+        # Adapted from Mocassin (Shull & Steenberg 1985)
+        # Accounts for secondary ionizations due to highly energetic (>100eV) incoming photons
+        frac_in_heat = 0.9971 * (1 - pow(1-pow(background_ioniz_frac,0.2663),1.3163))
+    #     print(frac_in_heat)
+        for s, species in enumerate(self.windsoln.species): #48s
+            E_matrix = np.tile(self.windsoln.E_wl,(len(background_ioniz_frac),1))
+            Ncol_matrix = np.tile(Ncol_arr.iloc[:,s],(self.windsoln.npts,1)).T
+            sig_matrix = np.tile(sigmas.iloc[:,s],(len(background_ioniz_frac),1))
 
-            Ncol_current,Ncol_goal = self.self_consistent_Ncol(warning=False) 
-            Ncol_current = np.copy(self.windsoln.Ncol_sp)
+            f = np.nan_to_num(sig_matrix*Ncol_matrix / taus) #frac of incoming photon energy that will interact with species s
+            E0_matrix = E_matrix - self.windsoln.ion_pot[s]
 
-        Ncol_current,Ncol_goal = self.self_consistent_Ncol(warning=False) 
-        avg = np.abs(np.mean((Ncol_goal-Ncol_current)/Ncol_goal))
-        if quiet == False:
-            print(f'\r Success! Average Ncol difference: {avg:.2e}', 
-                  end='                                                   ')
+            heatfrac_matrix = (np.tile(frac_in_heat,(len(self.windsoln.E_wl),1))).T
+            heatfrac_matrix[E0_matrix<6.408707e-11] = 1 #zeroing where E_0 too low for secondary ionizations (100eV)
 
-        #Final converence of all species at once (MAY NOT WANT THIS BECAUSE WILL MOVE IT again)
-        if niter != 0:
-            if expedite == True:
-                if quiet == False:
-                    print('\r...Attempting Final Ncol Convergence. (Note: This is an estimate. Cannot converge precisely without outward integration).',
-                          end='                                                              ')  
-            if expedite == False:
-                if quiet == False:
-                    print('\r...Attempting Final Ncol Convergence.',
-                          end='                                                              ')  
+            heating_rate[:,s] = np.sum((heatfrac_matrix)*E0_matrix*sig_matrix*f*wPhi,axis=1)
+            n_abs = self.windsoln.soln['n_'+species]
+            heating_rate[:,s] *= n_abs #/rho temporary
 
-            self.windsoln.bcs_tuple[5][:] = Ncol_goal
-            self.inputs.write_bcs(*self.windsoln.bcs_tuple)
-            if self.run_wind(expedite=expedite) == 4:
-                print('Failure at last Ncol convergence.',
-                      f' Last working solution should be fine for most purposes. Average diff: {avg:.2e}')
-                return 6
+        heat = np.sum(heating_rate,axis=1)
+
+        P = self.windsoln.soln['rho']*const.kB*self.windsoln.soln['T']/(self.windsoln.molec_adjust*const.mH)
+        cool = P*self.windsoln.soln['v']/self.windsoln.soln['rho']
+        cool *= np.gradient(self.windsoln.soln['rho'], self.windsoln.soln['r'])
+
+        return heat, cool
+    
+    
+    
+    def turn_off_bolo(self):
+        self.load_planet('saves/windsoln.csv',print_atmo_composition=False)
+#         if failed_bolo_turn_off == True:
+#             print("Previously failed to turn off bolometric heating and cooling, so not trying here.")
+#             return
+        if self.windsoln.bolo_heat_cool == 1:
+            print('..Turning off bolometric heating/cooling.')
+        #turning off bolo_heat_cool
+        while self.windsoln.bolo_heat_cool > 0:
+            flags = self.windsoln.flags_tuple
+            bolo_flag = np.copy(flags[2])
+            delta = -flags[2]
+            flags[2] = 0 #turning off bolo heating and cooling
+            self.inputs.write_flags(*flags)
+            fail = 0
+            while self.run_wind(expedite=True) != 0:
+                fail+=1
+                if fail>5:
+                    print(f"WARNING: Failed to turn off bolometric heating/cooling. This is unusual. Current multiplicative factor: {self.windsoln.bolo_heat_cool}. Goal: 0.")
+                    self.windsoln.flags_tuple[2] = 1
+                    self.inputs.write_flags(*self.windsoln.flags_tuple)
+                    return 1
+                delta /= 2
+                flags[2] = bolo_flag + delta
+                print(f'\rTurning off bolometric heating & cooling. Trying factor of {flags[2]:.2f}',
+                      end='                                                  ')
+                self.inputs.write_flags(*flags) 
+                
         return 0
+    
+    
+        
+    def erf_velocity(self,return_idx=False,called_in_ramp_bcs=False, 
+                     polish=False,width_factor=1):
+        '''Description: Defines the drop-off radius at which the complementary 
+                        error function that governs the drop off of the bolometric
+                        heating and cooling and the drop off of the mean molecular weight
+                        in the isothermal part of the wind as photoionization
+                        heating begins to dominate and the atmosphere becomes
+                        atomic and non-isothermal.
+                        
+           Arguments: return_idx - bool; default=False. If true, returns radial
+                                         index where drop-off occurs.
+                      called_in_ramp_bcs - bool; avoids recursion of ramping bases
+                                                  if called in ramp_base_bcs()
+           Returns: v[drop_index] - velocity of drop-off in units of cm/s.
+        '''
+                    
+        
+        #now turns off boloheat/cool if sim base not deep enough
+        heat, cool = self.quick_calc_heat_cool()
+        if polish == True:
+            self.windsoln.add_user_vars()
+            heat = self.windsoln.soln['heat_ion']
+            cool = self.windsoln.soln['cool_PdV']
+        v = self.windsoln.soln_norm['v']
+        r = self.windsoln.soln_norm['r']
+
+        try:
+            #finds where photoion heating first starts to dominate over PdV cool
+            drop_index = np.where(heat>-cool)[0][0]
+        except IndexError:
+            drop_index = 0 
+        
+        #Drop-off rate / gradient of erf
+        def rate_calc(idx):
+            #Approximate pressure scaleheight at drop radius in units of Rp
+            Hsc =  const.kB*self.windsoln.soln['T'][idx]*self.windsoln.soln['r'][idx]
+            Hsc /= (const.mH*self.windsoln.molec_adjust*const.G*self.windsoln.Mp) 
+            #approximates mu as molecular value
+            #Compute the desired rate of erfc drop-off as 
+            if idx >= 10:
+                slope = (v[idx+10] - v[idx-10])/(r[idx+10] - r[idx-10])
+            else:
+                slope = (v[idx+10] - v[idx])/(r[idx+10] - r[idx])
+            width = width_factor*Hsc 
+            rate = slope*width
+            return rate
+            
+        #If the base of the simulation is still within the photoionization heating
+        #region, try to lower the base of the simulation.
+#         if (drop_index<=10) and (called_in_ramp_bcs==False) and (self.failed_deeper_bcs_ramp==False) and (expedite==False):
+#             rmin = self.windsoln.Rmin
+#             print(f"Current sim base ({rmin:.3f}Rp) may not capture all",
+#                   " photoion heating.\n",
+#                  "   Setting lower BC radius deeper in atmosphere.")
+#             #while the photoionization doesn't drop below PdV cooling, 
+#             #lower base BCs x2 attempts
+#             fail=0
+#             while len(np.where(-cool[:20]>heat[:20])[0]) < 3:
+#                 P =  self.windsoln.soln['rho'][0]*const.kB
+#                 P *= self.windsoln.soln['T'][0]/(self.windsoln.molec_adjust*const.mH)
+#                 OOM_base_press_old = 10**np.floor(np.log10(P))
+#                 if OOM_base_press_old >= 100:
+#                     print("Lowering base past 100 microbars unlikely to lower",
+#                           " Rmin sufficiently to capture all photoionization",
+#                           " heating for this high gravity planet.")
+#                     print("  Bolometric heating/cooling turned off.")
+#                     self.failed_deeper_bcs_ramp = True #don't waste time trying
+#                     self.turn_off_bolo()
+#                     return v[0],rate_clac(0)
+                
+#                 #don't try to lower more than 2 times b/c very expensive
+#                 if fail>=2:
+#                     print(f"Current base P: {OOM_base_press_old:.0f} microbars.",
+#                           "\nStopping here, but user can ramp manually",
+#                           " to higher pressure.\n  Still not capturing all ",
+#                           "photoion heating, so bolometric heating/cooling",
+#                           " turned off.")
+#                     self.failed_deeper_bcs_ramp = True #don't waste time trying
+#                     self.turn_off_bolo()
+#                     if return_idx==True:
+#                         return v[0],rate_calc(0),0
+#                     else:
+#                         return v[0],rate_calc(0)
+                
+#                 #ramping to 10xlower base pressure
+#                 result = self.ramp_base_bcs(base_press=OOM_base_press_old*10,
+#                                           user_override_press=True)
+#                 if result == 0:
+#                     heat, cool = self.quick_calc_heat_cool()
+#                 else:
+#                     print("Failed to ramp BCs lower in atmo.")
+#                     self.failed_deeper_bcs_ramp = True #don't waste time trying
+#                     self.turn_off_bolo()
+                    
+#                     if return_idx==False:
+#                         return v[0],rate_calc(0)
+#                     else:
+#                         return v[0],rate_calc(0),0
+#                 fail+=1
+        
+        #If this is being called inside of the ramping function, do this 
+        #to avoid recursion
+        if (drop_index<=10) and (called_in_ramp_bcs==True):
+            if return_idx==False:
+                return v[0],rate_calc(0)
+            else:
+                return v[0],rate_calc(0),0
+        
+        #If it has previously failed to ramp deeper 
+        elif (drop_index<=10):# and (self.failed_deeper_bcs_ramp==True):
+            self.turn_off_bolo()
+            if return_idx==False:
+                return v[0],rate_calc(0)
+            else:
+                return v[0],rate_calc(0),0
+            
+#         #If expediting, should skip ramping base deeper and just turn off bolo.    
+#         elif (drop_index<=10) and (expedite==True):
+# #             self.failed_deeper_bcs_ramp = True #don't waste time trying
+#             self.turn_off_bolo()
+#             if return_idx==False:
+#                 return v[0],rate_calc(0)
+#             else:
+#                 return v[0],rate_calc(0),0
+            
+        if drop_index > 500: #low grav superearths need no drop off
+            rate = 10*rate_calc(drop_index)
+        else:
+            rate = rate_calc(drop_index)
+        #If none of the above conditions are triggered, simply return v
+        if return_idx == True:
+            return v[drop_index],rate,drop_index
+        else:
+            return v[drop_index],rate   
+        
 
         
-    def ramp_T_rmin(self, goal):
+
+        
+    def ramp_T_rmin(self, goal_T):
         """
         Description:
-            Unless designated by user here, this value is set by the balance of 
-            bolometric heating and cooling.
-            
-            T_rmin is could be contrived to be related to the stellar mass
-            and orbital seperation, however, we leave it as a free parameter
-            for the end user to set by hand and therefore is not part of the
-            scheme for converging boundaries. Thus this function stands
-            alone but will converge the other boundaries after it has been
-            updated to polish the solution.
-            
+            Ramps normalized temperature at Rmin. 
         Inputs:
-            goal - float; goal temperature at Rmin in units of 1e4 K
+            goal_T - float; goal temperature at Rmin in units of 1e4 K
         """
         T_scale = self.windsoln.scales_dict['T']
-        if goal > 1:
+        if goal_T > 1:
             print("WARNING: T should be in units of 1e4 K. Returning...")
             return 
-        while (abs(1.-self.windsoln.T_rmin/goal) > 1e-10):
+        while (abs(1.-self.windsoln.T_rmin/goal_T) > 1e-10):
             bcs_tuple = self.windsoln.bcs_tuple
-            bcs_tuple[3] = goal
+            bcs_tuple[3] = goal_T
             self.inputs.write_bcs(*bcs_tuple)
             failed = 0
-            print(f'\r..T_rmin {self.windsoln.T_rmin*T_scale:.0f}, goal {goal*T_scale:.0f}',
+            print(f'\r..T_rmin {self.windsoln.T_rmin*T_scale:.0f}, goal {goal_T*T_scale:.0f}',
                   end="                                                   ")
             while self.run_wind(expedite=True) != 0:
                 failed += 1
@@ -2688,22 +2365,18 @@ class wind_simulation:
                 if failed > 15:
                     print("\nStruggling to substep towards new T_rmin")
                     return 1
-#         self.atmosphere = atmosphere(self.system,
-#                                      self.windsoln.T_rmin
-#                                      *self.windsoln.scales[3],
-#                                      self.mu, #H2 and He
-#                                      kappa_opt=self.strat_kappa)
-#         self.atmosphere.windbase_radius(self.windsoln.rho_rmin
-#                                         *self.windsoln.scales[1])
-#         self.converge_all_bcs(expedite=False)
         print(f"\r   Successfully converged T_rmin to {self.windsoln.T_rmin*T_scale:.0f}",
               end="                                                       ")
         self.run_isotherm(called_in_ramp_bcs=True) #TEST
         return 0
     
+    
+    
     def ramp_Rmin(self,goal_Rmin):
         """ Description:
-                Ramps Rmin.
+                Ramps normalized Rmin, where Rmin is the base of the simulation and 
+                should ideally be a radius "below the wind", a.k.a., in the molecular region
+                below ~1 microbar. 
             Arguments:
                 The desired Rmin value in normalized units of Rp.
         """
@@ -2754,9 +2427,11 @@ class wind_simulation:
         self.run_isotherm(called_in_ramp_bcs=True) #TEST
         return 0
     
+    
+    
     def ramp_rho_rmin(self,goal_rho):
         """ Description:
-                Ramps to mass density at Rmin.
+                Ramps to normalized mass density at Rmin.
             Arguments:
                 The desired rho value in normalized units of RHO0 (found in src/defs.h) which is default 1e-15.
         """
@@ -2790,7 +2465,6 @@ class wind_simulation:
 
             if failed > 2:
                 bcs_tuple = self.windsoln.bcs_tuple
-#                 bcs_tuple[2] = goal_rho
                 bcs_tuple[2] = self.windsoln.rho_rmin+(bcs_tuple[2]-self.windsoln.rho_rmin)/(10**failed) #here
                 self.inputs.write_bcs(*bcs_tuple)
                 print(f'\r..Proceeding with smaller stepsize: rho_rmin {self.windsoln.rho_rmin:.5g}, goal {goal_rho:.5g}',
@@ -2833,7 +2507,10 @@ class wind_simulation:
         self.run_isotherm(called_in_ramp_bcs=True) #TEST
         return 0
     
-    def flux_norm(self,goal_flux_in_range,eV_range=[13.6,100],ramp=True,plot=True,
+    
+    
+#Spectrum tools    
+    def flux_norm(self,goal_flux_in_range,eV_range=[13.6,100],ramp=False,plot=True,
                  integrate_out=True,converge_bcs=True):
         '''Description: 
                 Computes the total flux (across the loaded spectrum range) that is
@@ -2866,6 +2543,8 @@ class wind_simulation:
         else:
             return goal_total_flux
 
+        
+        
     def ramp_spectrum(self,Fnorm=0.0,norm_spec_range=[],
                       goal_spec_range=[],units='eV',normalize=True,
                       kind='full',plot=False):
@@ -2976,11 +2655,6 @@ class wind_simulation:
         spec.set_window(*goal_span,kind=kind)
         spec.generate(kind=kind, savefile='inputs/spectrum.inp')
 
-#         #normalizing flux in that range
-#         self.inputs.write_planet_params(*self.windsoln.planet_tuple[:4],
-#                                        F_new,
-#                                        self.windsoln.planet_tuple[5])
-
         if self.run_wind() == 0:
             if normalize == True:
                 print(f'\rRamped spectrum wavelength range, now normalizing spectrum. \n ..Fnorm = {Fnorm:.0f} ergs/s/cm2. Norm range = [{norm_span[0]:.2f},{norm_span[1]:.2f}]nm',
@@ -3017,9 +2691,6 @@ class wind_simulation:
                 gen_fail += 1
                 delta /= 3 
             last_spec = np.copy(self.windsoln.spec_resolved)
-#             self.inputs.write_planet_params(*self.windsoln.planet_tuple[:4],
-#                                            F_old+delta_flux/2,
-#                                            self.windsoln.planet_tuple[5])
 
             fail = 1
             while self.run_wind(expedite=True) != 0:
@@ -3044,9 +2715,6 @@ class wind_simulation:
                 step_span = curr + delta*factor
                 print(f'\rFail {fail}: Current [{curr[0]:.1f},{curr[1]:.1f}]. Attempting {step_span}nm',
                       end='                                              ')
-#                 spec = spectrum()
-#                 for sps in self.windsoln.species_list:
-#                     spec.add_species(sps)
                 spec.set_resolved(*step_span) #
                 spec.set_normalized(*step_span) 
                 spec.set_window(*step_span,kind='full')
@@ -3067,8 +2735,6 @@ class wind_simulation:
                 return 0
         
         if plot == True:
-            print(True)
-                        # Plot spectrum change
             fig, ax = plt.subplots()
             max_mk = ((self.spectrum.data_norm['wl']>=
                    min(ons[0], self.spectrum.norm_span[0]))
@@ -3127,11 +2793,12 @@ class wind_simulation:
             
 
         return 0
-
-    
+        
+        
+        
     def ramp_to_user_spectrum(self,spectrum_filename,species_list=[],
-                              Fnorm=0.0,norm_spec_range=[],goal_spec_range=[],
-                              units='eV',normalize=True,plot=True):
+                              updated_F=0.0,norm_spec_range=[],goal_spec_range=[],
+                              units='eV',normalize=True,plot=True,ramp_range=True):
         
         '''Description: Ramping stellar spectrum wavelength/energy range to 
                         new wavelength/energy range.
@@ -3140,9 +2807,9 @@ class wind_simulation:
                                     in McAstro/stars/additional_spectra/
             species_list - list of str; default = [] sets to species list of 
                                     the loaded windsoln.
-            Fnorm - float; default=0.0 ergs/s/cm2 AT SEMIMAJOR AXIS OF PLANET.
-                              When Fnorm=0.0, flux is normalized to the current value 
-                              in norm_spec_range. Else, ramps to given Fnorm.
+            updated_F - float; default=0.0 ergs/s/cm2 AT SEMIMAJOR AXIS OF PLANET.
+                              When =0.0, flux is normalized to the user spectrum's og value
+                              in norm_spec_range. Else, ramps to given updated_F.
                               If fails, can ramp independently using self.ramp_var('Ftot')
             norm_spec_range  - list or array; default=[] is desired range over
                                 which to normalize in units of 'units'.
@@ -3157,7 +2824,8 @@ class wind_simulation:
             '''
         #generating a smoothed and binned version of the user-input code
         wl_norm=1e-7
-        spec = spectrum(lisird=False,spectrum_file=spectrum_filename,wl_norm=wl_norm)
+        spec = spectrum(lisird=False,spectrum_file=spectrum_filename,
+                        wl_norm=wl_norm,just_loading=False)
 
         if len(species_list) == 0:
             species_list = self.windsoln.species_list
@@ -3170,98 +2838,140 @@ class wind_simulation:
         spec.set_normalized(*self.windsoln.spec_normalized/wl_norm) 
         spec.set_window(*self.windsoln.spec_window/wl_norm,kind='full')
         spec.generate(kind='full', savefile='inputs/goal_spectrum.inp')
-    #     spec.generate(kind='full', savefile='inputs/spectrum.inp')
-    #     names_list = ['E','wPhi']
-    #     for sp in self.windsoln.species_list:
-    #         sp = sp.replace(' ','')
-    #         names_list = np.append(names_list,'sigma_'+sp)
-
-        new = np.genfromtxt('inputs/goal_spectrum.inp',
-                            delimiter=',',skip_header=10)#/,
-    #                        names=names_list)
-
-
+        spec.generate(kind='full', savefile='inputs/spectrum.inp')
+        
         old_E = self.windsoln.sim_spectrum['E']
-
-        start_wPhi = si.Akima1DInterpolator(np.flip(old_E),
-                                            np.flip(self.windsoln.sim_spectrum['wPhi']))
-        goal_wPhi = si.Akima1DInterpolator(np.flip(new[:,0]),np.flip(new[:,1]))
-    #     plt.plot(old_E,start_wPhi(old_E),label='old')
-        wPhi = goal_wPhi(old_E)
-    #     print(wPhi)
-        wPhi[0] = wPhi[1] #deals with edge errors
-        wPhi[-1] = wPhi[-2]
-
-        percent=1
-        delta_wPhi = (goal_wPhi(old_E) - self.windsoln.sim_spectrum['wPhi'])
-        step_wPhi = np.array(self.windsoln.sim_spectrum['wPhi'] + delta_wPhi*percent)
-        step_wPhi[0] = step_wPhi[1] #deals with errors at edges
-        step_wPhi[-1] = step_wPhi[-2]
-
-    #         self.windsoln.spectrum_tuple[9] = step_wPhi
-        self.inputs.write_spectrum(*self.windsoln.spectrum_tuple[:3],
-                                  spectrum_filename,
-                                  *self.windsoln.spectrum_tuple[4:10],
-                                  step_wPhi,
-                                  *self.windsoln.spectrum_tuple[11:])
+        old_wPhi = self.windsoln.sim_spectrum['wPhi']
+        
         self.inputs.write_flags(*self.windsoln.flags_tuple,
                                 integrate_out=False)
-        result = self.run_wind()
-    #     print(wPhi)
+        if self.run_wind() != 0:
+            new = np.genfromtxt('inputs/goal_spectrum.inp',
+                                delimiter=',',skip_header=10)
 
-        while np.average((wPhi - self.windsoln.sim_spectrum['wPhi'])/self.windsoln.sim_spectrum['wPhi'])>1e-10:
-            avg = np.average((wPhi - self.windsoln.sim_spectrum['wPhi']))
-            print(f"\r Success! Average difference now {avg:.2e}",
-                 end='                                                  ')
 
-            fail = 0
-            percent = 0.1
-            current_wPhi = np.copy(self.windsoln.sim_spectrum['wPhi'])
-            while self.run_wind() != 0:
-                fail+=1
-                print(f"\rFail {fail:d}: delta = {percent/fail:.3f}",
-                     end ="                                                   ")
-                step_wPhi = np.array(current_wPhi+delta_wPhi*(percent/fail))
-                step_wPhi[0] = step_wPhi[1]
-                step_wPhi[-1] = step_wPhi[-2]
-    #             self.windsoln.spectrum_tuple[9] = step_wPhi
-        #         self.windsoln.spectrum_tuple[9] = np.nan_to_num(step_wPhi,nan=0)
-                self.inputs.write_spectrum(*self.windsoln.spectrum_tuple[:3],
-                                          spectrum_file,
-                                          *self.windsoln.spectrum_tuple[4:10],
-                                          step_wPhi,
-                                          *self.windsoln.spectrum_tuple[11:])  
-                if fail > 10:
-                    print("Failed to ramp to new stellar spectrum.")
-                    return 1
+            start_wPhi = si.Akima1DInterpolator(np.flip(old_E),
+                                                np.flip(self.windsoln.sim_spectrum['wPhi']))
+            goal_wPhi = si.Akima1DInterpolator(np.flip(new[:,0]),np.flip(new[:,1]))
+            wPhi = goal_wPhi(old_E)
+            wPhi[0] = wPhi[1] #deals with edge errors
+            wPhi[-1] = wPhi[-2]
 
-        if plot == True:
-            plt.semilogy(const.hc/old_E/1e-7,start_wPhi(old_E),label='Original')
-            plt.semilogy(const.hc/old_E/1e-7,wPhi,label='Goal')
-            plt.semilogy(const.hc/old_E/1e-7,self.windsoln.sim_spectrum['wPhi'],
-                         label='Current',ls='--')
-            plt.xlabel('Wavelength (nm)')
-            plt.ylabel('Photon Density')
-            plt.legend()
-            plt.show()
+            percent=1
+            delta_wPhi = np.copy((goal_wPhi(old_E) - self.windsoln.sim_spectrum['wPhi']))
+            step_wPhi = np.array(self.windsoln.sim_spectrum['wPhi'] + delta_wPhi*percent)
+            step_wPhi[0] = step_wPhi[1] #deals with errors at edges
+            step_wPhi[-1] = step_wPhi[-2]
+
+            self.inputs.write_spectrum(*self.windsoln.spectrum_tuple[:3],
+                                      spectrum_filename,
+                                      *self.windsoln.spectrum_tuple[4:10],
+                                      step_wPhi,
+                                      *self.windsoln.spectrum_tuple[11:])
+            self.inputs.write_flags(*self.windsoln.flags_tuple,
+                                    integrate_out=False)
+            result = self.run_wind()
+
+            avg = abs(np.average((wPhi - self.windsoln.sim_spectrum['wPhi'])))
+            try:
+                while abs(np.average((wPhi - self.windsoln.sim_spectrum['wPhi'])/self.windsoln.sim_spectrum['wPhi']))>1e-5:
+                    spec.generate(kind='full', savefile='inputs/spectrum.inp')
+                    if self.run_wind() != 0:
+                        fail = 0
+                        percent = 0.1
+
+                        current_wPhi = np.copy(self.windsoln.sim_spectrum['wPhi'])
+                        step_wPhi = np.array(current_wPhi+delta_wPhi*(percent))
+                        #if next step is larger than the remainder, set step to goal
+                        if avg < abs(np.average(delta_wPhi*percent)):
+                            step_wPhi = wPhi
+                        if plot == False:
+                            print(f"\r..Trying a {percent*100:.0f}% step",end="                      ")
+                        step_wPhi[0] = step_wPhi[1]
+                        step_wPhi[-1] = step_wPhi[-2]
+                        self.inputs.write_spectrum(*self.windsoln.spectrum_tuple[:3],
+                                                  spectrum_filename,
+                                                  *self.windsoln.spectrum_tuple[4:10],
+                                                  step_wPhi,
+                                                  *self.windsoln.spectrum_tuple[11:]) 
+                        self.inputs.write_flags(*self.windsoln.flags_tuple,
+                                                integrate_out=False)
+                        while self.run_wind() != 0:
+                            fail+=1
+                            print(f"\rFail {fail:d}: delta = {percent/(fail+1):.3f}",
+                                 end ="                                                   ")
+                            step_wPhi = np.array(current_wPhi+delta_wPhi*(percent/(fail+1)))
+                            step_wPhi[0] = step_wPhi[1]
+                            step_wPhi[-1] = step_wPhi[-2]
+                            self.inputs.write_spectrum(*self.windsoln.spectrum_tuple[:3],
+                                                      spectrum_filename,
+                                                      *self.windsoln.spectrum_tuple[4:10],
+                                                      step_wPhi,
+                                                      *self.windsoln.spectrum_tuple[11:]) 
+                            self.inputs.write_flags(*self.windsoln.flags_tuple,
+                                                    integrate_out=False)
+                            if fail > 10:
+                                print("Failed to ramp to new stellar spectrum.")
+                                return 1
+
+                        self.converge_Ncol_sp(expedite=True,quiet=True)
+                        self.run_isotherm()
+                        self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=False)
+
+                        avg = abs(np.average((wPhi - self.windsoln.sim_spectrum['wPhi'])))
+                        if plot == True:
+                            pl.clf()
+                            pl.plot(const.hc/old_E/1e-7,start_wPhi(old_E),label='Original')
+                            pl.plot(const.hc/old_E/1e-7,wPhi,label='Goal')
+                            pl.plot(const.hc/old_E/1e-7,self.windsoln.sim_spectrum['wPhi'],
+                                         label='Current',ls='--')
+                            pl.xlabel('Wavelength (nm)')
+                            pl.ylabel('Photon Density')
+                            pl.legend()
+                            pl.yscale('log')
+                            pl.title(f"\r Success! Average difference now {avg:.2e}")
+                            display.display(pl.gcf())
+                            display.clear_output(wait=True)
+                        else:
+                            print(f"\r Success! Average difference now {avg:.2e}",
+                                 end='                                                  ')
+            except ValueError:
+                print(f"Succeeded in full jump to {spectrum_filename}")
 
         #Ramping to desired spectral range and flux
-        print(f'Success ramping to {spectrum_filename} spectrum shape!')
-        print('     Now ramping flux and spectral range.')
-        if len(goal_spec_range) == 0:
-            goal_spec_range = self.windsoln.spec_resolved/self.spectrum.wl_norm
-            units = 'nm'
+        self.converge_Ncol_sp(expedite=True,quiet=True)
+        self.run_isotherm()
+        print(f'\nSuccess ramping to {spectrum_filename} spectrum shape!')
+        if plot == True:
+            plt.plot(const.hc/old_E/1e-7,old_wPhi,label='Original')
+            plt.plot(const.hc/self.windsoln.sim_spectrum['E']/1e-7,self.windsoln.sim_spectrum['wPhi'],
+                         label='Current')
+            plt.xlabel('Wavelength (nm)')
+            plt.ylabel(r'Photon Density at 1 au')
+            plt.legend()
+            plt.yscale('log')
+            plt.show()
 
-    #     print(f'\rRamping to desired spectral range ({spec_range} {units}) and flux.',
-    #          end='                                                                       ')
-        if self.ramp_spectrum(Fnorm,norm_spec_range,
-                      goal_spec_range,units,normalize,
-                      kind='full',plot=plot) == 0:
-            print("Success! Ramped to user-input stellar spectrum "+spectrum_filename)
-            return 0
+        if ramp_range==True:
+            print('     Now ramping flux and spectral range.')
+            if len(goal_spec_range) == 0:
+                goal_spec_range = self.windsoln.spec_resolved/self.spectrum.wl_norm
+                units = 'nm'
+            if updated_F == 0:
+                f = open("McAstro/stars/spectrum/additional_spectra/"+spectrum_filename,"r")
+                updated_F = float(f.readlines()[1])/(self.windsoln.semimajor/const.au)**2
+                norm_spec_range = [12.4,91.1]
+                f.close()
+            if self.ramp_spectrum(updated_F,norm_spec_range,
+                                  goal_spec_range,units,normalize,
+                                  kind='full',plot=plot) == 0:
+                print("Success! Ramped to user-input stellar spectrum "+spectrum_filename)
+                return 0
+            else:
+                print("Ramped successfully to user-input spectrum, but ramping spectral range and/or flux was not successful.")
+                return 2
         else:
-            print("Ramped successfully to user-input spectrum, but ramping spectral range and/or flux was not successful.")
-            return 2
+            return 0
 
         
         
@@ -3317,8 +3027,10 @@ class wind_simulation:
         if np.median(flux_1au) < 1:
             print("WARNING: Flux at 1 au from star should be in units of ergs/s/cm2 (check that your input is not the flux at Earth).")
         
+        total_EUV_flux = sum(flux_1au[(wl>min(np.max(wl),1.2e-6))&(wl<max(np.min(wl),9.1e-6))])
+        g.write('%.5f\n'%total_EUV_flux)
+        
         #Converting to ergs/s/cm2/cm flux density
-        wl_cm[0]-(wl_cm[1]-wl_cm[0])
         delta_lam = np.diff(wl_cm,prepend=wl_cm[0]-(wl_cm[1]-wl_cm[0]))
         flux_dens_1au = flux_1au*delta_lam
         

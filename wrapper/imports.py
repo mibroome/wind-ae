@@ -26,7 +26,7 @@ plt.rc('text', usetex=True)
 warnings.filterwarnings("ignore")
 
 # Check that pwd is relaxation directory and code is compiled
-if os.path.exists(os.getcwd()+'/Tutorial.ipynb'):
+if os.path.exists(os.getcwd()+'/Quickstart.ipynb'):
     os.chdir('../') # May need to be set by hand if nonconventional setup
 if not os.path.exists(os.getcwd()+'/bin/relaxed_ae'):
     print('ERROR: relaxation code not found!\n'

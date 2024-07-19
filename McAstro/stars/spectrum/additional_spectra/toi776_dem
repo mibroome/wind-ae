@@ -1,4 +1,5 @@
 #this is the actual PHOENIX TOI776 spectrum with flux scaled to loc of planet 
+30
 wl,F_wl,unc,nu,F_nu
 1e-08,0.19611419540542038,0.0,2.99792458e+18,6.541665414592265e-28
 2e-08,60.09875871607694,0.0,1.49896229e+18,8.018715229464104e-25
