@@ -9,7 +9,8 @@ from McAstro.planets.insolation.glq_spectrum import glq_spectrum
 import McAstro.atoms.atomic_species as McAtom
 
 class spectrum:
-    def __init__(self, lisird=True, date='2009-01-01', spectrum_file='',wl_norm=1e-7):
+    def __init__(self, lisird=True, date='2009-01-01', spectrum_file='',wl_norm=1e-7, 
+                 just_loading=True):
         """
         Description:
             Spectrum object. By default wl_norm=1e-7, such that the wavelengths
@@ -170,21 +171,38 @@ class spectrum:
 
     def generate(self, kind, savefile='inputs/spectrum.inp'):
         self.table = self.glq_spectrum.write_csv(savefile, kind=kind,mono_wl=None)
-#                                                  mono_wl=self.mono_wl) #why was it mono here?
         return
 
-    def binning_plot(self,var='F_wl',xaxis='wl', plot_polys=False):
-        self.glq_spectrum.plot(var,xaxis,plot_polys)
-        return
-        
-    def plot(self, var='F_wl',xaxis='wl',semimajor_au=1,highlight_euv=True):
+    def binning_plot(self,var='F_wl',xaxis='wl',semimajor_au=1.0, plot_polys=False):
         """
         Description:
-            Plot the spectrum. Displays the observations, smoothed, and spans.
+            Plot the spectrum. Displays the observations, smoothed, and spans.  
 
-        Keyword arguments:
+        Arguments:
             var: Which variable plotted, energy ('F_wl') or number ('Phi_wl')
             xaxis: 'wl' or 'energy'; x variable. Wavelength in nm or energy in eV 
+            semimajor_au: semimajor axis in units of au to which to scale the spectrum
+            highlight_euv: default=True; highlights EUV and XUV range and prints 
+                           APPROXIMATE fluxes in ergs/s/cm2 each range.
+
+        Returns:
+            (fig, ax): The figure and axis object plotted on
+        """
+
+        self.glq_spectrum.plot(var,xaxis,semimajor_au,plot_polys)
+        return
+        
+    def plot(self, var='F_wl',xaxis='wl',semimajor_au=1.0,highlight_euv=True):
+        """
+        Description:
+            Plot the spectrum. Displays the observations, smoothed, and spans.  
+
+        Arguments:
+            var: Which variable plotted, energy ('F_wl') or number ('Phi_wl')
+            xaxis: 'wl' or 'energy'; x variable. Wavelength in nm or energy in eV 
+            semimajor_au: semimajor axis in units of au to which to scale the spectrum
+            highlight_euv: default=True; highlights EUV and XUV range and prints 
+                           APPROXIMATE fluxes in ergs/s/cm2 each range.
 
         Returns:
             (fig, ax): The figure and axis object plotted on
@@ -211,7 +229,7 @@ class spectrum:
                           label='Spectrum')
             l2, = ax.plot(self.data_norm['wl'][mk], norm*self.data_norm[smth][mk],
                           lw=2, label='Smoothed')
-            v1 = ax.axvline(self.wndw_span[0], zorder=0, ls='--', c='y', lw=3,
+            v1 = ax.axvline(self.wndw_span[0], zorder=0, ls='--', c='k', lw=3,
                             label=f'Window: {self.wndw_span[0]:.2f} - {self.wndw_span[1]:.1f} nm ')
             
             if highlight_euv == True:
@@ -229,7 +247,7 @@ class spectrum:
                     ax.axvspan(xuv_range[0],xuv_range[1],color='c',alpha=0.1)
                     F_xuv = sum(flux[(wl_range>xuv_range[0]) & (wl_range<xuv_range[1])])
                     ax.text(xuv_range[0]+np.diff(xuv_range)/4,max_F,
-                            r'F$_{XUV}\sim$%.0f'%F_xuv,color='darkcyan',
+                            r'F$_{X\rm{-}ray}\sim$%.0f'%F_xuv,color='darkcyan',
                             fontsize=14,weight='bold')
                 F_euv = sum(flux[(wl_range>euv_range[0])&(wl_range<euv_range[1])])
                 ax.text(euv_range[0]+np.diff(euv_range)/3,max_F,
@@ -237,7 +255,7 @@ class spectrum:
                         fontsize=14,weight='bold')
 
             
-            ax.axvline(self.wndw_span[1], zorder=0, ls='--', c='y', lw=3)
+            ax.axvline(self.wndw_span[1], zorder=0, ls='--', c='k', lw=3)
             ax.set_xlabel(r'Wavelength ($\lambda$) [nm]')
         
         if xaxis=='energy':
@@ -248,7 +266,7 @@ class spectrum:
             l2, = ax.plot(convert/self.data_norm['wl'][mk],
                           norm*self.data_norm[smth][mk],
                           lw=2, label='Smoothed')
-            v1 = ax.axvline(convert/self.wndw_span[0], zorder=0, ls='--', c='y', lw=3,
+            v1 = ax.axvline(convert/self.wndw_span[0], zorder=0, ls='--', c='k', lw=3,
                             label=f'Window: {const.hc/(self.wndw_span[1]*self.glq_spectrum.wl_norm)/const.eV:.2f} - {const.hc/(self.wndw_span[0]*self.glq_spectrum.wl_norm)/const.eV:.0f} eV')
             
             if highlight_euv == True:
@@ -266,7 +284,7 @@ class spectrum:
                     ax.axvspan(xuv_range[0],xuv_range[1],color='c',alpha=0.1)
                     F_xuv = sum(flux[(wl_range>xuv_range[0]) & (wl_range<xuv_range[1])])
                     ax.text(xuv_range[0]+np.diff(xuv_range)/4,max_F,
-                            r'F$_{XUV}\sim$%.0f'%F_xuv,color='darkcyan',
+                            r'F$_{X\rm{-}ray}\sim$%.0f'%F_xuv,color='darkcyan',
                             fontsize=14,weight='bold')
                 F_euv = sum(flux[(wl_range>euv_range[0])&(wl_range<euv_range[1])])
                 ax.text(euv_range[0]+np.diff(euv_range)/5,max_F,
@@ -274,7 +292,7 @@ class spectrum:
                         fontsize=14,weight='bold')
 
 
-            ax.axvline(convert/self.wndw_span[1], zorder=0, ls='--', c='y', lw=3)
+            ax.axvline(convert/self.wndw_span[1], zorder=0, ls='--', c='k', lw=3)
             ax.set_xlabel(r'Energy ($E$) [eV]')
             ax.set_xticks([20,60],labels=['20','60'])
 

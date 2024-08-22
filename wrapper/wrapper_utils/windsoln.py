@@ -14,7 +14,7 @@ from . import constants as const
 class wind_solution:
     """
     Class containing relaxation result, object typically referred to as the
-    planet. Also contains functions for analyzing relaxation result
+    planet. Also contains functions for analyzing relaxation result.
     """
     def __init__(self, file='saves/windsoln.csv', expedite=False,
                  add_uservars=False):
@@ -135,6 +135,7 @@ class wind_solution:
                     spec_data = [float(x) for x in line[1:]]
                     self.E_wl[i_spec] = spec_data[0]
                     self.wPhi_wl[i_spec] = spec_data[1]
+                    
                     for s in range(self.nspecies):
                         self.sigma_wl[i_spec][s] = spec_data[2+s]
                     i_spec += 1
@@ -154,6 +155,7 @@ class wind_solution:
                                              self.sigma_wl)),
                             columns=['E', 'wPhi', *word.split(',')[:-1]])
                     break
+        self.F_wl = self.E_wl*self.wPhi_wl*self.Ftot #flux in ergs/s/cm2 in each wavelength bin 
         # Read in solution data as pandas data frame
         self.soln_norm = pd.read_csv(file, comment='#', header=None,
                                      names=self.varz)
@@ -345,11 +347,13 @@ class wind_solution:
         Ncol_arr[Ncol_arr<0] = 0      #less than 0 because unconverged soln returns negative Ncols. This feels sus.
         sigmas = self.sim_spectrum.iloc[:,2:2+self.nspecies]
         taus = np.dot(Ncol_arr,sigmas.T)
+        self.taus = taus
         wPhi = np.multiply(np.tile(self.sim_spectrum['wPhi'],(len(taus),1)),np.exp(-taus))*self.Ftot
 
         # Adapted from Mocassin (Shull & Steenberg 1985)
         # Accounts for secondary ionizations due to highly energetic (>100eV) incoming photons
         frac_in_heat = 0.9971 * (1 - pow(1-pow(background_ioniz_frac,0.2663),1.3163))
+        self.frac_in_heat = frac_in_heat
         for s, species in enumerate(self.species): #48s
             E_matrix = np.tile(self.E_wl,(len(background_ioniz_frac),1))
             Ncol_matrix = np.tile(Ncol_arr.iloc[:,s],(self.npts,1)).T
@@ -778,7 +782,7 @@ class wind_solution:
 #         self.T_fit = interpolate.InterpolatedUnivariateSpline(
 #             self.soln_norm['r'], self.soln['T'], ext=2, k=1)
         self.T_fit = interpolate.CubicSpline(self.soln_norm['r'],self.soln['T'])
-        self.n_HII_fit = interpolate.CubicSpline(self.soln_norm['r'],self.soln['n_HII'])
+#         self.n_HII_fit = interpolate.CubicSpline(self.soln_norm['r'],self.soln['n_HII'])
         self.mu_fit = interpolate.InterpolatedUnivariateSpline(
             self.soln_norm['r'], self.soln['mu'], ext=2, k=1)
         # Time since Rmin, for ease of doing temporal integrals
@@ -847,7 +851,7 @@ class wind_solution:
 
 
     def calc_vert_extent(self):
-        def verticle_extent(h, e_int_leftover=0.0):
+        def vertical_extent(h, e_int_leftover=0.0):
             therm_term = ((self.gamma-1.+2.*(1.-e_int_leftover))
                           /(2*(self.gamma-1.))
                           *self.soln['cs'][self.crit_index]**2
@@ -857,7 +861,7 @@ class wind_solution:
                     +1./np.sqrt(h**2 + self.semimajor_normed**2)
                     -1./np.sqrt(self.R_sp**2 + self.semimajor_normed**2))
         
-        self.vert_extent = optimize.fsolve(verticle_extent, self.R_sp)[0]
+        self.vert_extent = optimize.fsolve(vertical_extent, self.R_sp)[0]
         return
 
 

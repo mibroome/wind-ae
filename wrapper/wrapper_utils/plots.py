@@ -228,7 +228,7 @@ def custom_rc_params(line_color,nspecies):
 
 
 def quick_plot(soln, Mdot_legend=True, line_color='k', line_style='-', line_label='',label_dim=[0,1.3,2],
-             ion_label=True,first_plotted=False, ax=0): 
+             ion_label=True,first_plotted=True, ax=0): 
     '''
     Description: 
         Plots density (g/cm3), temperature (K), velocity (10 km/s), 
@@ -542,8 +542,8 @@ def energy_plot(windsoln, ax=0, alpha=0.8, all_terms=False,
             alpha=alpha, c='navy',label='conductive cooling')
         ax.plot(r, windsoln.soln['cool_cond'][1:], ':',
             alpha=alpha, c='lightsalmon',label='conductive heating')
-        ax.plot(r, -windsoln.soln['cool_free'][1:], ':',
-            alpha=alpha, c='paleturquoise',label='free-free cooling')
+#         ax.plot(r, -windsoln.soln['cool_free'][1:], ':',
+#             alpha=alpha, c='paleturquoise',label='free-free cooling')
     if CII_line_cool:
         ncols=2
         fontsize=12

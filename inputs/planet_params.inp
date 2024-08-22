@@ -1,7 +1,7 @@
 #<parameter>: <value>           #<units>;     <comment>
-Mp:        1.518818720000e+30   #g;              0.80 MJ
-Ruv:       1.072380000000e+10   #cm;             1.50 RJ
-Mstar:     1.988416000000e+33   #g;              1.00 Msun
-semimajor: 7.480000000000e+11   #cm;             0.05 au
-Ftot:      1.095712977126e+03   #erg/cm^2/s; 2.35e+02 FuvEarth
-Lstar:     6.807420000000e+33   #erg/s;          1.78 Lstar
+Mp:        2.206084190800e+30   #g;              1.16 MJ
+Ruv:       8.135789600000e+09   #cm;             1.14 RJ
+Mstar:     1.682199851400e+33   #g;              0.85 Msun
+semimajor: 4.637600000000e+11   #cm;             0.03 au
+Ftot:      2.417000000000e+04   #erg/cm^2/s; 5.18e+03 FuvEarth
+Lstar:     1.255584000000e+33   #erg/s;          0.33 Lstar

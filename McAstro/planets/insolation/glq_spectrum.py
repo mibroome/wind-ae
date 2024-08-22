@@ -37,7 +37,7 @@ class glq_spectrum:
         are set by calling set_abscissas(). The data can be saved to a
         csv with write_csv().
     """
-    def __init__(self, filename='',lisird=True, mission='fism2', date='2002-01-01', wl_norm=1e-7):
+    def __init__(self, filename='',lisird=True, mission='fism2', date='2002-01-01', wl_norm=1e-7, just_loading=True):
         """
         Keyword arguments:
             filename: str; if lisird=False, csv file of user spectrum saved in McAstro/stars/spectrum/additional_spectra/.
@@ -61,7 +61,8 @@ class glq_spectrum:
             if len(filename) == 0:
                 print("WARNING: Please specify the name of your custom spectrum file.")
                 print("Reminder, it should contain headers of: 'wl' (cm),'F_wl' (erg/s/cm^3),'unc'(???),'nu'(1/s),'F_nu'.")
-            spectrum = pd.read_csv('McAstro/stars/spectrum/additional_spectra/'+filename,comment='#')
+            spectrum = pd.read_csv('McAstro/stars/spectrum/additional_spectra/'+filename,
+                                   comment='#',header=1)
             self.spectrum = spectrum
             self.data = spectrum #because read in from csv, this is appropriate
             self.date = '0000-00-00'
@@ -132,7 +133,8 @@ class glq_spectrum:
         self.wndw_span = None
         self.rslv_span = None
         self.norm_span = None
-
+        self.just_loading = just_loading
+        
 
     def add_species(self, species_name):
         """
@@ -332,12 +334,13 @@ class glq_spectrum:
         for b in range(self.n_bins):
             if (self.spectrum.wl_min > bin_breaks[b]
                 or self.spectrum.wl_max < bin_breaks[b+1]):
-                print("WARNING: Mission's spectrum does not span "
-                      "requested bin's wavelengths.")
-                print(f'        ({self.mission}) wavelegnth span: '
-                      f'[{self.spectrum.wl_min:.2f}, '
-                      f'{self.spectrum.wl_max:.2f}] nm')
-                print('WARNING: Truncating binning to fit mission spectrum.')
+                if self.just_loading == False:
+                    print("WARNING: Mission's spectrum does not span "
+                          "requested bin's wavelengths.")
+                    print(f'        ({self.mission}) wavelength span: '
+                          f'[{self.spectrum.wl_min:.2f}, '
+                          f'{self.spectrum.wl_max:.2f}] nm')
+                    print('WARNING: Truncating binning to fit mission spectrum.')
                 if bin_breaks[b+1] < self.spectrum.wl_min:
                     self.bin_breaks = self.bin_breaks[1:]
                     self.n_bins -= 1
@@ -407,8 +410,14 @@ class glq_spectrum:
         else:
             var = 'f_wl'
             smth_var = 'f_wl_smth'
+            
         # Smooth spectrum
-#         print("smoothing",self.bin_breaks[0]) #printing to see if min is already set here
+        if len(self.data_norm['wl'].values) > 10000: # this may make no sense RUTH'S HACK
+            if self.just_loading == False:
+                print("High resolution spectrum: Increasing savgol_window and turning off d2_crits")
+            savgol_window = 801 # hardcoded for now, but should be variable
+            d2_crits = False 
+            
         for n in range(self.n_bins):
             mk = ((self.data_norm['wl']>=self.bin_breaks[n])
                   &(self.data_norm['wl']<=self.bin_breaks[n+1]))
@@ -929,7 +938,7 @@ class glq_spectrum:
         return df
 
 
-    def plot(self, var='F_wl',xaxis='wl',plot_polys=False):
+    def plot(self, var='F_wl',xaxis='wl',semimajor_au=1.0,plot_polys=False):
         fig, ax = plt.subplots()
         for b in range(self.n_bins):
             for sb in range(self.n_subbins[b]):
@@ -952,24 +961,24 @@ class glq_spectrum:
 #                 mk = ((self.data_norm['wl']>=0.01) # FIX HERE
 #                       &(self.data_norm['wl']<=50))
                 if var == 'Phi_wl':
-                    ax.set_ylabel('Spectral photon irradiance at 1 au\n'
+                    ax.set_ylabel(f'Spectral photon irradiance at {semimajor_au:.2f} au\n'
                                   r'($\phi_{\nu}$) [cm$^{-2}$ s$^{-1}$ nm$^{-1}$]')
-                    oneau_norm = self.Phi_tot / self.wl_norm
+                    au_norm = self.Phi_tot / self.wl_norm * (1/semimajor_au)**2
                     l1, = ax.plot(xvar,
-                                  oneau_norm*self.data_norm['phi_wl'][mk], lw=1, zorder=0,
+                                  au_norm*self.data_norm['phi_wl'][mk], lw=1, zorder=0,
                                   c=cc[0], label='Spectrum')
                     l2, = ax.plot(xvar,
-                                  oneau_norm*self.data_norm['phi_wl_smth'][mk], lw=3, c=cc[1],
+                                  au_norm*self.data_norm['phi_wl_smth'][mk], lw=3, c=cc[1],
                                   label='Smoothed')
                 if var == 'F_wl':
-                    ax.set_ylabel('Spectral irradiance at 1 au\n'
+                    ax.set_ylabel(f'Spectral irradiance at {semimajor_au:.2f} au\n'
                                   r'($F_{\lambda}$) [erg cm$^{-2}$ s$^{-1}$ nm$^{-1}$]')
-                    oneau_norm = self.F_tot / self.wl_norm
+                    au_norm = self.F_tot / self.wl_norm * (1/semimajor_au)**2
                     l1, = ax.plot(xvar,
-                                  oneau_norm*self.data_norm['f_wl'][mk], lw=1, zorder=0,
+                                  au_norm*self.data_norm['f_wl'][mk], lw=1, zorder=0,
                                   c=cc[0], label='Spectrum')
                     l2, = ax.plot(xvar,
-                                  oneau_norm*self.data_norm['f_wl_smth'][mk], lw=3, c=cc[1],
+                                  au_norm*self.data_norm['f_wl_smth'][mk], lw=3, c=cc[1],
                                   label='Smoothed')
                 if plot_polys:
                     l3, = ax.plot(xvar,
@@ -977,13 +986,13 @@ class glq_spectrum:
                                              self.data_norm['wl'][mk]), lw=2,
                                   c=cc[2], label='Polyfit')
                 v1 = ax.axvline(convert*np.power(self.subbin_breaks[b][sb],power), 
-                                zorder=-1, c='k',
+                                zorder=-1, c='gray',
                                 lw=2, ls='--', label='Subbin breaks')
-            ax.axvline(convert*np.power(self.bin_breaks[b],power), zorder=0, c=cc[4], lw=2, ls='--')
+            ax.axvline(convert*np.power(self.bin_breaks[b],power), zorder=0, c='k', lw=2, ls='--')
             for c in range(self.n_crits[b]):
-                v2 = ax.axvline(convert*np.power(self.crits[b][c],power), zorder=-2, c=cc[7], lw=1,
+                v2 = ax.axvline(convert*np.power(self.crits[b][c],power), zorder=-2, c='gray', lw=1,
                                 ls='--', label='Crits')
-        v3 = ax.axvline(convert*np.power(self.bin_breaks[-1],power), zorder=0, c=cc[4], lw=2, ls='--',
+        v3 = ax.axvline(convert*np.power(self.bin_breaks[-1],power), zorder=0, c='k', lw=2, ls='--',
                         label='Bin breaks')
         ax.set_yscale('log')
         ax.set_title('Smoothing binning and sub-binning')

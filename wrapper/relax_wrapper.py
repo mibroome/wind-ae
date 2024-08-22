@@ -370,8 +370,8 @@ class wind_simulation:
                      
 
 #Ramping Functions
-    def ramp_to(self, system=None, converge=True,
-                make_plot=False,integrate_out=True): #physics=None, bcs=None,
+    def ramp_to(self, system=None, converge=False,intermediate_polish=False,
+                make_plot=False,integrate_out=False): #physics=None, bcs=None,
         if (system is None):# and physics is None):
             print("Please provide a system to ramp towards. system=system(Mp,Rp,Mstar,a,Ftot,Lstar).")
             return 0
@@ -387,6 +387,8 @@ class wind_simulation:
             
             if (fail != 0) and (fail != 5):
                 return fail
+            elif intermediate_polish == True:
+                self.polish_bcs()            
             
             # Ramps Mp and Rp simultaneously, ~constant surface gravity
             result = self.ramp_grav(system, converge=converge,
@@ -396,15 +398,21 @@ class wind_simulation:
             
             if (fail != 0) and (fail != 5):
                 return fail
+            elif intermediate_polish == True:
+                self.polish_bcs()
+                
             # Ramps Mstar and semimajor simultaneously, ~constant Hill radius
             result = self.ramp_star(system, converge=converge,
                                    make_plot=make_plot, expedite=True,
                                    integrate_out=False)
             fail = result
-            
-            
-        if integrate_out == True:
+
+        if intermediate_polish == True:
+            self.polish_bcs()
+        elif (integrate_out == True) & (intermediate_polish == False):
+#             self.polish_bcs()
             self.converge_Rmax()
+        
 
         return fail
 
@@ -1042,7 +1050,7 @@ class wind_simulation:
                       .format('semimajor', temp_adist,
                               R_flip*(temp_adist-var_adist)/var_adist),
                       end="                                               ")
-                self.ramp_base_bcs(intermediate=True,tolerance=0.1)
+                self.ramp_base_bcs(intermediate=True,tolerance=0.01)
             #if only L* needs to be ramped
             elif (abs(var_Mstar-end_Mstar)/end_Mstar < 1e-10) and (abs(var_adist-end_adist)/end_adist < 1e-10) and (var_Lstar != end_Lstar):
                 # If we never needed to ramp adist, ramp Lstar linearly
@@ -1104,7 +1112,7 @@ class wind_simulation:
                     # converge boundary conditions on partial solution
                     # First update atmosphere to update Rmin location
                     self.run_isotherm() #TRY HERE OR RUNNING EVERY TIME
-                    self.ramp_base_bcs(intermediate=True,tolerance=0.1) #only converge if >10% diff in goal BC
+                    self.ramp_base_bcs(intermediate=True,tolerance=0.05) #only converge if >10% diff in goal BC
                     conv_cntr = 0
                 # update our system to partially ramped system
                 if (var_Mstar != end_Mstar) and (var_adist != end_adist) and (var_Lstar != end_Lstar):
@@ -1359,7 +1367,7 @@ class wind_simulation:
                         return 1
                     #if it will not solve, try converging Ncol one time
                     if (converge_Ncol == True) and (first_run == False):
-                        self.converge_Ncol_sp(expedite=True,warning=False)
+                        self.converge_Ncol_sp(expedite=True,quiet=True)
                         converge_Ncol = False
                     #otherwise, try taking smaller steps in mass fraction space
                     else:
@@ -1405,7 +1413,7 @@ class wind_simulation:
 
     
     
-    def ramp_metallicity(self,goal_Z=1,custom_mfs=[]):
+    def ramp_metallicity(self,goal_Z=1,custom_mfs=[],slow_ramp=False):
         '''Description: Ramps up the metallicity of the species present in the simulation.
                         Can do in multiples of solar Z or set custom mass fractions.
            
@@ -1460,28 +1468,60 @@ class wind_simulation:
             start_Z = np.where(grid==min(grid))[0][0]+1
             print("Starting metallicity: %d xSolar"%start_Z)
             current_Z = start_Z
-            while (1-current_Z/goal_Z) > 1e-5:
-                if goal_Z - current_Z > 5:
-                    current_Z += 5
-                elif goal_Z - current_Z < 5:
-                    current_Z = goal_Z
-                mfs = self.metals.metallicity(self.windsoln.species_list,Z=current_Z)
+            if slow_ramp==True:
+                Z = current_Z+1
+                bcs = np.copy(self.windsoln.bcs_tuple)
+                bcs[5] *= 10
+                self.inputs.write_bcs(*bcs)
+#                 print(f'\rRaising Ncol_sp for numerical efficiency.',
+#                       end='                                               ')
+                while Z<=goal_Z:
+                    print(f'\rZ={Z}',end='                 ')
+                    phys = np.copy(self.windsoln.physics_tuple)
+                    phys[0] = self.metallicity(self.windsoln.species_list,Z)
+                    self.inputs.write_physics_params(*phys)
 
-                self.inputs.write_physics_params(mfs,self.windsoln.species_list,
-                                                 self.windsoln.molec_adjust)
-                fail = 1
-                while self.run_wind(expedite=True) != 0:
+                    if self.run_wind() != 0:
+                        bcs = np.copy(self.windsoln.bcs_tuple)
+                        bcs[5] *= 10
+                        self.inputs.write_bcs(*bcs)
+#                         print(f'\rRaising Ncol_sp for numerical efficiency.',
+#                               end='                                               ')
+                        if self.run_wind() != 0:
+                            print(f"Permanent failure at Z={Z}.")
+                            return 1
+                    Z+=1
+                    self.ramp_base_bcs()
+            else:
+                while (1-current_Z/goal_Z) > 1e-5:
+                    if goal_Z - current_Z > 5:
+                        current_Z += 5
+                    elif goal_Z - current_Z < 5:
+                        current_Z = goal_Z
+                    mfs = self.metals.metallicity(self.windsoln.species_list,Z=current_Z)
+
+                    self.inputs.write_physics_params(mfs,self.windsoln.species_list,
+                                                     self.windsoln.molec_adjust)
+                    bcs = np.copy(self.windsoln.bcs_tuple)
+                    bcs[5] *= 10
+                    self.inputs.write_bcs(*bcs)
+                    print(f'\rRaising Ncol_sp for numerical efficiency.',
+                          end='                                               ')
+
+                    fail = 1
                     delta = goal_Z - current_Z
-                    step_Z = current_Z + delta/(2**fail)
-                    print(f'\r Failed: Attempting to ramp Z from {current_Z:.1f} to {step_Z:.1f}',
-                         end='                                                            ')
-                    if fail>10:
-                        print('Failed at Z = ',current_Z)
-                        sys.exit(1)
-                    fail+=1
-                print(f'\r Success! Attemping to ramp Z from {current_Z-2:.1f} to {current_Z:.1f}',
-                 end='                                                                               ')
-                stepsize=2
+                    while self.run_wind(expedite=True) != 0:
+    #                     start = time.time()
+                        step_Z = current_Z + delta/(2**fail)
+                        print(f'\r Failed {fail}: Attempting to ramp Z from {current_Z:.1f} to {step_Z:.1f}',
+                             end='                                                            ')
+                        if fail>10:
+                            print('Failed at Z = ',current_Z)
+                            sys.exit(1)
+                        fail+=1
+                    print(f'\r Success! Attemping to ramp Z from {current_Z-2:.1f} to {current_Z:.1f}',
+                     end='                                                                               ')
+                    stepsize=2
             print('Success! Ramped to goal metallicity, Z = %.0f x Solar'%current_Z)
             self.converge_Ncol_sp(expedite=True)
             return
@@ -1491,7 +1531,9 @@ class wind_simulation:
 #Polishing Boundary Conditions functions (many of these these enforce self-consistency, and are not neccessary for
 #precision, but are for maximal accuracy (within the inherent uncertainty in the model))
     def polish_bcs(self,converge_Rmax=True):
-        '''Description: 
+        '''Description: Polishes upper and lower boundary conditions to self-consistency.
+        
+            Arguments: converge_Rmax - bool; default=True. If true converges Rmax (more costly).
         '''
         #Checking that base bcs (Rmin, rho, T) have been converged
         print('Polishing up boundary conditions...')
@@ -1547,6 +1589,8 @@ class wind_simulation:
         else:
             Ncol = self.converge_Ncol_sp()
             rcori_str = ''
+            
+        self.run_isotherm()
         
         warn = ''
         bc_result = 'Success'
@@ -1585,6 +1629,8 @@ class wind_simulation:
             else:
                 print(warn2 %(bc_result,iso_result,ncol_result))
             return 5
+        
+        
     def ramp_base_bcs(self,base_press=1,
                       user_override_press=False,
                       Kappa_opt=4e-3,Kappa_IR=1e-2,molec_adjust=2.3, 
@@ -1793,6 +1839,7 @@ class wind_simulation:
                     self.inputs.write_bcs(*self.windsoln.bcs_tuple)
                     if attempt > 6:
                         print("Failed to integrate outwards even after raising Ncol. Suspicious.")
+                        self.converge_Ncol_sp()
                         return 1
                     out = self.run_wind()
                 else:
@@ -3024,7 +3071,7 @@ class wind_simulation:
         else:
             print("Invalid units: Options = 'A','nm','cm',or 'm'.")
             return
-        if np.median(flux_1au) < 1:
+        if np.median(flux_1au) < 1e-8:
             print("WARNING: Flux at 1 au from star should be in units of ergs/s/cm2 (check that your input is not the flux at Earth).")
         
         total_EUV_flux = sum(flux_1au[(wl>min(np.max(wl),1.2e-6))&(wl<max(np.min(wl),9.1e-6))])
@@ -3032,7 +3079,7 @@ class wind_simulation:
         
         #Converting to ergs/s/cm2/cm flux density
         delta_lam = np.diff(wl_cm,prepend=wl_cm[0]-(wl_cm[1]-wl_cm[0]))
-        flux_dens_1au = flux_1au*delta_lam
+        flux_dens_1au = flux_1au/delta_lam
         
         df = pd.DataFrame(np.column_stack((
             wl_cm,
