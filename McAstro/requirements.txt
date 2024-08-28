@@ -4,3 +4,5 @@ astropy==3.2.3
 numpy==1.18.1
 pandas==1.0.3
 pytz==2019.3
+fastparquet==0.8.1
+pyarrow==8.0.0

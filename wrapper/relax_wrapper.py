@@ -357,7 +357,7 @@ class wind_simulation:
                 if not retry:
                     # Check retry to avoid infinite recursion
                     print("Retry triggered")
-                    self.ramp_base_bcs(expedite=expedite) #if expedite = False, converges bcs, too
+#                     self.ramp_base_bcs(expedite=expedite,static=static_bcs) #if expedite = False, converges bcs, too
                     self.run_isotherm(called_in_ramp_bcs=True)
                     self.converge_Ncol_sp(expedite=expedite)
                     return self.run_wind(retry=True)
@@ -371,7 +371,7 @@ class wind_simulation:
 
 #Ramping Functions
     def ramp_to(self, system=None, converge=False,intermediate_polish=False,
-                make_plot=False,integrate_out=False): #physics=None, bcs=None,
+                make_plot=False,integrate_out=False,static_bcs=False): #physics=None, bcs=None,
         if (system is None):# and physics is None):
             print("Please provide a system to ramp towards. system=system(Mp,Rp,Mstar,a,Ftot,Lstar).")
             return 0
@@ -419,7 +419,7 @@ class wind_simulation:
 
     def ramp_var(self, var, var_end, var_class=None, delta=0.02,
                  delta_additive=False, converge_bcs=True, make_plot=True,
-                 expedite=False,integrate_out=True):
+                 expedite=False,integrate_out=True,static_bcs=False):
         if var_class is None:
             var_class = self.ramp_class
         if var_class == "system":
@@ -507,7 +507,7 @@ class wind_simulation:
                     print("\r...Intermediate ramping BCs activated.",
                          end="                                           ")
 #                     self.isotherm_start(run_wind=False) #updates where bolometric heat/cool dominate
-                    self.ramp_base_bcs(expedite=True)
+                    self.ramp_base_bcs(expedite=True,static=static_bcs)
                     self.run_isotherm()
                     self.converge_Ncol_sp(expedite=True)
             elif result == 2:
@@ -522,7 +522,7 @@ class wind_simulation:
                                 prcnt_chng >= conv_every_pc):
                     
                     # converge boundary conditions on partial solution
-                    self.ramp_base_bcs(intermediate=True,tolerance=0.1) #only converge if >10% diff in goal BC               
+                    self.ramp_base_bcs(intermediate=True,tolerance=0.1,static=static_bcs) #only converge if >10% diff in goal BC               
                     self.run_isotherm()
 #                     self.converge_Ncol_sp() #MAYBE
                     conv_cntr = 0
@@ -612,7 +612,7 @@ class wind_simulation:
 
 
     def ramp_grav(self, system, delta=0.02, converge=True, make_plot=True,
-                  expedite=False,integrate_out=True):
+                  expedite=False,integrate_out=True,static_bcs=False):
 #         self.failed_deeper_bcs_ramp = False
         var_Mp = self.system.value('Mp')
         var_Rp = self.system.value('Rp')
@@ -680,7 +680,7 @@ class wind_simulation:
         conv_every_n = 10
         while (var_Mp != end_Mp) or (var_Rp != end_Rp):
 #             energy_plot(self.windsoln)
-            self.ramp_base_bcs(intermediate=True,tolerance=0.1) #only converge if >10% diff in goal BC  
+            self.ramp_base_bcs(intermediate=True,tolerance=0.1,static=static_bcs) #only converge if >10% diff in goal BC  
             self.run_isotherm()
 #             print(self.run_isotherm(expedite=expedite)) #TEST
             if (var_Mp != end_Mp) and (var_Rp != end_Rp):
@@ -732,7 +732,7 @@ class wind_simulation:
                 if failed == 4:
                     print("...Intermediate Ramping BCs activated.")
 #                     self.isotherm_start(run_wind=False) #updates where bolometric heat/cool dominate
-                    self.ramp_base_bcs() 
+                    self.ramp_base_bcs(expedite=True,static=static_bcs) 
                     self.run_isotherm()
 #                     self.converge_Ncol_sp()
 #                 self.converge_all_bcs(expedite=True) #not Ncol, because wasn't converged to before
@@ -748,7 +748,7 @@ class wind_simulation:
                                 prcnt_chng >= conv_every_pc):
                     # converge boundary conditions on partial solution
 #                     self.isotherm_start(run_wind=False) #updates where bolometric heat/cool dominate
-                    self.ramp_base_bcs(intermediate=True,tolerance=0.1) #only converge if >10% diff in goal BC
+                    self.ramp_base_bcs(intermediate=True,tolerance=0.1,static=static_bcs) #only converge if >10% diff in goal BC
                     self.run_isotherm()
 #                     self.converge_Ncol_sp(expedite=expedite) #may be uneccesary
                     conv_cntr = 0
@@ -854,7 +854,7 @@ class wind_simulation:
 
 
     def ramp_star(self, system, delta=0.02, converge=True, make_plot=True,
-                  expedite=False,integrate_out=True):
+                  expedite=False,integrate_out=True,static_bcs=False):
         '''Description: Ramps stellar mass (Mstar), semimajor axis (semimajor), and stellar bolometric 
                         luminosity (Lstar). If Mstar and semimajor axis change, ramps linearly along 
                         Hill radius rate of change.
@@ -1050,7 +1050,7 @@ class wind_simulation:
                       .format('semimajor', temp_adist,
                               R_flip*(temp_adist-var_adist)/var_adist),
                       end="                                               ")
-                self.ramp_base_bcs(intermediate=True,tolerance=0.01)
+                self.ramp_base_bcs(intermediate=True,tolerance=0.01,static=static_bcs)
             #if only L* needs to be ramped
             elif (abs(var_Mstar-end_Mstar)/end_Mstar < 1e-10) and (abs(var_adist-end_adist)/end_adist < 1e-10) and (var_Lstar != end_Lstar):
                 # If we never needed to ramp adist, ramp Lstar linearly
@@ -1097,7 +1097,7 @@ class wind_simulation:
                     print(f"\r...Intermediate Ramping BCs activated (Instance {count:.0f}).",
                          end="                                                              ")
                     self.converge_Ncol_sp(expedite=expedite)
-                    self.ramp_base_bcs() 
+                    self.ramp_base_bcs(expedite=True,static=static_bcs) 
                     self.run_isotherm()
             elif result == 2:
                 print("\nERROR: Failed to copy windsoln to guess. Not great.")
@@ -1112,7 +1112,7 @@ class wind_simulation:
                     # converge boundary conditions on partial solution
                     # First update atmosphere to update Rmin location
                     self.run_isotherm() #TRY HERE OR RUNNING EVERY TIME
-                    self.ramp_base_bcs(intermediate=True,tolerance=0.05) #only converge if >10% diff in goal BC
+                    self.ramp_base_bcs(intermediate=True,tolerance=0.05,static=static_bcs) #only converge if >10% diff in goal BC
                     conv_cntr = 0
                 # update our system to partially ramped system
                 if (var_Mstar != end_Mstar) and (var_adist != end_adist) and (var_Lstar != end_Lstar):
@@ -1413,9 +1413,11 @@ class wind_simulation:
 
     
     
-    def ramp_metallicity(self,goal_Z=1,custom_mfs=[],slow_ramp=False):
+    def ramp_metallicity(self,goal_Z=1,custom_mfs=[],slow_ramp=False,static_bcs=False):
         '''Description: Ramps up the metallicity of the species present in the simulation.
                         Can do in multiples of solar Z or set custom mass fractions.
+                        NOTE: Not yet optimized as of 2024-8-22. Check back for a more efficient
+                              version soon.
            
            Arguments: 
                goal_Z - float; default=1. Multiples of Lodders (2008) solar metallicity.
@@ -1490,8 +1492,10 @@ class wind_simulation:
                         if self.run_wind() != 0:
                             print(f"Permanent failure at Z={Z}.")
                             return 1
-                    Z+=1
-                    self.ramp_base_bcs()
+                    if Z%4 == 0: #costs time, but ultimately increases liklihood of success
+                        self.ramp_base_bcs(expedite=True,static=static_bcs)
+                    Z+=1 
+                current_Z = Z
             else:
                 while (1-current_Z/goal_Z) > 1e-5:
                     if goal_Z - current_Z > 5:
@@ -1530,14 +1534,14 @@ class wind_simulation:
 
 #Polishing Boundary Conditions functions (many of these these enforce self-consistency, and are not neccessary for
 #precision, but are for maximal accuracy (within the inherent uncertainty in the model))
-    def polish_bcs(self,converge_Rmax=True):
+    def polish_bcs(self,converge_Rmax=True,static_bcs=False):
         '''Description: Polishes upper and lower boundary conditions to self-consistency.
         
             Arguments: converge_Rmax - bool; default=True. If true converges Rmax (more costly).
         '''
         #Checking that base bcs (Rmin, rho, T) have been converged
         print('Polishing up boundary conditions...')
-        self.ramp_base_bcs() 
+        self.ramp_base_bcs(static=static_bcs) 
         goal_bcs = self.base_bcs()
         curr_bcs = np.array(self.windsoln.bcs_tuple[:4])   
         avg_diff = sum(np.array((abs(curr_bcs-goal_bcs)/goal_bcs)[[0,2,3]]))
@@ -1632,7 +1636,7 @@ class wind_simulation:
         
         
     def ramp_base_bcs(self,base_press=1,
-                      user_override_press=False,
+                      user_override_press=False, static=False,
                       Kappa_opt=4e-3,Kappa_IR=1e-2,molec_adjust=2.3, 
                       adiabat=False, expedite=False, 
                       intermediate=False, tolerance=0.1):
@@ -1650,6 +1654,7 @@ class wind_simulation:
                                         unless user_override_press=True.
             user_override_press - bool; default=False. To lower or raise pressure
                                         of base, set True.
+            static - bool; default=False. If True, does not ramp and keeps existing values.             
             Kappa_opt - float; default = 4e-3. Optical opacity. Sets bolometric
                                                heating/cooling in molecular region
                                                below wind.
@@ -1661,7 +1666,9 @@ class wind_simulation:
             expedite - bool; default=False.
             
             
-        '''        
+        '''   
+        if static==True:
+            return
         rho_scale = self.windsoln.scales_dict['rho']
         T_scale = self.windsoln.scales_dict['T']
         #Unless user wants to override the base pressure, take the pressure to be
@@ -1819,10 +1826,6 @@ class wind_simulation:
                                         consistently again after Rmax has been 
                                         set to Rcori.
         """
-#         print(self.windsoln.R_cori)
-#         self.run_wind()#need to populate saves/windsoln.csv with windsoln
-        #otherwise could cause trouble if new solution is and old windsoln.csv
-        #is loaded 
         try: # Check if r_cori has be calculated
             self.windsoln.R_cori
         except AttributeError:
