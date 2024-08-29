@@ -1684,6 +1684,9 @@ class wind_simulation:
         goal_bcs = self.base_bcs(self.windsoln.molec_adjust,
                                  Kappa_opt,Kappa_IR,adiabat,base_press,
                                  user_override_press)
+        goal_bcs = np.array(goal_bcs)
+        if self.windsoln.bolo_heat_cool == 0: #an approximation
+            goal_bcs[3] = np.average(self.windsoln.soln['T'][:10])/self.windsoln.scales_dict['T']
 
         curr_bcs = np.array(self.windsoln.bcs_tuple[:4])        
         avg_diff = np.array((abs(curr_bcs-goal_bcs)/goal_bcs)[[0,2,3]])
