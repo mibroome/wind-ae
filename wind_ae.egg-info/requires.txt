@@ -1,0 +1,10 @@
+scipy
+numpy
+astropy
+pandas
+matplotlib
+datetime
+pyarrow
+fastparquet
+requests
+ChiantiPy
