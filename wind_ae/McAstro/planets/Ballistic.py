@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import integrate
 
-from McAstro.utils import constants as const
+from wind_ae.McAstro.utils import constants as const
 
 def ballistic_eoq(t, p, Mp, Mstar, smjr, Omg):
     x, y, z, u, v, w = p

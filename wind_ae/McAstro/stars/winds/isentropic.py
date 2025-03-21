@@ -3,7 +3,7 @@
 import numpy as np
 from scipy.optimize import fsolve
 
-from McAstro.utils import constants as const
+from wind_ae.McAstro.utils import constants as const
 
 class isentropic:
     def __init__(self, Mstar, R0, T0, v0, n0, mu0, gamma=5/3):

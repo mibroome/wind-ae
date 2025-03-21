@@ -1,6 +1,6 @@
 import numpy as np
 
-from wrapper.wrapper_utils import constants as const
+from wind_ae.wrapper.wrapper_utils import constants as const
 
 
 class rt_ray:

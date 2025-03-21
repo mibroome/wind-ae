@@ -6,9 +6,9 @@ import pandas as pd
 from scipy import integrate, interpolate
 from scipy.signal import savgol_filter
 
-from McAstro.utils import constants as const
-from McAstro.stars.spectrum.lisird import lisird_spectrum
-from McAstro.atoms.atomic_species import atomic_species
+from wind_ae.McAstro.utils import constants as const
+from wind_ae.McAstro.stars.spectrum.lisird import lisird_spectrum
+from wind_ae.McAstro.atoms.atomic_species import atomic_species
 
 
 class species:

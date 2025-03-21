@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import matplotlib.colors as colors
 from cycler import cycler
-import McAstro.atoms.atomic_species as McAtom
+import wind_ae.McAstro.atoms.atomic_species as McAtom
 from matplotlib.lines import Line2D
 from . import constants as const
 
@@ -558,7 +558,7 @@ def energy_plot(windsoln, ax=0, alpha=0.8, all_terms=False,
         ncols=2
         fontsize=12
         ax.plot(r, -windsoln.soln['cool_rec'][1:], ':',
-            alpha=alpha, c='slateblue',label='recombination cooling')
+            alpha=alpha, c='teal',label='recombination cooling')
         ax.plot(r, -windsoln.soln['cool_cond'][1:], ':',
             alpha=alpha, c='navy',label='conductive cooling')
         ax.plot(r, windsoln.soln['cool_cond'][1:], ':',

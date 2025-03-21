@@ -7,7 +7,7 @@ from astropy.io import fits
 from scipy.optimize import curve_fit
 from scipy import interpolate, integrate
 
-from .black_body import BlackBody, Planck_irradiance_wl
+from wind_ae.McAstro.stars.spectrum.black_body import BlackBody, Planck_irradiance_wl
 
 class PHOENIX():
     """

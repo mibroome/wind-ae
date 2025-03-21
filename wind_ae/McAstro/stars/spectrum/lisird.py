@@ -5,9 +5,9 @@ from datetime import datetime
 import pytz
 import numpy as np
 
-import McAstro.utils.constants as const
-import McAstro.utils.timedate as timedate
-from McAstro.utils.data_download import request_content
+import wind_ae.McAstro.utils.constants as const
+import wind_ae.McAstro.utils.timedate as timedate
+from wind_ae.McAstro.utils.data_download import request_content
 
 _lisird_directory = (os.path.dirname(os.path.abspath(__file__))
                      +'/lisird_spectrums/')

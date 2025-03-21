@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.special import wofz
 
-from wrapper.wrapper_utils import constants as const
+from wind_ae.wrapper.wrapper_utils import constants as const
 
 
 """

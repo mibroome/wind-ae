@@ -3,7 +3,7 @@
 import numpy as np
 import scipy.integrate as integrate
 
-from McAstro.utils import constants as const
+from wind_ae.McAstro.utils import constants as const
 
 class BlackBody():
     def __init__(self, Temp):

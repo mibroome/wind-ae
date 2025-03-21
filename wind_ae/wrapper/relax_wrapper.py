@@ -8,7 +8,7 @@ relax_wrapper.py:
     consistent, i.e., the boundary conditions and ramping thru parameter
     space. Additionally the solution should be readily accessible in python.
     Handling of the solution is done by the other major class wind_solution
-    found in wrapper_utils/windsoln.py.
+    found in wind_ae/wrapper/wrapper_utils/windsoln.py.
 """
 
 import os
@@ -31,6 +31,7 @@ from .wrapper_utils.physics import physics
 from .wrapper_utils.inputs import input_handler
 from .wrapper_utils.windsoln import wind_solution
 from .wrapper_utils.plots import four_panel_plot
+from .wrapper_utils.plots import six_panel_plot
 from .wrapper_utils.plots import energy_plot
 from .wrapper_utils.metals import metal_class
 from .wrapper_utils.spectrum import spectrum
@@ -171,7 +172,7 @@ class wind_simulation:
         self.inputs.write_spectrum(*planet.spectrum_tuple)
         # load planet as guess.inp if not already
         if csv_file != 'inputs/guess.inp':
-            sub = Popen(["cp", csv_file, 'inputs/guess.inp'],cwd=self.path,
+            sub = Popen(["cp", csv_file, self.path+'inputs/guess.inp'],
                         stdout=PIPE, stderr=PIPE)
             sub.wait()
             output, error_output = sub.communicate()
@@ -246,22 +247,26 @@ class wind_simulation:
         return
 
     
-    def save_planet(self, name=None, folder='', overwrite=False,polish=False,
-                    repo=path+'saves/'):
+    def save_planet(self, filename=None, filepath='', overwrite=False,polish=False):
         '''Note: It is not necessary to define a folder. All files will be saved in the saves/ repo.
         '''
         if polish == True:
             self.polish_bcs()
+        folder = filepath
+        name = filename
         if folder != '':
             if len(folder) > 1 and folder[-1] != '/':
                 folder += '/'
-            # Force all saves into saves directory
-            if folder[0] != '/' and folder[0:len(repo)] != repo and folder[0]!='.':
-                folder = repo+folder
+        #     # Force all saves into saves directory
+        #     # print(folder[0],folder[0:len(repo)],folder[0])
+        #     if folder[0] != '/' and folder[0:len(repo)] != repo and folder[0]!='.':
+        #         folder = repo+folder
             os.makedirs(folder, exist_ok=True)
-        else:
-            if name[0] != '/' and name[0]!='.' and name[0:len(repo)] != repo:
-                folder = repo+folder
+        # else:
+        #     # print(name[0],name[0],name[0:len(repo)])
+        #     if name[0] != '/' and name[0]!='.' and name[0:len(repo)] != repo:
+        #         if name[0:7] != 'saves/':
+        #             folder = repo+folder
         if name is not None:
             if name[-4:] != '.csv':
                 name = folder+name+'.csv'
@@ -269,16 +274,15 @@ class wind_simulation:
                 name = folder+name
         else:
             Mp, Rp, Mstar, semimajor, Ftot, Lstar = self.windsoln.planet_tuple
-            name = (folder + ("Mp:{:g}_Rp:{:g}_Mstar:{:g}_a:{:g}_Ftot:{:g}_Nsp:{:d}_Spect:{:s}"
+            name = (self.path+("saves/Mp:{:g}_Rp:{:g}_Mstar:{:g}_a:{:g}_Ftot:{:g}_Nsp:{:d}_Spect:{:s}.csv"
                              .format(Mp, Rp, Mstar, semimajor, Ftot, 
-                                     self.windsoln.nspecies, self.windsoln.spectrum_tuple[3])) +
-                    '.csv')
+                                     self.windsoln.nspecies, self.windsoln.spectrum_tuple[3])))
         if not overwrite and os.path.isfile(name):
             print('File already exists.\n'
                   '  To overwrite use save_planet(overwrite=True).')
             return
         print("Saving %s" % name)
-        sub = Popen(["cp", 'saves/windsoln.csv', name],cwd=self.path,
+        sub = Popen(["cp", self.path+'saves/windsoln.csv', name],
                     stdout=PIPE, stderr=PIPE)
         sub.wait()
         output, error_output = sub.communicate()
@@ -1353,7 +1357,19 @@ class wind_simulation:
         
         desired_species = desired_species_list
         McAtom.formatting_species_list(desired_species)
+        #check whether these species are in the Verner list in McAstro
+        skips = np.array([], dtype=int)
+        for i in range(len(desired_species)):
+            check_species = desired_species[i]
+            try:
+                McAtom.atomic_species(check_species).mass.iloc[0]
+            except IndexError:
+                print("%s is not currently available in Wind-AE. Skipping." %check_species)
+                skips = np.append(skips,int(i))
+        desired_species = np.delete(desired_species,skips)
         unspaced_desired_list = [sp.replace(' ','') for sp in desired_species]
+
+
 
         #If user defined custom mass fractions, use those values
         if len(custom_mfs) > 0: 
@@ -1361,8 +1377,11 @@ class wind_simulation:
                 sys.exit("ERROR: Mass fraction and species list must be the same length.")
             if np.round(np.sum(custom_mfs),5) != 1:
                 print('WARNING: Total Mass Fraction must sum to 1. ',
-                      'sum(ZX) = %.3f' %np.sum(goal_mass_fracs))
+                      'sum(ZX) = %.3f' %np.sum(custom_mfs))
             species_mf_dict = dict(zip(unspaced_desired_list,custom_mfs))
+        
+
+                
 
         unspaced_current_list = [sp.replace(' ','') for sp in self.windsoln.species_list]
         new_species = np.setdiff1d(unspaced_desired_list,

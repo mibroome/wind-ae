@@ -5,8 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from . import constants as const
-from McAstro.planets.insolation.glq_spectrum import glq_spectrum
-import McAstro.atoms.atomic_species as McAtom
+from wind_ae.McAstro.planets.insolation.glq_spectrum import glq_spectrum
+import wind_ae.McAstro.atoms.atomic_species as McAtom
 import importlib.resources as pkg_resources
 
 

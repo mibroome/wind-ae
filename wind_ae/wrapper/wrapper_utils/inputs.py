@@ -4,7 +4,7 @@ from . import constants as const
 import pandas as pd
 import numpy as np
 import sys
-import McAstro.atoms.atomic_species as McAtom
+import wind_ae.McAstro.atoms.atomic_species as McAtom
 import importlib.resources as pkg_resources
 
 class input_handler:

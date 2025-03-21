@@ -57,6 +57,7 @@ class metal_class:
                 print("ERROR: Species must include an ionization number either in Roman or Arabic numerals (e.g., H1, heIV, Fe 6)", 
                       file=sys.stderr) # Python 3.x
                 sys.exit(1)
+
             if self.windsoln.spec_src_file != 'scaled-solar':
                 spec = spectrum(lisird=False,spectrum_file=self.windsoln.spec_src_file)#,
             else:
@@ -97,6 +98,7 @@ class metal_class:
                                           allow_duplicates=True) 
             #Adding other species details
             ma = McAtom.atomic_species(new_species_spaced)
+
             self.windsoln.HX = np.append(self.windsoln.HX,0.) #0 because mass fraction is ramped up in another function
             self.windsoln.ion_pot = np.append(self.windsoln.ion_pot,ma.verner_data['E_th']*const.eV)
             self.windsoln.atomic_masses = np.append(self.windsoln.atomic_masses,ma.mass.iloc[0]) 
@@ -304,7 +306,7 @@ class metal_class:
         '''
         for i,sp in enumerate(self.windsoln.species_list):
             self.windsoln.species_list[i] = (sp).replace(' ','')
-        g = open("inputs/guess.inp","w")
+        g = open(self.path+"inputs/guess.inp","w")
         #Header
         self.windsoln.nspecies = len(self.windsoln.Ys_rmin)
         g.write("#nspecies: %d\n" %self.windsoln.nspecies)

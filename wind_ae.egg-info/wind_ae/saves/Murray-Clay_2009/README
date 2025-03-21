@@ -1,6 +1,0 @@
-This folder contains the results of Murray-Clay et al. (2009).
-These are monofrequency EUV, pure H simulations with no bolometric heating/cooling below the wind and different lower boundary conditions.
-
-They were created with the 2009 version of this code and cannot be reproduced with the code in its current form.
-
-The headers of these solutions have been modified to be readable by the latest iteration of Wind-AE.

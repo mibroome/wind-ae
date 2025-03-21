@@ -2,11 +2,11 @@
 
 import numpy as np
 
-from McAstro.utils import constants as const
-from McAstro.stars.spectrum import high_energy
-from McAstro.stars.relations import mass_relation
-from McAstro.stars.relations import temperature_relation
-from McAstro.stars.relations import colour_relation
+from wind_ae.McAstro.utils import constants as const
+from wind_ae.McAstro.stars.spectrum import high_energy
+from wind_ae.McAstro.stars.relations import mass_relation
+from wind_ae.McAstro.stars.relations import temperature_relation
+from wind_ae.McAstro.stars.relations import colour_relation
 
 def integrated_uv(mass, semimajor, stellar_age=1e9, P_rot=None,
                   xray='Jackson', euv='Chadney', updated=False,

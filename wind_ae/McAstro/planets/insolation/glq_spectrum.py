@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import os
 import math, copy
 import numpy as np
 import pandas as pd
@@ -10,9 +10,9 @@ from scipy import integrate, interpolate
 from scipy.signal import savgol_filter
 from scipy.interpolate import Akima1DInterpolator
 
-from McAstro.utils import constants as const
-from McAstro.stars.spectrum.lisird import lisird_spectrum
-from McAstro.atoms.atomic_species import atomic_species
+from wind_ae.McAstro.utils import constants as const
+from wind_ae.McAstro.stars.spectrum.lisird import lisird_spectrum
+from wind_ae.McAstro.atoms.atomic_species import atomic_species
 
 filed = os.path.dirname(os.path.abspath(__file__))
 

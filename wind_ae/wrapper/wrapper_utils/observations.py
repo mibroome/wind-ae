@@ -4,14 +4,11 @@ import ChiantiPy.tools.io
 import ChiantiPy.core
 
 import numpy as np
-import math
 from scipy.interpolate import CubicSpline
 
-import McAstro.atoms.atomic_species as McAtom
-import McAstro.radiation.lines.lyman_alpha as McLyman
-import McAstro.radiation.radiative_transfer as McRT
-from wrapper.wrapper_utils import constants as const
-
+import wind_ae.McAstro.radiation.lines.lyman_alpha as McLyman
+import wind_ae.McAstro.radiation.radiative_transfer as McRT
+from wind_ae.wrapper.wrapper_utils import constants as const
 
 # McRT.rt_ray
 # McRT.radiative_transfer
@@ -170,14 +167,13 @@ class observation:
 #                    tau_arr[j][i] += (tau_hor[j]
 #                                      *(1.-np.sqrt(1.-(b/sphere_extent)**2)))
         # Calculate disk average obscuration of spherical extent + horizontal tube
-        h = min(r_star, sphere_extent)
-        chi = h/r_star
-        zeta = np.sqrt(1.-chi**2)
+        # h = min(r_star, sphere_extent)
+        # chi = h/r_star
+        # zeta = np.sqrt(1.-chi**2)
         eta = min(1., sphere_extent/r_star)
-        w_hor = (2./const.pi)*(math.acos(zeta)+chi*zeta) - eta**2
-        RH = self.windsoln.semimajor*(self.windsoln.Mp/(3.0*self.windsoln.Mstar))**(1./3.)
-#         print(RH/self.windsoln.Rp, self.windsoln.Rmax, sphere_extent, r_star)
-#         print(eta)
+        # w_hor = (2./const.pi)*(math.acos(zeta)+chi*zeta) - eta**2
+        # RH = self.windsoln.semimajor*(self.windsoln.Mp/(3.0*self.windsoln.Mstar))**(1./3.)
+
         for j in range(len(self.v_arr)):
             # Obscuration from spherical extent
             self.Obscuration[j] = eta**2-np.trapz(2.*b_arr*np.exp(-tau_arr[j]),

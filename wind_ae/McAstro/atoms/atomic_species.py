@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import Akima1DInterpolator
 
-from McAstro.utils import constants as const
+from wind_ae.McAstro.utils import constants as const
 
 _Zelem = {'H':1, 'He':2, 'Li':3, 'Be':4, 'B':5, 'C':6, 'N':7,
               'O':8, 'F':9,'Ne':10, 'Na':11, 'Mg':12, 'Al':13,
