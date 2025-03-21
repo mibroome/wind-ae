@@ -1,6 +1,6 @@
 # Wind-AE (BETA)
 
-`Wind-AE` (/windy/) stands for "wind atmospheric escape" and is a relatively fast 1D, steady-state, hydrodynamic, non-isothermal, Parker wind relaxation code for modeling atmospheric escape based on [Murray-Clay et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009ApJ...693...23M/abstract). `Wind-AE` is a forward model that solves the energy conservation, momentum conservation, and ionization equilibrium equations at the substellar point using the ["Numerical Recipes in C"](https://ui.adsabs.harvard.edu/abs/1992nrca.book.....P/abstract) relaxation method. This allows `Wind-AE` to quickly compute the atmosphere mass loss rate as well as upper atmosphere ($\gtrsim 100 \mu$bar) velocity, temperature, density, and ionization structure as a function of altitude. 
+`Wind-AE` (/windy/) stands for "wind atmospheric escape" and is a relatively fast 1D, steady-state, hydrodynamic, non-isothermal, Parker wind relaxation code for modeling atmospheric escape based on [Murray-Clay et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009ApJ...693...23M/abstract). `Wind-AE` is a forward model that solves the energy conservation, momentum conservation, and ionization equilibrium equations at the substellar point using the ["Numerical Recipes in C"](https://ui.adsabs.harvard.edu/abs/1992nrca.book.....P/abstract) relaxation method. This allows `Wind-AE` to quickly compute the atmosphere mass loss rate as well as upper atmosphere (> ~100 microbar) velocity, temperature, density, and ionization structure as a function of altitude. 
 
 `Wind-AE` updates [Murray-Clay et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009ApJ...693...23M/abstract) to allow for the modeling of atomic metals and multifrequency XUV stellar spectra (Broome et al. submitted). If you use `Wind-AE`, please consider citing Broome et al. (in prep). 
 
@@ -9,11 +9,11 @@ We appreciate your patience while the docs are developed. In the meantime, take 
 
 Is Wind-AE the right tool for me?
 ----------------------
-`Wind-AE` is well-suited for users interested in **quickly estimating mass loss rates** or outflow structure. Outflow structure includes bulk temperature and per-species ionization fractions as a function of radius, so can be easily translated into approximating and **predicting observables and transits**, including metastable helium (He 10830$\AA$) transits, though a He transit module is not yet included. Precise modeling of lower atmosphere ($\lssim 100 \mu$bar) is considered necessary for highly accurate transit models, but Wind-AE can be easily coupled to lower atmosphere photochemistry models whose outputs can (e.g., radius, temperature, abundances, ionization fractions, etc. at 1 $\mu$bar) can be fed into Wind-AE as inputs.  
+`Wind-AE` is well-suited for users interested in **quickly estimating mass loss rates** or outflow structure. Outflow structure includes bulk temperature and per-species ionization fractions as a function of radius, so can be easily translated into approximating and **predicting observables and transits**, including metastable helium (He 10830 Å) transits, though a He transit module is not yet included. Precise modeling of lower atmosphere (< ~100 microbar) is considered necessary for highly accurate transit models, but Wind-AE can be easily coupled to lower atmosphere photochemistry models whose outputs can (e.g., radius, temperature, abundances, ionization fractions, etc. at 1 microbar) can be fed into Wind-AE as inputs.  
 
->*If you are interested in outflow structure:* Past the Coriolis turning radius (a few planetary radii) 3D physics dominates, so `Wind-AE` does not integrate past that point. `Wind-AE` also makes simplifying assumptions about the region below the region below the wind-launch radius (~10 nanobars). 
+>**If you are interested in outflow structure:** Past the Coriolis turning radius (a few planetary radii) 3D physics dominates, so `Wind-AE` does not integrate past that point. `Wind-AE` also makes simplifying assumptions about the region below the region below the wind-launch radius (~10 nanobars). 
 
-Because `Wind-AE` runs on the order of seconds to minutes, it can be (and has been) used to **model planet evolution**.
+Because `Wind-AE` runs on the order of seconds to minutes, it also can be (and has been) used to **model planet evolution**.
 
 #### `Wind-AE` can model:
 - Multiple atomic species
@@ -24,10 +24,10 @@ Because `Wind-AE` runs on the order of seconds to minutes, it can be (and has be
 - **Magnetic fields**
 - **Time dependence**
 - **Diffusion/drag** - the atomic species set by the user are assumed to be entrained in the outflow and in thermal equilibrium. This is an appropriate assumption for species below the [crossover mass](https://ui.adsabs.harvard.edu/abs/1987Icar...69..532H) and a warning will be raised.
-- **Heating & Cooling**: Conduction (warning raised if relevant, **planned**), H3+ line cooling (not planned), Fe & Ca  line cooling (relevant at high Z only, **planned**), free-free cooling (warning raised if relevant, not planned) 
-- Multiple ionization states of the same species (**planned**)
-See Broome et al. (submitted) for more details.
+- **Heating & Cooling**: Conduction (warning raised if relevant, **planned**), H3+ line cooling (not planned), Fe & Ca  line cooling (relevant at high Z only, **planned**), free-free cooling (warning raised if relevant, not planned).
+- Multiple ionization states of the same species (**planned**) - i.e., currently only OII->OIII not OII->OIII->OIV can be modeled.
 
+### Models for other use cases
 - Want a rapid H/He model with power-law approximated XUV spectra? Check out [ATES](https://github.com/AndreaCaldiroli/ATES-Code) ([Caldiroli et al. 2021](https://ui.adsabs.harvard.edu/abs/2021A%26A...655A..30C/abstract))
 - Do you want to set the mass loss rate ($\dot{M}$) yourself or want an EUV isothermal Parker wind outflow model that runs in nanoseconds? Check out [p-winds](https://github.com/ladsantos/p-winds) ([Dos Santos et al. 2022](https://ui.adsabs.harvard.edu/abs/2022A%26A...659A..62D/abstract)).
 - Do you want to use p-winds and get transit models for metals via Cloudy? Check out [Sunbather](https://github.com/antonpannekoek/sunbather) ([Linssen et al. 2024](https://ui.adsabs.harvard.edu/abs/2024A%26A...688A..43L/abstract))
@@ -37,14 +37,14 @@ See Broome et al. (submitted) for more details.
 - Just want a grid of mass loss rates for pure-Hydrogen, low-flux-EUV-irradiated planets? See [Kubyshkina & Fossati](https://ui.adsabs.harvard.edu/abs/2021RNAAS...5...74K/abstract) 
 - Want a grid of mass loss rates for pure-Hydrogen, high-flux-XUV-irradiated planets? See [Owen & Jackson (2012)](https://ui.adsabs.harvard.edu/abs/2012MNRAS.425.2931O/abstract)
 
->Want your model added to this list or to update the short bio? Email mabroome@ucsc.edu
+>Want your model added to this list or to update the short bio given above? Email mabroome@ucsc.edu
 
 Requirements
 ------------
 
 `Wind-AE` requires the following packages and will pip install them automatically by following the Installation guide below.
 
-* `python` 
+* `python`>3.9.12 
 * `numpy` 
 * `scipy`
 * `astropy`
@@ -79,17 +79,19 @@ conda activate venv_name
 conda install pip
 ```
 
-To compile from the source,
+To compile as an editable module from the source,
 ```angular2html
+pip install --upgrade pip
 python3 -m pip install -e .
 ```
+(`pip` upgrade is recommended as `pip<25.0.1` has had issues installing dependencies. Deprecation warning about setup.py file can be ignored, fix in progress.)
 
-REMEMBER to `make` the C code before running `Wind-AE` for the first time.
+<!-- REMEMBER to `make` the C code before running `Wind-AE` for the first time.
 ```angular2html
 cd wind_ae/wind_ae/
 make
 ```
-You can ignore any warnings that pop up.
+You can ignore any warnings that pop up. -->
 
 You can test the install by running
 ```angular2html
