@@ -7,7 +7,9 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 
 import wind_ae.McAstro.radiation.lines.lyman_alpha as McLyman
+import wind_ae.McAstro.radiation.lines.lyman_alpha as McLine
 import wind_ae.McAstro.radiation.radiative_transfer as McRT
+import wind_ae.McAstro.atoms.atomic_species as McAtom
 from wind_ae.wrapper.wrapper_utils import constants as const
 
 # McRT.rt_ray
@@ -28,7 +30,14 @@ class observation:
        
         return
     
-    def ray_trace(self, nu, alpha_nu, r_star, vel_lo=-50, vel_hi=50, constfrac=0, nu0=0, f12=0, A21=0, species='', level=0, abund=0, useOfit = 0, onlyHill = 0, onlyrcrit = 0):
+    def ray_trace(self, nu, alpha_nu, r_star, vel_lo=-50, vel_hi=50, constfrac=0, nu0=0, f12=0, A21=0, species='', 
+                  level=0, useOfit = 0, onlyHill = 0, onlyrcrit = 0):      
+        # print(species)
+        species_name = McAtom.formatting_species_list([species])[0]
+        ss = species_name.split()
+        chianti_species = ss[0].lower()+'_'+str(McAtom.roman_to_arabic(ss[1]))   
+        n0_fit = CubicSpline(self.windsoln.soln_norm['r'],self.windsoln.soln['n_'+species_name.replace(' ','')])
+        
         self.v_arr = np.linspace(vel_lo, vel_hi, 101)*1e5
         self.Obscuration = np.zeros(len(self.v_arr))
         r_star = r_star/self.windsoln.Rp
@@ -59,15 +68,15 @@ class observation:
         levelpops = np.zeros(len(pop_s))
         ne = self.ne_fit(pop_s)
         ne[ne<0] = 0
-        ne = np.where(ne==0,1.0,ne)
-        nprot = ne
-        print("about to populate")
+        ne = np.where(ne==0,1.0,ne) #so there is at least 1 electron
+        nprot = ne #invalid for metals?
+        # print("about to populate")
         for k in range(len(pop_s)):
             #can use real ion xsec
-            atom = ch.core.ion(species, temperature=temp[k], eDensity=ne[k], pDensity=nprot[k])
+            atom = ch.core.ion(chianti_species, temperature=temp[k], eDensity=ne[k], pDensity=nprot[k])
             atom.populate()
             levelpops[k] = atom.Population['population'][0][level]
-        print(levelpops)
+        # print(levelpops)
         for j, v in enumerate(self.v_arr):
             #if j%5 == 0: print("j = ", j)
             nu_obs = nu*np.sqrt((1.-v/const.c)/(1.+v/const.c))
@@ -97,6 +106,12 @@ class observation:
                 my_ray.A21 = A21
                 my_ray.v_LOS = self.windsoln.v_fit(rs)*(s/rs)
                 my_ray.T = self.windsoln.T_fit(rs)
+                levelpop = np.zeros(len(rs))
+                for ppp in range(len(rs)):
+                    bestindex = np.argmin(np.fabs(np.array(pop_s - rs[ppp])))
+                    levelpop[ppp] = levelpops[bestindex]
+                my_ray.n_abs = n0_fit(rs)*levelpop
+
             #probably don't need to calc level pops
 #                 if constfrac != 0:
 #                     my_ray.n_abs = self.n_tot_fit(rs)*constfrac
@@ -155,6 +170,7 @@ class observation:
         my_ray.ds *= (s[1]-s[0])*self.windsoln.Rp
         my_ray.T = np.ones(len(s))*np.array(self.windsoln.soln['T'])[-1]
         my_ray.mu = np.ones(len(s))*np.array(self.windsoln.soln['mu'])[-1]
+        my_ray.n_abs = np.ones(len(s))*np.array(self.windsoln.soln['n_'+species_name.replace(' ','')])[-1]*levelpop[-1]
         my_ray.I[0] = 1e1
         for j, v in enumerate(self.v_arr):
             nu_obs = nu*np.sqrt((1.-v/const.c)/(1.+v/const.c))
@@ -173,7 +189,9 @@ class observation:
         eta = min(1., sphere_extent/r_star)
         # w_hor = (2./const.pi)*(math.acos(zeta)+chi*zeta) - eta**2
         # RH = self.windsoln.semimajor*(self.windsoln.Mp/(3.0*self.windsoln.Mstar))**(1./3.)
-
+        # print(tau_arr)
+        # print(eta)
+        # print(b_arr)
         for j in range(len(self.v_arr)):
             # Obscuration from spherical extent
             self.Obscuration[j] = eta**2-np.trapz(2.*b_arr*np.exp(-tau_arr[j]),
