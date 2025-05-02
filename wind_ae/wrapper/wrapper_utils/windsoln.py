@@ -342,9 +342,7 @@ class wind_solution:
         self.soln["n_e"] = np.zeros_like(self.soln["rho"])
         for j in range(self.nspecies):
             element_name = ((spaced[j]).split())[0]
-            lowest_state = ((spaced[j]).split())[
-                1
-            ]  # will have to adapt for elements with more than 1 ionization state
+            lowest_state = ((spaced[j]).split())[1]  # will have to adapt for elements with more than 1 ionization state
             # converting to arabic numbers to make future multiple-ionization-state version of the code easier
             highest_state = McAtom.arabic_to_roman(
                 McAtom.roman_to_arabic(lowest_state) + 1
@@ -441,34 +439,32 @@ class wind_solution:
                     C = 0.3908
                     a = 0.4092
                     b = 1.7592
-                    frac_in_ion = C * np.power(
-                        1 - np.power(background_ioniz_frac, a), b
-                    )
+                    frac_in_ion = C * np.power(1 - np.power(background_ioniz_frac, a), b)
                     ionfrac_matrix = (np.tile(frac_in_ion, (len(self.E_wl), 1))).T
-                    ionfrac_matrix[E0_matrix < 1.6022e-10] = (
+                    ionfrac_matrix[E0_matrix < 6.408707e-11] = (
                         0  # zeroing where E_0 too low for secondary ionizations
                     )
                     ionfrac_matrix = np.nan_to_num(ionfrac_matrix)
                     # Number of secondary ionizatioms (as a func of background ioniz. frac.)
                     eta = ionfrac_matrix * E0_matrix / self.ion_pot[m]
                     # see Murray-Clay (2009) for energy equation. Here we add the factor eta per Shull & Van Steenberg (1985)
-                    secondary_H_ion_rate = eta * sig_matrix_m * f * wPhi
+                    n0 = (np.tile(self.soln['n_HI'], (len(self.E_wl), 1))).T
+                    secondary_H_ion_rate = eta * sig_matrix_m * f * wPhi * n0
                     ionization_rate[:, m] += np.sum(secondary_H_ion_rate, axis=1)
                 elif self.species[m] == "HeI":
                     C = 0.0554
                     a = 0.4614
                     b = 1.6660
-                    frac_in_ion = C * np.power(
-                        1 - np.power(background_ioniz_frac, a), b
-                    )
+                    frac_in_ion = C * np.power(1 - np.power(background_ioniz_frac, a), b)
                     ionfrac_matrix = (np.tile(frac_in_ion, (len(self.E_wl), 1))).T
-                    ionfrac_matrix[E0_matrix < 1.6022e-10] = (
+                    ionfrac_matrix[E0_matrix < 6.408707e-11] = (
                         0  # zeroing where E_0 too low for secondary ionizations
                     )
                     ionfrac_matrix = np.nan_to_num(ionfrac_matrix)
                     eta = ionfrac_matrix * E0_matrix / self.ion_pot[m]
+                    n0 = (np.tile(self.soln['n_HeI'], (len(self.E_wl), 1))).T
                     ionization_rate[:, m] += np.sum(
-                        eta * sig_matrix_m * f * wPhi, axis=1
+                        eta * sig_matrix_m * f * wPhi * n0, axis=1
                     )
                 else:
                     # To lowest order, can estimate metal ioniz. rate as H ioniz. rate x sigma[metal]/sigma[H]
@@ -476,32 +472,15 @@ class wind_solution:
                         secondary_H_ion_rate * (sig_matrix_m / sig_matrix_m_Hydrogen),
                         axis=1,
                     )
+            n0 = (np.tile(self.soln['n_'+species], (len(self.E_wl), 1))).T
+            rho = (np.tile(self.soln['rho'], (len(self.E_wl), 1))).T
             heating_rate[:, s] = np.sum(
-                (heatfrac_matrix) * E0_matrix * sig_matrix * f * wPhi, axis=1
+                (heatfrac_matrix) * E0_matrix * sig_matrix * f * wPhi * n0, axis=1
             )
-            ionization_rate[:, s] += np.sum(sig_matrix * f * wPhi, axis=1)
+            ionization_rate[:, s] += np.sum(sig_matrix * f * wPhi * n0, axis=1)
             euv_ionization_rate[:, s] = np.sum(
                 sig_matrix * wPhi, axis=1
             )  # optically thin ion rate of H. limiting to EUV is negligible, no fractionation into multiple species because optically thin
-
-            n_abs = self.soln["n_" + species]
-            with np.errstate(all="ignore"):
-                ionization_tau[:, s] = np.where(
-                    ionization_rate[:, s] != 0, 1.0 / ionization_rate[:, s], np.nan
-                )
-            if expedite is False:
-                alpha = alpha_rec(species, self.soln["T"])
-                rec_coeff[:, s] = alpha
-                temp = ionization_rate[:, s] / (n_abs * alpha)
-                with np.errstate(all="ignore"):
-                    ionization_eq[:, s] = np.where(
-                        temp >= 1e-200,
-                        0.5 * temp * (np.sqrt(1.0 + 4.0 / temp) - 1.0),
-                        0,
-                    )
-            heating_rate[:, s] *= n_abs  # /rho temporary
-            ionization_rate[:, s] *= n_abs
-            euv_ionization_rate[:, s] *= n_abs
 
         total_heating = np.sum(heating_rate, axis=1)
         self.soln["heat_ion"] = total_heating
@@ -586,18 +565,26 @@ class wind_solution:
             #             self.soln[L_ion_name] = self.soln['v']*self.soln[tau_name] #dist before ionizing
             #             self.soln[Kn_ion_name] = self.soln[L_ion_name]/self.soln['DlnP']
             # Rates
-            self.alpha = rec_coeff
             for s, species in enumerate(self.species):
-                alpha = rec_coeff[:, s]
-                # recombination = alpha*ne*n+
+                alpha = alpha_rec(T=self.soln['T'],species=species)
+                rec_coeff[:,s] = alpha
+
+                element_name = spaced[s].split(' ')[0]
+                n_tot = self.soln["n_" + element_name]
                 # n+ = n_tot*(1-Ys) = (n_0/Ys)*(1-Ys) <--in this form for ease of coding 'n_'+species
                 self.soln["recomb_" + species] = (
                     alpha
                     * self.soln["n_e"]
-                    * self.soln["n_" + species]
-                    * (1 - self.soln["Ys_" + species])
-                    / self.soln["Ys_" + species]
+                    * n_tot * (1 - self.soln["Ys_" + species]) #n+
                 )
+
+                self.soln["advec_" + species] = (
+                    - n_tot #total number density of species, s, e.g., n_H
+                    * self.soln["v"]
+                    * np.gradient(self.soln["Ys_"+species], self.soln["r"])
+                )
+            self.alpha = rec_coeff
+
             # generic cooling
             ## lyman-alpha cooling
             if (self.species_list[0]).replace(" ", "") != "HI":
@@ -728,7 +715,7 @@ class wind_solution:
             cond_idx = len(
                 np.where(abs(self.soln["cool_cond"] / self.soln["heat_ion"]) > 0.1)[0]
             )
-            if cond_idx > 150:
+            if cond_idx > 50:
                 if self.print_warnings is True:
                     print(
                         "Warning: Post-facto calculations indicate conductive cooling may be significant in this planet.\n         Wind-AE does not currently model conductive cooling. \n         Plot energy_plot(all_terms=True) to check."
@@ -1008,7 +995,9 @@ class wind_solution:
     # calculating the actual efficiency
     def calc_efficiency(self):
         """Returns the average heating efficiency (i.e., the average fraction of energy
-        from incident photons that goes into heating vs. ionizing)."""
+        from incident photons that goes into heating vs. ionizing). Does not include
+        radiative cooling.
+        """
         rs = np.arange(0, len(self.soln["r"]), 150)
         avg = []
         for i, r_idx in enumerate(rs):

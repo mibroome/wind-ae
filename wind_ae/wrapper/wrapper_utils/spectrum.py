@@ -49,6 +49,8 @@ class spectrum:
         self.set_normalized(*self.norm_span)
         self.set_window(*self.rslv_span)
         self.spectrum_file = spectrum_file
+        self.kshell_ionpots = { 'C':308.67523704,  'N':426.57706307,  'O':563.23652347, 
+                    'Mg':1336.8046517 , 'Si':1877.59068171, 'S':2512.3371317 }
         return
 
 
@@ -136,10 +138,17 @@ class spectrum:
         if type(species) is str:
             spaced_species = McAtom.formatting_species_list([species])[0]
             self.glq_spectrum.add_species(spaced_species)
+            if spaced_species[0] in self.kshell_ionpots:
+                self.glq_spectrum.add_species(spaced_species,kshell=True)
+                print("triggered")
+
         else:
             for s in species:
                 spaced_species = McAtom.formatting_species_list([s])[0]
                 self.glq_spectrum.add_species(spaced_species)
+                if spaced_species[0] in self.kshell_ionpots:
+                    print("triggered")
+                    self.glq_spectrum.add_species(spaced_species,kshell=True)
         self.species_list = self.glq_spectrum.species_list
         return
 

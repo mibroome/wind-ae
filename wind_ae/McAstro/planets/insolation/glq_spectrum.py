@@ -147,7 +147,7 @@ class glq_spectrum:
         self.print_warning = print_warning
         
 
-    def add_species(self, species_name):
+    def add_species(self, species_name, kshell=False):
         """
         Description:
             Adds a species to be considered in the analysis of the spectrum.
@@ -163,9 +163,11 @@ class glq_spectrum:
         Arguments:
             species_name: The spectroscopic name of the species, e.g., 'C IV'
         """
+        kshell_ionpots = { 'C':308.67523704,  'N':426.57706307,  'O':563.23652347, 
+                            'Mg':1336.8046517 , 'Si':1877.59068171, 'S':2512.3371317 }
         # Add to species list
         for species_obj in self.species_list:
-            if species_obj.atomic_data.name == species_name:
+            if (species_obj.atomic_data.name == species_name) and (species_name not in kshell_ionpots):
                 print('WARNING: Species already in list, returning.')
                 return
 #         print("species name added to add_species:",species_name)
@@ -178,6 +180,11 @@ class glq_spectrum:
             new_atomic_data.cross_section(self.data['E']/const.eV)
         )
         new_species.I_ion = new_atomic_data.verner_data['E_th']*const.eV
+        if kshell==True:
+            element = species_name.split()[0]
+            if element in kshell_ionpots:
+                new_species.I_ion = kshell_ionpots[element]*const.eV 
+
         new_species.threshold_wl = const.hc/new_species.I_ion
         new_species.threshold_wl /= self.wl_norm
         self.species_list.append(new_species)
@@ -204,6 +211,9 @@ class glq_spectrum:
         self.n_species += 1
         # Smooth updated spectrum
         self.truncate_spectrum(wl_min=self.spectrum.wl_min,wl_max=self.spectrum.wl_max) 
+
+        #Add a bin edge for the k-shell ionization edge for C, N, O, Mg, Si, etc.
+
         #added arguments to truncate_spectrum to get access to smoothing ability of the function without actually
         #truncating the spectrum (which we don't want to do in the full case). wl_min and max should be updated 
         #anyways when actually truncating, so should hopefully still work as John intended
