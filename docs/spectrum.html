@@ -1,0 +1,292 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spectrum Module &mdash; Wind-AE 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Metals Module" href="metals.html" />
+    <link rel="prev" title="Plotting" href="plots.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Wind-AE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#future-features-and-known-problems">Future features and known problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plots.html">Plotting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Spectrum Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-manually-load-generate-a-spectrum">How to manually load/generate a spectrum</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class"><code class="docutils literal notranslate"><span class="pre">metal_class</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class.add_species_to_guess"><code class="docutils literal notranslate"><span class="pre">metal_class.add_species_to_guess()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class.load_spectrum_add_metals"><code class="docutils literal notranslate"><span class="pre">metal_class.load_spectrum_add_metals()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class.metallicity"><code class="docutils literal notranslate"><span class="pre">metal_class.metallicity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class.remove_species_from_guess"><code class="docutils literal notranslate"><span class="pre">metal_class.remove_species_from_guess()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class.rewrite_guess"><code class="docutils literal notranslate"><span class="pre">metal_class.rewrite_guess()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="metals.html">Metals Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Inputs.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physics.html">Physics Module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Wind-AE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Spectrum Module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/spectrum.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="spectrum-module">
+<span id="spectrum"></span><h1>Spectrum Module<a class="headerlink" href="#spectrum-module" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We avoid the cost of running a high resolution spectrum by fitting a polynomial to the input stellar spectrum.
+Any observed spectrum—such as the FISM2 solar spectrum from the LISIRD database that is the defualt solar spectrum—or
+realistic simulated XUV spectrum will vary widely in flux and shape across the spectral range, as well as be high resolution,
+making fitting polynomials difficult. If the the spectral qualities can be well approximated by low degree polynomial(s), though,
+it is inexpensive to accurate perform numerical integrations using Gauss-Legendre quadrature. Thus, we use the smoothing and binning
+algorithm (discussed in more detail in <a class="reference external" href="https://escholarship.org/uc/item/0qc1m9zn">McCann (2021)</a>).</p>
+<blockquote>
+<div></div></blockquote>
+<p>Logarithmic fits and/or the least squares method would not locally (or, potentially, even globally) conserve energy along the
+spectrum, thus we employ a Savitzky-Golay filter, which smooths evenly-spaced noisy data with a rolling polynomial.
+First we smooth the peaks the troughs of the spectrum by multi-passing the spectrum through the Savitzky-Golay filter.
+The effect of running a Savitzky-Golay filter on small segment is similar to running a single pass filter on a larger wavelength
+range, but it distorts the data less than a standard, larger single pass filter and better preserves the area under the smoothed
+spectrum. The filtered spectrum is then renormalized to conserve total energy in each bin. Next a 5th degree polynomial is fit to
+the filtered spectrum, again rescaling to preserve energy in each bin. The polynomial is calculated by used a spline with with an
+infinite smoothing factor, which relaxes the spline to a single bin interval.</p>
+<p>Binning the spectrum allows us to run the multipass filtering in fewer smoothing passes and allows us to more accurately preserve
+the spectrum shape, especially at the ionization wavelengths of species present in the model. Subbinning, in particular, allows us
+to fit the spectrum with more low order polynomials, as opposed to fewer polynomials that would have to be higher order and would
+be more difficulty to accurately and cheaply integrate using Gauss-Legendre quadrature. For our bins, we choose bin width 2:math:<cite>r</cite>
+centered at wavelength <span class="math notranslate nohighlight">\(\lambda_0\)</span> such that the error over <span class="math notranslate nohighlight">\(\lambda\in[\lambda_0-r,\lambda_0+r]\)</span>  is less than
+<span class="math notranslate nohighlight">\(\epsilon\)</span>.</p>
+<p>Bin edges are also placed at the ionization energies and K-shell ionization energies of the species present, unless one of the
+ionization energies of an existing species is within 2 nm of an existing species’ ionization energy.</p>
+<p>The physical effects of smoothing a spectrum are also mitigated by using the above method.
+Ionizing energy is conserved since the peaks of the spectrum are smoothed and distributed locally—
+meaning there will be an equal amount of higher and lower than the peak ionization energy photons in the wind.
+That being said, at the edges of the spectrum, where there are not necessarily symmetric peaks over which to smooth, this
+method may over or underestimate the number of higher or lower energy photons. However, we take this smoothed approximation
+for a high resolution spectrum to be adequate for <strong>Wind-AE</strong>.</p>
+</div>
+<p>Some of the functions in this module are redundant, but we retain them to allow for future updates.</p>
+<section id="how-to-manually-load-generate-a-spectrum">
+<h2>How to manually load/generate a spectrum<a class="headerlink" href="#how-to-manually-load-generate-a-spectrum" title="Link to this heading"></a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Changing the wavelength range can be more easily done via <span class="xref std std-ref">wind_ae.wrapper.relax_wind.ramp_spectrum()</span></p>
+</div>
+<p>This is not often necessary, but can be tricky, so an example is provided here.
+Nominally <cite>set_resolved()</cite>, <cite>set_normalized()</cite>, and <cite>set_window()</cite> can all accept different wavelength ranges,
+but <strong>Wind-A</strong> has been simplified to accept the same wavelength range for all three.</p>
+<p>This ensures that <cite>F_tot</cite> is truely the total flux over the given range.
+.. code-block:: python</p>
+<blockquote>
+<div><p>from wind_ae.wrapper.relax_wrapper import wind_simulation as wind_sim
+from wind_ae.wrapper.wrapper_utils.spectrum import spectrum</p>
+<p># For a scaled solar spectrum, set Lisird=True
+spec = spectrum(lisird=False,</p>
+<blockquote>
+<div><p>spectrum_file=’hd189733’,
+wl_norm=1e-7)</p>
+</div></blockquote>
+<p># Add species for spectrum binning/smoothing
+for name in [‘HI’,’HeI’,’CI’]:</p>
+<blockquote>
+<div><p>spec.add_species(name)</p>
+</div></blockquote>
+<p># Setting the spectrum range in NANOMETERS
+#13.6eV = 91nm, 2000eV = 0.6nm
+soln_resolved = [0.6,91]
+spec.set_resolved(<a href="#id1"><span class="problematic" id="id2">*</span></a>soln_resolved)
+spec.set_normalized(<a href="#id3"><span class="problematic" id="id4">*</span></a>soln_resolved)
+kind = ‘full’
+spec.set_window(<a href="#id5"><span class="problematic" id="id6">*</span></a>soln_resolved, kind=kind)
+# Can plot via spec.plot() or spec.binning_plot() to confirm before generating
+spec.generate(kind=kind, savefile=’wind_ae/inputs/spectrum.inp’)</p>
+</div></blockquote>
+<p id="module-wrapper.wrapper_utils.metals">metals.py:
+Contains the class for ramping in new species to existing solutions,
+as well as computing mass fractions of species for a given metallicity.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wrapper.wrapper_utils.metals.</span></span><span class="sig-name descname"><span class="pre">metal_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class.add_species_to_guess">
+<span class="sig-name descname"><span class="pre">add_species_to_guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_species_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class.add_species_to_guess" title="Link to this definition"></a></dt>
+<dd><p>Adds new species to the list of species in the wind solution object and updates
+all species-dependent properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>new_species_names</strong> (<em>list</em><em> of </em><em>str</em>) – The names of the new species to add. (e.g., [‘O3’,’c1’,’Ne II’])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class.load_spectrum_add_metals">
+<span class="sig-name descname"><span class="pre">load_spectrum_add_metals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">generate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wl_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class.load_spectrum_add_metals" title="Link to this definition"></a></dt>
+<dd><p>Identical behavior to load_spectrum() function in relax_wrapper.py.</p>
+<p>Loads the high resolution spectrum referenced in the guess solution
+so that it can be re-smoothed when new metals are added to the solution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>generate</strong> (<em>bool</em>) – if True, generates a new smoothed spectrum stored in inputs/spectrum.inp</p></li>
+<li><p><strong>wl_norm</strong> (<em>float</em>) – converts nm to cm. Should not need to be changed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class.metallicity">
+<span class="sig-name descname"><span class="pre">metallicity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class.metallicity" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Given a metallicity (Z, where Z=1 is solar), returns an array of mass</dt><dd><p>fractions for the species in species_list. NOTE: Mass fraction must
+sum to 1, so delta=1-sum(mass fraction Z) is added to the mass fraction
+of hydrogen.
+Relative abundances from Lodders (2009).</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>species_list</strong> (<em>list</em><em> of </em><em>str</em>) – The list of species for which to compute metallicity
+(e.g., [‘O3’,’c1’,’Ne II’])</p></li>
+<li><p><strong>Z</strong> – The metallicity (default is 1 for solar).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class.remove_species_from_guess">
+<span class="sig-name descname"><span class="pre">remove_species_from_guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remove_species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class.remove_species_from_guess" title="Link to this definition"></a></dt>
+<dd><p>Removes specified species from the wind solution object. Likely to break if removing Helium,
+so it is recommended to ramp directly from pure-H solutions provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>remove_species</strong> (<em>list</em><em> of </em><em>str</em>) – The names of the species to remove. (e.g., [‘O3’,’c1’,’Ne II’])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class.rewrite_guess">
+<span class="sig-name descname"><span class="pre">rewrite_guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ramping_metals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class.rewrite_guess" title="Link to this definition"></a></dt>
+<dd><p>Reformats wind_ae/inputs/guess.inp (the guess needed for relaxation routine).
+Only called when new species is added to solution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>regrid</strong> (<em>bool</em>) – If True, regrids the solution with a dynamic grid size.</p></li>
+<li><p><strong>degree</strong> (<em>int</em>) – The degree of the polynomial for regridding.</p></li>
+<li><p><strong>ramping_metals</strong> (<em>bool</em>) – If True, applies ramping to metal species.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="plots.html" class="btn btn-neutral float-left" title="Plotting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="metals.html" class="btn btn-neutral float-right" title="Metals Module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Madelyn Broome, John McCann, Ruth Murray-Clay.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

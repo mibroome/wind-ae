@@ -1,0 +1,1025 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start Tutorial &mdash; Wind-AE 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Relaxation Module" href="relax_wind.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Wind-AE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#1.-Ramping-to-a-new-planet">1. Ramping to a new planet</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Load-Initial-Guess">Load Initial Guess</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Ramping-to-%22new-planet%22">Ramping to “new planet”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Solution-outputs-(windsoln-object)">Solution outputs (windsoln object)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Get-Mass-Loss-Rate">Get Mass Loss Rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Plots">Plots</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Save-Planet">Save Planet</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#2.-Ramping-Stellar-Spectrum">2. Ramping Stellar Spectrum</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Ramping-to-custom-spectrum">Ramping to custom spectrum</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#3.-Metals">3. Metals</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Adding-Metals">Adding Metals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Ramping-Metallicity">Ramping Metallicity</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#4.-Saving-in-an-easy-output-format">4. Saving in an easy output format</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="additional_modules.html">Additional Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Wind-AE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quick Start Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Quickstart.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Quick-Start-Tutorial">
+<h1>Quick Start Tutorial<a class="headerlink" href="#Quick-Start-Tutorial" title="Link to this heading"></a></h1>
+<p>(Each numbered section can be run independently)</p>
+<p>Total runtime: ~4 min</p>
+<p>Time to read: ~30 min</p>
+<p><strong>Note:</strong> Units are cgs unless otherwise specified. It is not necessary to use Astropy units.</p>
+<p><strong>Reminder: Relaxation codes are inherently finicky! Have patience and try ramping parameters in different orders or taking smaller steps in parameter space if the solver gets stuck.</strong></p>
+<p>Be aware that extremely high and low gravity planets push the physical and numerical limits of this model, so caution is suggested with such solutions.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.relax_wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">wind_simulation</span> <span class="k">as</span> <span class="n">wind_sim</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.wrapper_utils.plots</span><span class="w"> </span><span class="kn">import</span> <span class="n">energy_plot</span><span class="p">,</span> <span class="n">six_panel_plot</span><span class="p">,</span> <span class="n">quick_plot</span><span class="p">,</span> <span class="n">spectrum_plot</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.wrapper_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.wrapper_utils.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">system</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.wrapper_utils.spectrum</span><span class="w"> </span><span class="kn">import</span> <span class="n">spectrum</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">wind_ae.McAstro.atoms.atomic_species</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">McAtom</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="o">%</span><span class="k">config</span> InlineBackend.figure_format=&#39;retina&#39;
+</pre></div>
+</div>
+</div>
+<section id="1.-Ramping-to-a-new-planet">
+<h2>1. Ramping to a new planet<a class="headerlink" href="#1.-Ramping-to-a-new-planet" title="Link to this heading"></a></h2>
+<section id="Load-Initial-Guess">
+<h3>Load Initial Guess<a class="headerlink" href="#Load-Initial-Guess" title="Link to this heading"></a></h3>
+<p>Load initial guess from which the relaxation code will ramp to your desired parameters. <code class="docutils literal notranslate"><span class="pre">calc_postfacto</span></code> takes the time to compute all of the post-facto variables. Post facto calculations are not necessary to run the ramping.</p>
+<p><strong>Note:</strong> <code class="docutils literal notranslate"><span class="pre">sim.load_planet('saves/filename')</span></code> will load the guess parameters into the input files in <code class="docutils literal notranslate"><span class="pre">Inputs/</span></code> and may interrupt ongoing runs of the relaxation code. To do computations with or plot a solution without ovewritting the <code class="docutils literal notranslate"><span class="pre">Inputs/</span></code> files, use <code class="docutils literal notranslate"><span class="pre">sim.load_uservars('saves/filename')</span></code>. This is useful when checking the outputs of currently running calculations (e.g., <code class="docutils literal notranslate"><span class="pre">sim.load_uservars('wind_ae/saves/windsoln.csv')</span></code>) or to perform analysis while <code class="docutils literal notranslate"><span class="pre">Wind-AE</span></code> is solving for another
+planet (<code class="docutils literal notranslate"><span class="pre">sim.load_uservars('saves/[path-to-a-prior-solution]')</span></code>).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">wind_sim</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;../saves/HD209458b/HD209_13.6-2000eV_H-He.csv&#39;</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">print_system</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Atmosphere Compositionrom 4 to 2. Remaking C code...
+  Species:   HI,        HeI
+  Mass frac: 8.00e-01, 2.00e-01
+Loaded Planet:
+  System parameters (cgs)               # Normalized units
+    Mp:        1.330000e+30 g           #     0.70 MJ
+    Rp:        1.000000e+10 cm          #     1.40 RJ
+    Mstar:     1.988416e+33 g           #     1.00 Msun
+    semimajor: 7.480000e+11 cm          #     0.05 au
+    Ftot:      1.095713e+03 erg/cm^2/s  # 2.35e+02 FuvEarth
+    Lstar:     6.807420e+33 erg/s       # 1.78e+00 Lsun
+
+</pre></div></div>
+</div>
+<p>To run relaxation code (NOT necessary for ramping)</p>
+<p>To run relaxation code for whatever solution is loaded into the <code class="docutils literal notranslate"><span class="pre">wind_ae/inputs/</span></code> files, run <code class="docutils literal notranslate"><span class="pre">sim.run_wind()</span></code> which returns 0 if successfully converges on solution.</p>
+<p>Any time a simulation is run through the python wrapper, the solution generated at each step is saved in <code class="docutils literal notranslate"><span class="pre">wind_ae/saves/windsoln.csv</span></code> and the solution is copied into <code class="docutils literal notranslate"><span class="pre">wind_ae/inputs/guess.inp</span></code> to be the guess for for the next iteration.</p>
+</section>
+<section id="Ramping-to-%22new-planet%22">
+<h3>Ramping to “new planet”<a class="headerlink" href="#Ramping-to-%22new-planet%22" title="Link to this heading"></a></h3>
+<p>New planets can be created by supplying a planetary mass (<span class="math notranslate nohighlight">\(M_\mathrm{p}\)</span>), planetary radius (<span class="math notranslate nohighlight">\(R_\mathrm{p}\)</span>), stellar mass (<span class="math notranslate nohighlight">\(M_\star\)</span>), semimajor-axis (<span class="math notranslate nohighlight">\(a\)</span>), stellar <em>bolometric</em> luminosity (<span class="math notranslate nohighlight">\(L_\star\)</span>) and the total integrated ionizing flux (<span class="math notranslate nohighlight">\(F_\mathrm{tot}\)</span>) to the <code class="docutils literal notranslate"><span class="pre">system</span></code> object.</p>
+<p>To run relaxation code for whatever solution is loaded into the <code class="docutils literal notranslate"><span class="pre">inputs/</span></code> files, run <code class="docutils literal notranslate"><span class="pre">sim.run_wind()</span></code> which returns <code class="docutils literal notranslate"><span class="pre">0</span></code> if successful.</p>
+<p>A ramping output of <code class="docutils literal notranslate"><span class="pre">5</span></code> also means that it ramped successfully, but that one or more of the polishing steps could not be completed. Effects on mass loss rates and wind structure are minimal, but confirm that the result is acceptable by plotting the <code class="docutils literal notranslate"><span class="pre">energy_plot()</span></code> and <code class="docutils literal notranslate"><span class="pre">six_panel_plot()</span></code> or <code class="docutils literal notranslate"><span class="pre">quick_plot()</span></code>.</p>
+<p><strong>Helpful Hint</strong>: Take advantage of the McAstro cgs constants object (<code class="docutils literal notranslate"><span class="pre">const</span></code>). These do not contain units and <strong>no functions accept astropy units</strong>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">example</span> <span class="o">=</span> <span class="n">system</span><span class="p">(</span><span class="mf">0.8</span><span class="o">*</span><span class="n">const</span><span class="o">.</span><span class="n">Mjupiter</span><span class="p">,</span> <span class="c1">#planet mass</span>
+                 <span class="mf">1.5</span><span class="o">*</span><span class="n">const</span><span class="o">.</span><span class="n">Rjupiter</span><span class="p">,</span> <span class="c1">#planet optical transit radius</span>
+                 <span class="mf">1.988416e+33</span><span class="p">,</span>       <span class="c1">#stellar mass</span>
+                 <span class="mf">748000000000.0</span><span class="p">,</span>     <span class="c1">#semimajor axis</span>
+                 <span class="mf">1095.712977126</span><span class="p">,</span>     <span class="c1">#stellar flux at planet&#39;s semimajor axis</span>
+                 <span class="mf">6.80742e+33</span><span class="p">,</span>        <span class="c1">#stellar bolometric luminosity -</span>
+                                     <span class="c1">#   (used to physically approximate lower boundary conditions,</span>
+                                     <span class="c1">#    e.g., temp and density at 1 microbar)</span>
+                 <span class="n">name</span><span class="o">=</span><span class="s1">&#39;example planet&#39;</span><span class="p">)</span>
+
+<span class="n">example</span><span class="o">.</span><span class="n">print_system</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="s1">&#39;Jupiter&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+example planet:
+  System parameters (cgs)               # Normalized units
+    Mp:        1.518819e+30 g           #     0.80 MJ
+    Rp:        1.072380e+10 cm          #     1.50 RJ
+    Mstar:     1.988416e+33 g           #     1.00 Msun
+    semimajor: 7.480000e+11 cm          #     0.05 au
+    Ftot:      1.095713e+03 erg/cm^2/s  # 2.35e+02 FuvEarth
+    Lstar:     6.807420e+33 erg/s       # 1.78e+00 Lsun
+
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%time</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">ramp_to</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="n">example</span><span class="p">,</span><span class="n">intermediate_converge_bcs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">integrate_out</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">final_polish</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">make_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2"> Mass loss rate using sim.ramp_to(intermediate_converge_bcs=True):&quot;</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">Mdot</span><span class="si">:</span><span class="s2">.4e</span><span class="si">}</span><span class="s2"> g/s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Ramping Ftot from 1.096e+03 to 1.096e+03.
+  Ftot already done.
+Ramping Mp from 1.330e+30 to 1.519e+30 g AND Rp from 1.000e+10 to 1.072e+10 cm.
+  Final:  Mp:1.518819e+30 &amp; Rp:1.072380e+10, M_delta:0.07652
+Polishing up boundary conditions...
+Successfully ramped base boundary conditions.
+Ramping Mstar from 1.988e+33 to 1.988e+33 AND semimajor from 7.480e+11 to 7.480e+11 AND Lstar from 6.807e+33 to 6.807e+33.
+  Mstar already done.
+  semimajor already done.
+  Lstar already done.
+Polishing up boundary conditions...
+Successfully ramped base boundary conditions.
+Successfully converged Rmax to 6.103840 (Ncol also converged).
+
+
+ Mass loss rate using sim.ramp_to(intermediate_converge_bcs=True):  1.9050e+10 g/s
+
+CPU times: user 8.03 s, sys: 2.95 s, total: 11 s
+Wall time: 37.1 s
+</pre></div></div>
+</div>
+<p><strong>To save time</strong> at a small accuracy cost, set <code class="docutils literal notranslate"><span class="pre">intermediate_converge_bcs=False</span></code>, though if simulation gets stuck, polishing boundary conditions between each ramping function by setting <code class="docutils literal notranslate"><span class="pre">intermediate_converge_bcs=True</span></code> may be advisable.</p>
+<p>Since many of the use cases of this model require multiple iterations with changing just a few parameters (e.g., grids, evolutions, etc.) it is possible to slightly speed up computations by ramp only the relevant variables using:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ramp_Ftot(goal_Ftot,converge_bcs=)</span></code> - to ramp just stellar flux</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ramp_grav(system=example,converge_bcs=)</span></code> - to ramp just planet mass and/or radius</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ramp_star(system=example,converge_bcs=)</span></code> - to ramp semimajor axis, Mstar, or Lstar</p></li>
+</ul>
+<p>Speed comparisons* follow:</p>
+<p><span class="math notranslate nohighlight">\(*\)</span> <em>Need to reload HD209 to compare apples to apples for speed. This is because when sim runs, it loads most recent solution to be the next guess. If we ramped without reloading the HD209 solution as a guess, we would be ramping from the recently solved-for example planet with 0.8 :math:`M_J`, 1.5 :math:`R_J` to the same planet with 0.8 :math:`M_J`, 1.5 :math:`R_J`.</em></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Just turning off intermediate polishing</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;../saves/HD209458b/HD209_13.6-2000eV_H-He.csv&#39;</span><span class="p">,</span>
+                <span class="n">calc_postfacto</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">print_atmo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1">#expediting because we don&#39;t need to do the post facto calculations/</span>
+
+<span class="o">%</span><span class="k">time</span> sim.ramp_to(system=example,intermediate_converge_bcs=False,integrate_out=True,final_polish=True)
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Mass loss rate using sim.ramp_to(intermediate_converge_bcs=False):&quot;</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">Mdot</span><span class="si">:</span><span class="s2">.4e</span><span class="si">}</span><span class="s2"> g/s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Ramping Ftot from 1.096e+03 to 1.096e+03.
+  Ftot already done.
+Ramping Mp from 1.330e+30 to 1.519e+30 g AND Rp from 1.000e+10 to 1.072e+10 cm.
+  Final:  Mp:1.518819e+30 &amp; Rp:1.072380e+10, M_delta:0.07652
+Ramping Mstar from 1.988e+33 to 1.988e+33 AND semimajor from 7.480e+11 to 7.480e+11 AND Lstar from 6.807e+33 to 6.807e+33.
+  Mstar already done.
+  semimajor already done.
+  Lstar already done.
+Polishing up boundary conditions...
+Successfully ramped base boundary conditions.
+Successfully converged Rmax to 6.127091 (Ncol also converged).
+CPU times: user 4.54 s, sys: 1.52 s, total: 6.05 s
+Wall time: 15.4 s
+
+
+Mass loss rate using sim.ramp_to(intermediate_converge_bcs=False):  1.9680e+10 g/s
+
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Turning off all polishing (Fastest)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;../saves/HD209458b/HD209_13.6-2000eV_H-He.csv&#39;</span><span class="p">,</span>
+                <span class="n">calc_postfacto</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">print_atmo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1">#expediting because we don&#39;t need to do the post facto calculations/</span>
+
+<span class="o">%</span><span class="k">time</span> sim.ramp_to(system=example,intermediate_converge_bcs=False,integrate_out=False,final_polish=False)
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Mass loss rate using sim.ramp_to(intermediate_converge_bcs=False):&quot;</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">Mdot</span><span class="si">:</span><span class="s2">.4e</span><span class="si">}</span><span class="s2"> g/s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Ramping Ftot from 1.096e+03 to 1.096e+03.
+  Ftot already done.
+Ramping Mp from 1.330e+30 to 1.519e+30 g AND Rp from 1.000e+10 to 1.072e+10 cm.
+  Final:  Mp:1.518819e+30 &amp; Rp:1.072380e+10, M_delta:0.07652
+Ramping Mstar from 1.988e+33 to 1.988e+33 AND semimajor from 7.480e+11 to 7.480e+11 AND Lstar from 6.807e+33 to 6.807e+33.
+  Mstar already done.
+  semimajor already done.
+  Lstar already done.
+CPU times: user 25.6 ms, sys: 167 ms, total: 192 ms
+Wall time: 4.17 s
+
+
+Mass loss rate using sim.ramp_to(intermediate_converge_bcs=False):  1.9323e+10 g/s
+
+</pre></div></div>
+</div>
+<p>Since we are just ramping <span class="math notranslate nohighlight">\(M_P\)</span> and <span class="math notranslate nohighlight">\(R_P\)</span>, these values are handled by <code class="docutils literal notranslate"><span class="pre">sim.ramp_grav()</span></code> so we can actually forgo the <code class="docutils literal notranslate"><span class="pre">sim.ramp_to(system)</span></code> entirely. We can always polish the boundary conditions to self-convergence later by running <code class="docutils literal notranslate"><span class="pre">sim.polish_bcs()</span></code></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;../saves/HD209458b/HD209_13.6-2000eV_H-He.csv&#39;</span><span class="p">,</span><span class="n">print_atmo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1">#expediting because we don&#39;t need to do the post facto calculations</span>
+
+<span class="o">%</span><span class="k">time</span> sim.ramp_grav(system=example,converge_bcs=False,make_plot=False)
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Mass loss rate using sim.ramp_grav(converge=False):&quot;</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">Mdot</span><span class="si">:</span><span class="s2">.4e</span><span class="si">}</span><span class="s2"> g/s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Ramping Mp from 1.330e+30 to 1.519e+30 g AND Rp from 1.000e+10 to 1.072e+10 cm.
+  Final:  Mp:1.518819e+30 &amp; Rp:1.072380e+10, M_delta:0.07652
+CPU times: user 33.2 ms, sys: 171 ms, total: 204 ms
+Wall time: 4.35 s
+
+
+Mass loss rate using sim.ramp_grav(converge=False):  1.9323e+10 g/s
+
+</pre></div></div>
+</div>
+<p>A note about <code class="docutils literal notranslate"><span class="pre">Wind-AE</span></code>’s ramping scheme</p>
+<p>In the case of this example, <code class="docutils literal notranslate"><span class="pre">Wind-AE</span></code> likely could have ramped in just one step, since the goal was so close in parameter space. Future versions of <code class="docutils literal notranslate"><span class="pre">Wind-AE</span></code> may include a smarter ramping algorithm, but, for the time being, the ramping algorithm is designed to take adaptive step sizes that allow to more robustly navigate the large jumps in parameter space of which the relaxation method is infamously intolerant.</p>
+<p>To run manually outside of the ramping scheme, load your guess</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sim = wind_sim()
+sim.load_planet(&#39;path/to/planet.csv&#39;)
+</pre></div>
+</div>
+<p>Then edit the parameters directly in the <code class="docutils literal notranslate"><span class="pre">wind_ae/inputs/</span></code> directory (PAY ATTENTION TO UNITS) or write the input values using</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sim.inputs.write_bcs()
+sim.inputs.write_planet()
+sim.inputs.write_flags()
+sim.inputs.write_physics_params()
+...
+etc.
+</pre></div>
+</div>
+<p>Finally, run using the command line (<code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">wind_ae</span></code>, then <code class="docutils literal notranslate"><span class="pre">./bin/relax_ae</span></code>) or in Python via</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sim.run_wind()
+</pre></div>
+</div>
+</section>
+<section id="Solution-outputs-(windsoln-object)">
+<h3>Solution outputs (windsoln object)<a class="headerlink" href="#Solution-outputs-(windsoln-object)" title="Link to this heading"></a></h3>
+<p>To interact with wind solution object, use <code class="docutils literal notranslate"><span class="pre">sim.windsoln</span></code>.</p>
+<ul class="simple">
+<li><p>Dependent variables returned by the relaxation code: <code class="docutils literal notranslate"><span class="pre">'r'</span></code>,<code class="docutils literal notranslate"><span class="pre">'v'</span></code>,<code class="docutils literal notranslate"><span class="pre">'T'</span></code>,<code class="docutils literal notranslate"><span class="pre">'rho'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Ys_[species]'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Ncol_[species]'</span></code>, <code class="docutils literal notranslate"><span class="pre">E</span></code>, etc.</p></li>
+<li><p>Dependent variables calculated post facto by running <code class="docutils literal notranslate"><span class="pre">sim.windsoln.add_user_vars()</span></code> or loading solution from save file as <code class="docutils literal notranslate"><span class="pre">sim.load_uservars('saves/filename')</span></code>: <code class="docutils literal notranslate"><span class="pre">'mu'</span></code>,<code class="docutils literal notranslate"><span class="pre">'heat_ion'</span></code> (etc.), . See below.</p></li>
+<li><p>Parameters of the solution: <code class="docutils literal notranslate"><span class="pre">sim.windsoln.Rp</span></code>,<code class="docutils literal notranslate"><span class="pre">sim.windsoln.E_wl</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.windsoln.Ys_rmin</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.windsoln.species_list</span></code>, etc.</p></li>
+<li><p>Tuples of the solution parameters: <code class="docutils literal notranslate"><span class="pre">sim.windsoln.planet_tuple</span></code>,<code class="docutils literal notranslate"><span class="pre">sim.windsoln.bcs_tuple</span></code>, etc.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">add_user_vars</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">soln</span><span class="o">.</span><span class="n">columns</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Index([&#39;r&#39;, &#39;rho&#39;, &#39;v&#39;, &#39;T&#39;, &#39;Ys_HI&#39;, &#39;Ys_HeI&#39;, &#39;Ncol_HI&#39;, &#39;Ncol_HeI&#39;, &#39;q&#39;,
+       &#39;z&#39;, &#39;n_e&#39;, &#39;n_H&#39;, &#39;n_HI&#39;, &#39;n_HII&#39;, &#39;n_He&#39;, &#39;n_HeI&#39;, &#39;n_HeII&#39;, &#39;n_tot&#39;,
+       &#39;mu&#39;, &#39;P&#39;, &#39;ram&#39;, &#39;cs&#39;, &#39;Mach&#39;, &#39;Hsc&#39;, &#39;heat_ion&#39;, &#39;heat_no2nd&#39;,
+       &#39;ion_rate_HI&#39;, &#39;ion_rate_HeI&#39;, &#39;euv_ion_rate_HI&#39;, &#39;euv_ion_rate_HeI&#39;,
+       &#39;heating_rate_HI&#39;, &#39;heating_rate_HeI&#39;, &#39;DlnP&#39;, &#39;mfp_hb&#39;, &#39;mfp_Co&#39;,
+       &#39;mfp_mx&#39;, &#39;Kn_hb_HI&#39;, &#39;Kn_Co_HI&#39;, &#39;Kn_mx_HI&#39;, &#39;recomb_HI&#39;, &#39;advec_HI&#39;,
+       &#39;recomb_HeI&#39;, &#39;advec_HeI&#39;, &#39;cool_lyman&#39;, &#39;cool_PdV&#39;, &#39;cool_cond&#39;,
+       &#39;cool_rec&#39;, &#39;boloheat&#39;, &#39;bolocool&#39;, &#39;cool_grav&#39;, &#39;e_therm&#39;,
+       &#39;heat_advect&#39;, &#39;cum_heat&#39;, &#39;sp_kinetic&#39;, &#39;sp_enthalpy&#39;, &#39;sp_grav&#39;,
+       &#39;bern_rogue&#39;, &#39;bern_isen&#39;, &#39;bern&#39;, &#39;ad_prof&#39;, &#39;static_prof&#39;,
+       &#39;static_rho&#39;, &#39;static_P&#39;, &#39;static_T&#39;, &#39;del_ad&#39;, &#39;Gamma_2&#39;, &#39;Gamma_3&#39;],
+      dtype=&#39;object&#39;)
+</pre></div></div>
+</div>
+</section>
+<section id="Get-Mass-Loss-Rate">
+<h3>Get Mass Loss Rate<a class="headerlink" href="#Get-Mass-Loss-Rate" title="Link to this heading"></a></h3>
+<p>To account for geometric and circulation effects, the substellar <span class="math notranslate nohighlight">\(\dot{M}\)</span> is multiplied by a factor of 0.33 in the post-facto calculations in the python wrapper.</p>
+<p>Given the uncertainties inherent in 1D modeling of mass loss, <span class="math notranslate nohighlight">\(\dot{M}\)</span> differences of a few to a few tens of percent difference are negligible.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Mdot</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">Mdot</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mass loss rate of </span><span class="si">{</span><span class="n">Mdot</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> g/s&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Mass loss rate of 1.932e+10 g/s
+</pre></div></div>
+</div>
+</section>
+<section id="Plots">
+<h3>Plots<a class="headerlink" href="#Plots" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">energy_plot</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Quickstart_19_0.png" class="no-scaled-link" src="_images/Quickstart_19_0.png" style="width: 892px; height: 439px;" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[38]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Compare to an existing solution</span>
+<span class="c1">#load JUST the post-facto calculations from an existing solution (does not load solution to be run or ramped)</span>
+<span class="n">sim_HD209</span> <span class="o">=</span> <span class="n">wind_sim</span><span class="p">()</span>
+<span class="n">sim_HD209</span><span class="o">.</span><span class="n">load_uservars</span><span class="p">(</span><span class="s1">&#39;../saves/HD209458b/HD209_13.6-2000eV_H-He.csv&#39;</span><span class="p">)</span>
+
+<span class="c1">#perform the post-facto calculations for the planet currently in the windsoln object</span>
+<span class="c1"># sim.windsoln.add_user_vars()</span>
+<span class="c1">#alternatives:</span>
+<span class="c1">#sim.load_uservars(&#39;saves/windsoln.csv&#39;)</span>
+<span class="c1">#sim.load_planet(&#39;saves/windsoln.csv&#39;,expedite=False)</span>
+
+<span class="c1">#To plot comparisons</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">six_panel_plot</span><span class="p">(</span><span class="n">sim_HD209</span><span class="o">.</span><span class="n">windsoln</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="s1">&#39;HD 209548b&#39;</span><span class="p">,</span><span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+
+<span class="n">R</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">Rp</span><span class="o">/</span><span class="n">const</span><span class="o">.</span><span class="n">Rjupiter</span>
+<span class="n">M</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">Mp</span><span class="o">/</span><span class="n">const</span><span class="o">.</span><span class="n">Mjupiter</span>
+<span class="n">six_panel_plot</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="p">,</span>
+               <span class="n">first_plotted</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+               <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Example Planet: </span><span class="si">{</span><span class="n">R</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">R$_J$, </span><span class="si">{</span><span class="n">M</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">M$_J$&#39;</span><span class="p">,</span>
+               <span class="n">c</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+***** HD 209548b: Mdot = 2.01e+10 g/s *****
+***** Example Planet: 1.50R$_J$, 0.80M$_J$: Mdot = 1.93e+10 g/s *****
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Quickstart_20_1.png" class="no-scaled-link" src="_images/Quickstart_20_1.png" style="width: 944px; height: 821px;" />
+</div>
+</div>
+</section>
+<section id="Save-Planet">
+<h3>Save Planet<a class="headerlink" href="#Save-Planet" title="Link to this heading"></a></h3>
+<p>To polish self consistently polish the boundary conditions, run <code class="docutils literal notranslate"><span class="pre">sim.polish_bcs(converge_Rmax=)</span></code> or set <code class="docutils literal notranslate"><span class="pre">sim.save_planet(polish=True)</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">polish_bcs</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Polishing up boundary conditions...
+Successfully ramped base boundary conditions.
+Successfully converged Rmax to 6.127091 (Ncol also converged).
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">save_planet</span><span class="p">(</span><span class="s1">&#39;../saves/Tutorial_examples/example_13.6-2000eV_solar_H-He.csv&#39;</span><span class="p">,</span>
+                <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Saving ../saves/Tutorial_examples/example_13.6-2000eV_solar_H-He.csv
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="2.-Ramping-Stellar-Spectrum">
+<h2>2. Ramping Stellar Spectrum<a class="headerlink" href="#2.-Ramping-Stellar-Spectrum" title="Link to this heading"></a></h2>
+<p>Changing spectrum range</p>
+<p><code class="docutils literal notranslate"><span class="pre">Fnorm</span></code> flux in units of ergs/s/cm2 at the planet in the range defined by <code class="docutils literal notranslate"><span class="pre">norm_spec_range</span></code>. Set the full range of your spectrum in <code class="docutils literal notranslate"><span class="pre">goal_spec_range</span></code>. If <code class="docutils literal notranslate"><span class="pre">Fnorm=0</span></code> (default), it will normalize to the current flux value in the norm_spec_range in your spectrum. If <code class="docutils literal notranslate"><span class="pre">goal_spec_range=[]</span></code> (default), it will maintain the same range bounds.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">wind_sim</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;../saves/Tutorial_examples/example_13.6-2000eV_solar_H-He.csv&#39;</span><span class="p">,</span>
+               <span class="n">print_atmo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">current_wl_range</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">spec_resolved</span>
+<span class="n">eV_range</span> <span class="o">=</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">hc</span><span class="o">/</span><span class="n">current_wl_range</span><span class="p">)</span> <span class="o">/</span> <span class="n">const</span><span class="o">.</span><span class="n">eV</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current spectrum range is </span><span class="si">{</span><span class="n">current_wl_range</span><span class="si">}</span><span class="s2">cm ([</span><span class="si">{</span><span class="n">eV_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">eV_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">]eV)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Current spectrum range is [6.00e-08 9.12e-06]cm ([13.6,2066.4]eV)
+</pre></div></div>
+</div>
+<p>If we want to maintain or change the current flux over the specified wavelength (or energy) range, we can do so.</p>
+<p>Note that in the case below, we are keeping the flux over the EUV range (13.6-100 eV) constant by increasing Ftot as the spectrum range increases from 13.6-2000eV to 10.3-2000 eV.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">ramp_spectrum</span><span class="p">(</span><span class="n">Fnorm</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">norm_spec_range</span><span class="o">=</span><span class="p">[</span><span class="mf">13.6</span><span class="p">,</span><span class="mi">100</span><span class="p">],</span>
+                  <span class="n">goal_spec_range</span><span class="o">=</span><span class="p">[</span><span class="mf">10.3</span><span class="p">,</span><span class="mi">2000</span><span class="p">],</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Spectrum will be normalized such that sum(Flux[12.40, 91.16]nm) = 979 ergs/s/cm2.
+Goal: [  0.61992127 120.37306285] nm
+Ramped spectrum wavelength range, now normalizing spectrum.
+Ramping Ftot from 1.096e+03 to 1.458e+03.
+  Final:  Ftot:1.458103e+03, delta:0.001327
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">spectrum_plot</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="p">,</span>
+              <span class="n">xaxis</span><span class="o">=</span><span class="s1">&#39;energy&#39;</span><span class="p">,</span>
+              <span class="n">semimajor_au</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">semimajor</span><span class="o">/</span><span class="n">const</span><span class="o">.</span><span class="n">au</span><span class="p">,</span>
+              <span class="n">highlight_euv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1">#----- Alternative method --------</span>
+<span class="c1"># sim.load_planet(&#39;../wind_ae/saves/windsoln.csv&#39;)</span>
+<span class="c1"># #re-loading to update spectrum range for plotting purposes</span>
+<span class="c1"># sim.spectrum.plot(xaxis=&#39;energy&#39;,</span>
+<span class="c1">#                   semimajor_au=sim.windsoln.semimajor/const.au,</span>
+<span class="c1">#                   highlight_euv=True)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Quickstart_28_0.png" class="no-scaled-link" src="_images/Quickstart_28_0.png" style="width: 713px; height: 463px;" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[44]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">save_planet</span><span class="p">(</span><span class="s1">&#39;../saves/Tutorial_examples/example_10.3-2000eV_solar_H-He.csv&#39;</span><span class="p">,</span>
+                <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Saving ../saves/Tutorial_examples/example_10.3-2000eV_solar_H-He.csv
+</pre></div></div>
+</div>
+<section id="Ramping-to-custom-spectrum">
+<h3>Ramping to custom spectrum<a class="headerlink" href="#Ramping-to-custom-spectrum" title="Link to this heading"></a></h3>
+<p>Wind-AE includes an automatic smoothing and binning algorithm for spectra that ensures that the flux at the ionization energies for all of the species present in the simulation is accurate.</p>
+<p>To ramp to a custom stellar spectrum first format your XUV spectrum using <code class="docutils literal notranslate"><span class="pre">format_user_spectrum()</span></code>. Once formatted, it will be stored in <code class="docutils literal notranslate"><span class="pre">McAstro/stars/spectrum/additional_spectra/</span></code> and will be accessed automatically by the code.</p>
+<p>The <a class="reference external" href="https://archive.stsci.edu/prepds/muscles/">MUSCLES Survey</a> is a good source for X-ray and UV spectra.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## Flux, NOT flux density</span>
+<span class="c1"># sim.format_user_spectrum(wl = ,</span>
+<span class="c1">#                         flux_1au = ,</span>
+<span class="c1">#                         spectrum_name=&#39;example_star&#39;,</span>
+<span class="c1">#                         comment=&#39;Spectrum for some star&#39;,</span>
+<span class="c1">#                         overwrite=True)</span>
+</pre></div>
+</div>
+</div>
+<p>Let’s ramp to a different spectrum. We’ll also increase the flux just to show we can.</p>
+<p>Because we did not set make_plot=False, the intermediate ramping step solutions will be plotted. This can be turned on for any ramping function via plot=True.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[46]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">wind_sim</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;../saves/Tutorial_examples/example_13.6-2000eV_solar_H-He.csv&#39;</span><span class="p">,</span><span class="n">print_atmo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">sim</span><span class="o">.</span><span class="n">ramp_to_user_spectrum</span><span class="p">(</span><span class="n">spectrum_filename</span><span class="o">=</span><span class="s1">&#39;hd189733&#39;</span><span class="p">,</span>
+                          <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;HI&#39;</span><span class="p">,</span><span class="s1">&#39;HeI&#39;</span><span class="p">],</span>
+                          <span class="n">updated_F</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
+                          <span class="n">goal_spec_range</span><span class="o">=</span><span class="p">[</span><span class="mf">13.6</span><span class="p">,</span><span class="mi">2000</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+*** REMINDER: Goal spectrum (orange) oversmoothed? Lower the hires_savgol_window value. ***
+ ...Ramping Ncol Iter 1: Current average diff 1.09e+01
+Success ramping to hd189733 spectrum shape!
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Quickstart_33_1.png" class="no-scaled-link" src="_images/Quickstart_33_1.png" style="width: 569px; height: 432px;" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+     Now ramping flux and spectral range.
+Goal: [ 0.61992127 91.16489319] nm
+Ramped spectrum wavelength range, now normalizing spectrum.
+Ramping Ftot from 1.096e+03 to 2.018e+03.
+  Trying: Ftot:2.018338e+03, delta:0.05005
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/Users/m/Research/relaxed-wind_xray-and-multispecies/wind_ae/wrapper/wrapper_utils/plots.py:118: UserWarning: Attempt to set non-positive ylim on a log-scaled axis will be ignored.
+  ax[i][j].set_ylim([min(ylims[0], 0.9*ylo/norm[i][j]),
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+  Final:  Ftot:2.018338e+03, delta:0.05005
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Quickstart_33_5.png" class="no-scaled-link" src="_images/Quickstart_33_5.png" style="width: 649px; height: 483px;" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Quickstart_33_6.png" class="no-scaled-link" src="_images/Quickstart_33_6.png" style="width: 646px; height: 466px;" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Success! Ramped to user-input stellar spectrum hd189733
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[46]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="3.-Metals">
+<h2>3. Metals<a class="headerlink" href="#3.-Metals" title="Link to this heading"></a></h2>
+<section id="Adding-Metals">
+<h3>Adding Metals<a class="headerlink" href="#Adding-Metals" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Wind-AE</span></code>’s speed <span class="math notranslate nohighlight">\(\propto n_{species}\)</span> so it is recommended to add metals last. If you are attempting to ramp far in parameter space, it may also be advisable to ramp with only H/He and add metals as a last step.</p>
+<p>Future versions will include the ability to include multiple ionization states of the same element, but for now, select one ionization state per species.</p>
+<p>This computation takes, on average, 5 minutes to add C I, N I, O I, Ne I, Mg II, Ca I.</p>
+<p>If the ramper is having trouble ramping in metals, try raising the total column density (<code class="docutils literal notranslate"><span class="pre">sim.inputs.write_bcs(*sim.windsoln.bcs_tuple[0:5],sim.windsoln.Ncol_sp*5,sim.windsoln.bcs_tuple[-1])</span></code>+<code class="docutils literal notranslate"><span class="pre">sim.run_wind()</span></code>) or raising the stellar flux (<code class="docutils literal notranslate"><span class="pre">sim.ramp_var('Ftot',goal_F,converge=False)</span></code>).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">wind_sim</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;../saves/Tutorial_examples/example_13.6-2000eV_solar_H-He.csv&#39;</span><span class="p">)</span>
+
+<span class="c1">#printing the MASS fractions for Z x solar metallicity.</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">metallicity</span><span class="p">([</span><span class="s1">&#39;HI&#39;</span><span class="p">,</span><span class="s1">&#39;HeI&#39;</span><span class="p">,</span><span class="s1">&#39;CI&#39;</span><span class="p">,</span><span class="s1">&#39;NI&#39;</span><span class="p">,</span><span class="s1">&#39;OI&#39;</span><span class="p">,</span><span class="s1">&#39;NeI&#39;</span><span class="p">,</span><span class="s1">&#39;MgII&#39;</span><span class="p">,</span><span class="s1">&#39;CaI&#39;</span><span class="p">,</span><span class="s1">&#39;SiII&#39;</span><span class="p">],</span><span class="n">Z</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Atmosphere Composition
+  Species:   HI,        HeI
+  Mass frac: 8.00e-01, 2.00e-01
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+array([7.87038072e-01, 1.99987365e-01, 2.29481799e-03, 7.90297090e-04,
+       6.69189203e-03, 1.74756285e-03, 6.47899249e-04, 6.35653783e-05,
+       7.38528061e-04])
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[48]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%time</span>
+<span class="c1">#default, Z=1, but can ramp in with higher Z or using custom MASS fractions</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">add_metals</span><span class="p">([</span><span class="s1">&#39;CI&#39;</span><span class="p">,</span><span class="s1">&#39;OI&#39;</span><span class="p">],</span><span class="n">Z</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Successfully ramped mass fracs. Integrating out &amp; converging Ncol_sp...                                                                                                    g mass fractions.
+Successfully converged Rmax to 6.167191. It is recommended to run converge_Ncol_sp(integrate_out=True) as Ncol will have updated.
+CPU times: user 6.08 s, sys: 1.15 s, total: 7.23 s
+Wall time: 26.5 s
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[48]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[49]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">save_planet</span><span class="p">(</span><span class="s1">&#39;../saves/Tutorial_examples/example_13.6-2000eV_solar_H-He-C-O.csv&#39;</span><span class="p">,</span>
+                <span class="n">polish</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1">#can skip to save time</span>
+                <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Polishing up boundary conditions...
+Successfully ramped base boundary conditions.
+Successfully converged Rmax to 6.167191 (Ncol also converged).
+Saving ../saves/Tutorial_examples/example_13.6-2000eV_solar_H-He-C-O.csv
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[50]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">quick_plot</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+*****254.32Mearth_16.81Rearth_1095F_scaled-solar Mdot = 1.82e+10 g/s ******
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/Users/m/Research/relaxed-wind_xray-and-multispecies/wind_ae/wrapper/wrapper_utils/plots.py:263: FutureWarning: Calling float on a single element Series is deprecated and will raise a TypeError in the future. Use float(ser.iloc[0]) instead
+  minrad = float(radius[soln.soln[&#39;T&#39;] == np.min(soln.soln[&#39;T&#39;])])
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[50]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+array([[&lt;Axes: ylabel=&#39;Density (g/cm$^3$)&#39;&gt;,
+        &lt;Axes: ylabel=&#39;Temperature (1000 K)&#39;&gt;],
+       [&lt;Axes: xlabel=&#39;Radius (R$_p$)&#39;, ylabel=&#39;Velocity (10 km/s)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;Radius (R$_p$)&#39;, ylabel=&#39;Ionization Fraction&#39;&gt;]],
+      dtype=object)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Quickstart_38_3.png" class="no-scaled-link" src="_images/Quickstart_38_3.png" style="width: 944px; height: 590px;" />
+</div>
+</div>
+</section>
+<section id="Ramping-Metallicity">
+<h3>Ramping Metallicity<a class="headerlink" href="#Ramping-Metallicity" title="Link to this heading"></a></h3>
+<p>Can ramp in units of <span class="math notranslate nohighlight">\(Z_{\odot}\)</span> or to a custom mass fraction array.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[51]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">wind_sim</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;../saves/Tutorial_examples/example_13.6-2000eV_solar_H-He-C-O.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Atmosphere Composition
+  Species:   HI,        HeI,        CI,        OI
+  Mass frac: 7.91e-01, 2.00e-01, 2.29e-03, 6.69e-03
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[52]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">ramp_metallicity</span><span class="p">(</span><span class="n">Z</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="c1">#can turn off polishing to save time</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Starting metallicity: 1 xSolar
+Success! Ramped to goal metallicity, Z = 10 x Solar
+Integrating out and attempting to converge Ncol_sp...
+Successfully converged Rmax to 6.078954 (Ncol also converged).
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[52]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[53]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">save_planet</span><span class="p">(</span><span class="s1">&#39;../saves/Tutorial_examples/example_13.6-2000eV_solar_H-He-C-O_10Z.csv&#39;</span><span class="p">,</span>
+               <span class="n">polish</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Saving ../saves/Tutorial_examples/example_13.6-2000eV_solar_H-He-C-O_10Z.csv
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="4.-Saving-in-an-easy-output-format">
+<h2>4. Saving in an easy output format<a class="headerlink" href="#4.-Saving-in-an-easy-output-format" title="Link to this heading"></a></h2>
+<p>Be nice to your collaborators and don’t send them the complicated <code class="docutils literal notranslate"><span class="pre">Wind-AE</span></code> solution files. Instead, send a csv with just the columns you care about.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[54]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">easy_output_file</span><span class="p">(</span><span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">,</span><span class="s1">&#39;T&#39;</span><span class="p">,</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span><span class="s1">&#39;heat_ion&#39;</span><span class="p">],</span>
+                     <span class="n">output_file</span><span class="o">=</span><span class="s1">&#39;../saves/simplified_outputs/example.dat&#39;</span><span class="p">,</span>
+                     <span class="n">comments</span><span class="o">=</span><span class="s1">&#39;Tutorial example planet w/ 10xZ_solar H,He,C,O. Scaled solar spectrum.&#39;</span><span class="p">,</span>
+                     <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="relax_wind.html" class="btn btn-neutral float-right" title="Relaxation Module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Madelyn Broome, John McCann, Ruth Murray-Clay.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

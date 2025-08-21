@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plotting &mdash; Wind-AE 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Spectrum Module" href="spectrum.html" />
+    <link rel="prev" title="Additional Modules" href="additional_modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Wind-AE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="additional_modules.html">Additional Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Plotting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.plots.four_panel_plot"><code class="docutils literal notranslate"><span class="pre">four_panel_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.plots.quick_plot"><code class="docutils literal notranslate"><span class="pre">quick_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.plots.six_panel_plot"><code class="docutils literal notranslate"><span class="pre">six_panel_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.plots.energy_plot"><code class="docutils literal notranslate"><span class="pre">energy_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.plots.coriolis_plot"><code class="docutils literal notranslate"><span class="pre">coriolis_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.plots.ballistic_plot"><code class="docutils literal notranslate"><span class="pre">ballistic_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.plots.collisionality_plot"><code class="docutils literal notranslate"><span class="pre">collisionality_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.plots.spectrum_plot"><code class="docutils literal notranslate"><span class="pre">spectrum_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.plots.spectrum_binning_plot"><code class="docutils literal notranslate"><span class="pre">spectrum_binning_plot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="spectrum.html">Spectrum Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metals.html">Metals Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputs.html">Inputs.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system.html">System Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="physics.html">Physics Module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Wind-AE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="additional_modules.html">Additional Modules</a></li>
+      <li class="breadcrumb-item active">Plotting</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/plots.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="plotting">
+<span id="plots"></span><h1>Plotting<a class="headerlink" href="#plotting" title="Link to this heading"></a></h1>
+<p>All plotting functions take windsoln objects as inputs.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.relax_wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">wind_simulation</span> <span class="k">as</span> <span class="n">wind_sim</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.wrapper_utils.plots</span><span class="w"> </span><span class="kn">import</span> <span class="n">spectrum_plot</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">wind_sim</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;planet.csv&#39;</span><span class="p">)</span>
+<span class="n">spectrum_plot</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="p">,)</span>
+</pre></div>
+</div>
+<p>The two most common plots for analysis (<code class="docutils literal notranslate"><span class="pre">energy_plot()</span></code> and <code class="docutils literal notranslate"><span class="pre">six_panel_plot()</span></code>) are
+also accessible via the functions in <a class="reference internal" href="relax_wind.html#relax-wind"><span class="std std-ref">Relaxation Module</span></a> as
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">wind_ae.wrapper.relax_wind.six_panel_plot()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">wind_ae.wrapper.relax_wind.energy_plot()</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">sim.six_panel_plot()</span></code>).</p>
+<dl class="py function" id="module-wind_ae.wrapper.wrapper_utils.plots">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.four_panel_plot">
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">four_panel_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax_Ys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pvar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[['v',</span> <span class="pre">'rho'],</span> <span class="pre">['T',</span> <span class="pre">'Ys_HI']]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[[100000.0,</span> <span class="pre">1.0],</span> <span class="pre">[1.0,</span> <span class="pre">1.0]]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_sonic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sonic_vert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.four_panel_plot" title="Link to this definition"></a></dt>
+<dd><p>Produces a velocity, density, temperature, and neutral fraction plot from intermediate solutions while ramping. For a more aesthetic four-panel plot use <cite>quickplot()</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>windsoln</strong> – windsoln object to be plotted.</p></li>
+<li><p><strong>ax</strong> (<em>np.ndarray</em>) – The ax array on which plots are placed (must have shape = (2,2)).</p></li>
+<li><p><strong>ax_Ys</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – Axis for plotting ionization fraction. Defaults to None.</p></li>
+<li><p><strong>label</strong> (<em>str</em><em>, </em><em>optional</em>) – Label to be added to ax[0][0]. Defaults to None.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Alpha of lines plotted. Defaults to 0.8.</p></li>
+<li><p><strong>pvar</strong> (<em>list</em><em> of </em><em>lists</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Variables to plot. Defaults to [[‘v’,’rho’],[‘T’,’Ys_HI’]].</p></li>
+<li><p><strong>norm</strong> (<em>list</em><em> of </em><em>lists</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Values to norm (divide) pvars with. Defaults to [[1e5,1e0],[1e0,1e0]].</p></li>
+<li><p><strong>radius_prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – SI prefix for x-axis (None defaults to units of Rp). Defaults to None.</p></li>
+<li><p><strong>sub_sonic</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only plot sub-sonic region. Defaults to False.</p></li>
+<li><p><strong>past_rmin</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only plot past Rmin region. Defaults to False.</p></li>
+<li><p><strong>sonic_vert</strong> (<em>bool</em><em>, </em><em>optional</em>) – Add vertical line at sonic point. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.quick_plot">
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">quick_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mdot_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1.3,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_plotted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.quick_plot" title="Link to this definition"></a></dt>
+<dd><p>Plots density (g/cm³), temperature (K), velocity (10 km/s), and ionization fraction as a function of r (Rp).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>soln</strong> (<em>windsoln</em>) – Wind solution object (sim.windsoln).</p></li>
+<li><p><strong>Mdot_legend</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, put Mdot in legend of plot. Else, just prints. Defaults to True.</p></li>
+<li><p><strong>c</strong> (<em>str</em><em>, </em><em>optional</em>) – Line color. Defaults to ‘k’.</p></li>
+<li><p><strong>ls</strong> (<em>str</em><em>, </em><em>optional</em>) – Line style. Defaults to ‘-‘.</p></li>
+<li><p><strong>label</strong> (<em>str</em><em>, </em><em>optional</em>) – Label for the plot. Defaults to ‘’.</p></li>
+<li><p><strong>label_dim</strong> (<em>list</em><em>, </em><em>optional</em>) – Location of label and ncols [x, y, ncols]. Defaults to [0, 1.3, 2].</p></li>
+<li><p><strong>ion_label</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, show ionization legend. Defaults to True.</p></li>
+<li><p><strong>first_plotted</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if this is the first of many plots on the same axes. Defaults to True.</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – Axes object to plot on. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Axes object (if first_plotted=True).
+str: Title string summarizing species and mass fractions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.axes.Axes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.six_panel_plot">
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">six_panel_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mdot_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1.3,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_plotted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.six_panel_plot" title="Link to this definition"></a></dt>
+<dd><p>Plots density (g/cm3), temperature (K), velocity (10 km/s), ionization fraction, column density (g/cm2), and number density (1/cm2), as a function of r (Rp).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>object</strong> (<em>soln - windsoln</em>)</p></li>
+<li><p><strong>True</strong> (<em>Mdot_legend - Bool; if</em>)</p></li>
+<li><p><strong>Else</strong> (<em>put Mdot in legend</em><em> of </em><em>plot.</em>)</p></li>
+<li><p><strong>prints.</strong> (<em>just</em>)</p></li>
+<li><p><strong>color</strong> (<em>c - str; line</em>)</p></li>
+<li><p><strong>style</strong> (<em>ls - str; line</em>)</p></li>
+<li><p><strong>label</strong> (<em>label - str; line</em>)</p></li>
+<li><p><strong>default=</strong><strong>[</strong><strong>0</strong> (<em>label_dim - list;</em>)</p></li>
+<li><p><strong>1.3</strong></p></li>
+<li><p><strong>[</strong><strong>x</strong> (<em>2</em><em>]</em><em>. Location</em><em> of </em><em>label and ncols</em>)</p></li>
+<li><p><strong>y</strong></p></li>
+<li><p><strong>ncols</strong><strong>]</strong><strong>.</strong></p></li>
+<li><p><strong>SixPlot</strong> (<em>first_plotted - Bool; True if this the first</em><em> of </em><em>many OR the ONLY</em>) – to be plotted on the same axes.</p></li>
+<li><p><strong>first_plotted=False</strong> (<em>ax - matplotlib axis obj; if</em>) – will be be plotted on desired figure with other simulations for comparison</p></li>
+<li><p><strong>this</strong> (<em>provide axis object so</em>) – will be be plotted on desired figure with other simulations for comparison</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>ax - axes object (if first_plotted=True)</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>ax1 = SixPlot(sim1.windsoln, first_plotted=True)
+SixPlot(sim2.windsoln, ax=ax1)
+SixPlot(sim3.windsoln, ax=ax1)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.energy_plot">
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">energy_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CIII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OIII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_sonic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.energy_plot" title="Link to this definition"></a></dt>
+<dd><p>Plots energy balance terms used in the energy equation (Broome et al. 2025)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>windsoln</strong> – The wind solution object containing the simulation data. (“sim.windsoln”)</p></li>
+<li><p><strong>ax</strong> – The axis to plot on (default is 0, which creates a new figure)</p></li>
+<li><p><strong>alpha</strong> – Transparency level for the plot lines (default is 0.8).
+Useful when overplotting multiple on same axes</p></li>
+<li><p><strong>all_terms</strong> – If True, plot terms not included in Wind-AE, e.g., free-free cooling, conduction (default is False)</p></li>
+<li><p><strong>CII_line_cool</strong> – If True, include CII line cooling terms (default is False)</p></li>
+<li><p><strong>CIII_line_cool</strong> – If True, include CIII line cooling terms (default is False)</p></li>
+<li><p><strong>OII_line_cool</strong> – If True, include OII line cooling terms (default is False)</p></li>
+<li><p><strong>OIII_line_cool</strong> – If True, include OIII line cooling terms (default is False)</p></li>
+<li><p><strong>legend</strong> – If True, display the legend (default is True)</p></li>
+<li><p><strong>sub_sonic</strong> – If True, sets x-axis upper limit at sonic point radius</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.coriolis_plot">
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">coriolis_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'position'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.coriolis_plot" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>windsoln</strong> – The wind solution object containing the data to plot.</p></li>
+<li><p><strong>ax</strong> – The matplotlib axis to plot on.</p></li>
+<li><p><strong>var</strong> – The variable to plot (‘position’, ‘velocity’, ‘pos_angle’, ‘vel_angle’).</p></li>
+<li><p><strong>label_system</strong> – Optional label for the color legend.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.ballistic_plot">
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">ballistic_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_star</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.ballistic_plot" title="Link to this definition"></a></dt>
+<dd><p>Plot ballistic trajectories. Windsoln must be integrated out (if not, run sim.integrate_out())
+There is currently no stellar wind term.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – The axes to plot on.</p></li>
+<li><p><strong>show_star</strong> (<em>bool</em>) – Whether to show the star marker at the semimajor axis.</p></li>
+<li><p><strong>t_end</strong> (<em>float</em>) – The end time for the ballistic trajectories.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.collisionality_plot">
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">collisionality_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">same_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_sonic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sonic_vert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exo_vert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.collisionality_plot" title="Link to this definition"></a></dt>
+<dd><p>Deprecated (requires updates to Knudsen number calculations).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.spectrum_plot">
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">spectrum_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F_wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semimajor_au</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_euv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wl_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.spectrum_plot" title="Link to this definition"></a></dt>
+<dd><p>Plot the spectrum. Displays the observations, smoothed, and spans.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> (<em>str</em>) – Which variable plotted, energy (‘F_wl’) or number (‘Phi_wl’)</p></li>
+<li><p><strong>xaxis</strong> (<em>str</em>) – ‘wl’ or ‘energy’; x variable. Wavelength in nm or energy in eV</p></li>
+<li><p><strong>semimajor_au</strong> (<em>float</em>) – semimajor axis in units of au to which to scale the spectrum</p></li>
+<li><p><strong>highlight_euv</strong> (<em>bool</em>) – default=True; highlights EUV and XUV range and prints APPROXIMATE fluxes in ergs/s/cm2 each range.</p></li>
+<li><p><strong>wl_norm</strong> (<em>float</em>) – default=1e-7; wavelength normalization factor to convert nm to cm.</p></li>
+<li><p><strong>print_warnings</strong> (<em>bool</em>) – default=False; prints any warnings generated when loading spectrum.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The figure and axis object plotted on</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(fig, ax)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.spectrum_binning_plot">
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">spectrum_binning_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F_wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semimajor_au</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_polys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wl_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.spectrum_binning_plot" title="Link to this definition"></a></dt>
+<dd><p>Plot the spectrum. Displays the observations, smoothed, and spans.</p>
+<p><em>Legend Key:</em>
+Subbin edges -  are automatically set at ionization edges (including K-shell ionization edges)
+for species present in a given simulation for maximum accuracy in calculating ionization rates.
+Crits -  dashed lines are the critical points in the smoothing
+Bin edges - wavelength range window edges</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> (<em>str</em>) – Which variable plotted, energy (‘F_wl’) or number (‘Phi_wl’)</p></li>
+<li><p><strong>xaxis</strong> (<em>str</em>) – ‘wl’ or ‘energy’; x variable. Wavelength in nm or energy in eV</p></li>
+<li><p><strong>semimajor_au</strong> (<em>float</em>) – semimajor axis in units of au to which to scale the spectrum</p></li>
+<li><p><strong>highlight_euv</strong> (<em>bool</em>) – default=True; highlights EUV and XUV range and prints
+APPROXIMATE fluxes in ergs/s/cm2 each range.</p></li>
+<li><p><strong>wl_norm</strong> (<em>float</em>) – default=1e-7; wavelength normalization factor to convert nm to cm.</p></li>
+<li><p><strong>print_warnings</strong> (<em>bool</em>) – default=False; prints any warnings generated when loading spectrum.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The figure and axis object plotted on</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(fig, ax)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="additional_modules.html" class="btn btn-neutral float-left" title="Additional Modules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="spectrum.html" class="btn btn-neutral float-right" title="Spectrum Module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Madelyn Broome, John McCann, Ruth Murray-Clay.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

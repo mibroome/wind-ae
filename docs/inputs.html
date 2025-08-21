@@ -1,0 +1,254 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inputs.py &mdash; Wind-AE 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Wind-AE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Wind-AE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Inputs.py</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/inputs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-wrapper.wrapper_utils.inputs">
+<span id="inputs-py"></span><span id="inputs"></span><h1>Inputs.py<a class="headerlink" href="#module-wrapper.wrapper_utils.inputs" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.inputs.input_handler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wrapper.wrapper_utils.inputs.</span></span><span class="sig-name descname"><span class="pre">input_handler</span></span><a class="headerlink" href="#wrapper.wrapper_utils.inputs.input_handler" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for handling input files (in self.path+’inputs/’) for relaxation code</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.inputs.input_handler.path">
+<span class="sig-name descname"><span class="pre">path</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/Users/m/Research/relaxed-wind_xray-and-multispecies/wind_ae/'</span></em><a class="headerlink" href="#wrapper.wrapper_utils.inputs.input_handler.path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.inputs.input_handler.write_additional_params">
+<span class="sig-name descname"><span class="pre">write_additional_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_additional_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_param_vals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.inputs.input_handler.write_additional_params" title="Link to this definition"></a></dt>
+<dd><p>Writes additional parameters to wind_ae/inputs/add_params.inp input file.
+This file is intended to allow users to add custom input parameters to the simulation without
+having to modify the C source code as heavily.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_additional_params</strong> (<em>int</em>) – Number of additional parameters</p></li>
+<li><p><strong>additional_param_names</strong> (<em>list</em>) – List of additional parameter names</p></li>
+<li><p><strong>additional_param_vals</strong> (<em>list</em>) – List of additional parameter values</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.inputs.input_handler.write_bcs">
+<span class="sig-name descname"><span class="pre">write_bcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Rmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_rmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_rmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ys_rmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ncol_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">erf_drop</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.inputs.input_handler.write_bcs" title="Link to this definition"></a></dt>
+<dd><p>Write boundary condition parameters to the wind_ae/inputs/bcs.inp file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Rmin</strong> (<em>float</em>) – Minimum radius in units of Rp</p></li>
+<li><p><strong>Rmax</strong> (<em>float</em>) – Maximum radius in units of Rp</p></li>
+<li><p><strong>rho_rmin</strong> (<em>float</em>) – Density at Rmin in units of RHO0 (default = 1.0E-15 g cm$^{-3}$)</p></li>
+<li><p><strong>T_rmin</strong> (<em>float</em>) – Temperature at Rmin in units of T0 (default = 1e4 K)</p></li>
+<li><p><strong>Ys_rmin</strong> (<em>list/array</em>) – Neutral fraction of each species at Rmin
+(default [1.0,…], where 1.0 is completely neutral)</p></li>
+<li><p><strong>Ncol_sp</strong> (<em>list/array</em>) – Column densities in units of cm$^{-2}$ at R_sp</p></li>
+<li><p><strong>erf_drop</strong> (<em>list/array</em>) – Drop-off parameters for the erf function that transitions from
+molecular to atomic and bolometric-heating-dominated to photoionization-
+heating-dominated regions (to compute, run sim.erf_velocity()).
+Ignored if bolo_heat_cool flag = 0 in inputs/flags.inp.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.inputs.input_handler.write_flags">
+<span class="sig-name descname"><span class="pre">write_flags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lyacool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tidalforce</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bolo_heat_cool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrate_outward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrate_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.inputs.input_handler.write_flags" title="Link to this definition"></a></dt>
+<dd><p>Write flags to the wind_ae/inputs/term_ind.inp file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lyacool</strong> (<em>int</em>) – Flag for Lya and atomic line cooling (0 or 1)</p></li>
+<li><p><strong>tidalforce</strong> (<em>float</em>) – Tidal force scaling factor (1.0 = on, 0 = off)</p></li>
+<li><p><strong>bolo_heat_cool</strong> (<em>float</em>) – Bolometric heating/cooling scaling factor (1.0 = on, 0 = off).
+If 0, complementary error function is not used and there is no
+bolometric heating/cooling included in the simulation and there is no
+molecular layer below wind (mu is purely atomic).</p></li>
+<li><p><strong>integrate_outward</strong> (<em>int</em>) – If 1, integrates out from sonic point to coriolis radius (0 or 1)</p></li>
+<li><p><strong>integrate_out</strong> (<em>bool</em>) – Whether to integrate outward (default: True)
+(implemented to avoid issues with integrate_outward flag being overwritten elsewhere)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.inputs.input_handler.write_physics_params">
+<span class="sig-name descname"><span class="pre">write_physics_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mass_fraction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molec_adjust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atomic_masses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phys_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/Users/m/Research/relaxed-wind_xray-and-multispecies/wind_ae/inputs/phys_params.inp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.inputs.input_handler.write_physics_params" title="Link to this definition"></a></dt>
+<dd><p>Writes physics parameters to wind_ae/inputs/phys_params.inp input file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mass_fraction</strong> (<em>np.array</em>) – MASS fractions of each species</p></li>
+<li><p><strong>species_list</strong> (<em>list</em><em> of </em><em>str</em>) – List of species names (e.g., ‘Fe III’, ‘fe4’, etc.)</p></li>
+<li><p><strong>molec_adjust</strong> (<em>float</em>) – Molecular adjustment factor (default = 2.3 for molec. hydrogen)</p></li>
+<li><p><strong>atomic_masses</strong> (<em>np.array</em>) – Atomic masses of each species in g</p></li>
+<li><p><strong>phys_file</strong> (<em>str</em>) – Path to the physics parameters input file</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.inputs.input_handler.write_planet_params">
+<span class="sig-name descname"><span class="pre">write_planet_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Mp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ruv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mstar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semimajor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ftot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lstar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.inputs.input_handler.write_planet_params" title="Link to this definition"></a></dt>
+<dd><p>Writes planet parameters to wind_ae/inputs/planet_params.inp input file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Mp</strong> (<em>float</em>) – Mass of the planet</p></li>
+<li><p><strong>Ruv</strong> (<em>float</em>) – Radius of the planet</p></li>
+<li><p><strong>Mstar</strong> (<em>float</em>) – Mass of the star</p></li>
+<li><p><strong>semimajor</strong> (<em>float</em>) – Semimajor axis</p></li>
+<li><p><strong>Ftot</strong> (<em>float</em>) – Total incident flux</p></li>
+<li><p><strong>Lstar</strong> (<em>float</em>) – Luminosity of the star</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.inputs.input_handler.write_spectrum">
+<span class="sig-name descname"><span class="pre">write_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">npts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspecies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolved</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_pot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_wl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wPhi_wl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_wl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.inputs.input_handler.write_spectrum" title="Link to this definition"></a></dt>
+<dd><p>Writes spectrum data to wind_ae/inputs/spectrum.inp input file.
+NOTE: Windows are in NANOMETERS</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>npts</strong> (<em>int</em>) – Number of points in the smoothed spectrum</p></li>
+<li><p><strong>nspecies</strong> (<em>int</em>) – Number of species</p></li>
+<li><p><strong>spec_date</strong> (<em>str</em>) – ‘YYYY-MM-DD’; Date of the spectrum if using a Lisird spectrum (‘0000-00-00’ otherwise)</p></li>
+<li><p><strong>spec_file</strong> (<em>str</em>) – File name of spectrum if using custom (default=’scaled-solar’)</p></li>
+<li><p><strong>spec_kind</strong> (<em>str</em>) – Kind of the spectrum (options: ‘mono’, ‘multi’)</p></li>
+<li><p><strong>window</strong> (<em>list/array</em>) – Window for the spectrum IN NANOMETERS</p></li>
+<li><p><strong>resolved</strong> (<em>list/array</em>) – Resolved values for the spectrum IN NANOMETERS
+(somewhat DEPRECATED, most functionalities can be covered by “window”)</p></li>
+<li><p><strong>normalized</strong> (<em>list/array</em>) – Normalized values for the spectrum IN NANOMETERS
+(somewhat DEPRECATED, most functionalities can be covered by “window”)</p></li>
+<li><p><strong>ion_pot</strong> (<em>list</em><em> of </em><em>floats</em>) – Ionization potentials for each species in ergs</p></li>
+<li><p><strong>E_wl</strong> (<em>array</em>) – Spectrum’s photon energies (wavelengths) in ergs, array of length npts</p></li>
+<li><p><strong>wPhi_wl</strong> (<em>array</em>) – Number of photons per wavelength bin over Ftot, array of length npts</p></li>
+<li><p><strong>sigma_wl</strong> (<em>array</em>) – Ionization cross-sections for each species at E_wl, array [npts, nspecies]</p></li>
+<li><p><strong>species</strong> (<em>list</em><em> of </em><em>str</em>) – List of species names</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wrapper.wrapper_utils.inputs.input_handler.write_tech">
+<span class="sig-name descname"><span class="pre">write_tech</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">breezeparam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapidity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">erfn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mach_limit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.inputs.input_handler.write_tech" title="Link to this definition"></a></dt>
+<dd><p>Write technical parameters to the wind_ae/inputs/tech_params.inp file. Rarely needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>erfn</strong> (<em>float</em>) – DISTINCT FROM bolometric/molecular complementary erf</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Madelyn Broome, John McCann, Ruth Murray-Clay.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

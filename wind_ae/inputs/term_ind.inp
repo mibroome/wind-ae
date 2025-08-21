@@ -1,0 +1,5 @@
+#<flag>: <boolean or scaling>  #<comment>
+lyacool:            1      #
+tidalforce:         1.00000      #
+bolo_heat_cool:     1.00000 #Can also be used to ramp in bolometric heating/cooling 
+integrate_outward:  1      #
