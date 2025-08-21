@@ -1,0 +1,6 @@
+/bin/*.txt
+**/__pycache__/
+.ipynb_checkpoints
+.venv
+test.venv
+wind_ae.egg_info
