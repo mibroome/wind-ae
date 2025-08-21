@@ -1,7 +1,0 @@
-#<parameter>: <value>         #<units>;         <comment>
-HX:            5.463847766767e-01, 1.270612829289e-01, 5.775777390325e-02, 1.989081528140e-02, 1.684267724762e-01, 4.398402866236e-02, 1.630683504921e-02, 1.599863157756e-03, 1.858785186419e-02       #;  Mass fractions
-species_name:HI,HeI,CI,NI,OI,NeI,MgII,CaI,SiI#; Species name in Roman Numeral format
-atomic_mass:      1.673300000000e-24, 5.008237330354e-24, 1.992648000000e-23, 2.325266450660e-23, 2.656019552143e-23, 3.319824661650e-23, 3.982812114452e-23, 6.635948069309e-23, 4.645680558843e-23    #; Atomic mass in gs
-Z:             1, 2, 6, 7, 8, 10, 12, 20, 14                                                   #; Atomic number
-Ne:            1, 2, 6, 7, 8, 10, 11, 20, 14                                                   #; Number of electrons in species
-Molec_adjust:            2.300   #; Weighting factor to account for molecules below atomic wind

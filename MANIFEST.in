@@ -1,6 +1,0 @@
-include wind_ae/wrapper/wrapper_utils/*.dat
-include wind_ae/McAstro/atoms/Lodders.dat
-include wind_ae/McAstro/atoms/*.txt
-include wind_ae/McAstro/atoms/*.csv
-include wind_ae/saves/*.csv
-include wind_ae/inputs/*
