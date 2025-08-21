@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: wind_ae
-Version: 0.3.0
+Version: 0.3.1
 Summary: 1D relaxation Parker wind model with metal and X-ray physics based on Murray-Clay et al. (2009)
 Author: Madelyn Broome, John McCann, Ruth Murray-Clay
 License-Expression: BSD-3-Clause
@@ -110,15 +110,9 @@ conda install pip
 
 To compile from the source,
 ```angular2html
-python3 -m pip install -e .
+pip install -r requirements.txt
+pip install -e .
 ```
-
-REMEMBER to `make` the C code before running `Wind-AE` for the first time.
-```angular2html
-cd wind_ae/wind_ae/
-make
-```
-You can ignore any warnings that pop up.
 
 You can test the install by running
 ```angular2html

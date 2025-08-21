@@ -105,6 +105,18 @@ Now you can run **Wind-AE** from anywhere! As seen in the tutorial, the followin
 
 Future features and known problems
 ___________________________________
+- Computation of the complementary error function that governs the drop off of bolometric heating/cooling is not truly self-consistent (``run_isotherm(polish=True,width=)``) and may require visual confirmation via ``energy_plot()`` (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the ``width`` parameter or 
+
+.. code-block:: python
+
+	sim.load_planet('path/to/planet/file')
+	bcs = np.copy(sim.windsoln.bcs_tuple)
+	# erf_loc - normalized velocity value at radius where you want the erf to drop
+	# erf_rate - how quickly the erf drops off in units of Hsc at erf_loc
+	# To get initial estimate, run sim.erf_velocity(polish=True)
+	bcs[-1] = np.array([erf_loc,erf_rate])
+	sim.inputs.write_bcs(*bcs)
+	sim.run_wind()
 
 - Knudsen number calculations currently only contain H-H collisions.
 - Converting spectrum ``kind`` from ``'full'`` to ``'mono'`` occasionally has issues.

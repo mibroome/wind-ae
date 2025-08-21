@@ -3,7 +3,6 @@ MANIFEST.in
 README.md
 pyproject.toml
 docs/conf.py
-saves/setup.py
 wind_ae/__init__.py
 wind_ae.egg-info/PKG-INFO
 wind_ae.egg-info/SOURCES.txt
@@ -76,13 +75,11 @@ wind_ae/saves/windsoln.csv
 wind_ae/wrapper/__init__.py
 wind_ae/wrapper/relax_wrapper.py
 wind_ae/wrapper/wrapper_utils/__init__.py
-wind_ae/wrapper/wrapper_utils/atmosphere.py
 wind_ae/wrapper/wrapper_utils/constants.py
 wind_ae/wrapper/wrapper_utils/dere_table29.dat
 wind_ae/wrapper/wrapper_utils/inputs.py
 wind_ae/wrapper/wrapper_utils/line_cooling_coeffs.dat
 wind_ae/wrapper/wrapper_utils/metals.py
-wind_ae/wrapper/wrapper_utils/observations.py
 wind_ae/wrapper/wrapper_utils/physics.py
 wind_ae/wrapper/wrapper_utils/plots.py
 wind_ae/wrapper/wrapper_utils/recombo_vars.dat
