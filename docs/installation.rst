@@ -70,15 +70,8 @@ To compile from the source:
 .. code-block:: bash
 
     pip install --upgrade pip
+	pip install -r requirements.txt
     python3 -m pip install -e .
-
-REMEMBER to make the C code before running Wind-AE for the first time:
-
-.. code-block:: bash
-
-	cd wind_ae/wind_ae/ && make
-
-You can ignore any warnings that pop up.
 
 You can test the install by running:
 

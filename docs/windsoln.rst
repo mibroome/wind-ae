@@ -3,7 +3,7 @@
 Analysis Module
 =====================
 
-.. automodule:: wrapper.wrapper_utils.windsoln
+.. automodule:: wind_ae.wrapper.wrapper_utils.windsoln
 
 Perform postfacto calculations
 ------------------------------------

@@ -69,7 +69,7 @@ This ensures that `F_tot` is truely the total flux over the given range.
    # Can plot via spec.plot() or spec.binning_plot() to confirm before generating
    spec.generate(kind=kind, savefile='wind_ae/inputs/spectrum.inp')
 
-.. automodule:: wrapper.wrapper_utils.spectrum
+.. automodule:: wind_ae.wrapper.wrapper_utils.spectrum
    :members:
    :undoc-members:
    :show-inheritance:
