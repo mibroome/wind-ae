@@ -4,7 +4,7 @@
 
 `Wind-AE` (pronounced /windy/) stands for "wind atmospheric escape" and is a relatively fast 1D, steady-state, hydrodynamic, non-isothermal, Parker wind relaxation code for modeling atmospheric escape based on [Murray-Clay et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009ApJ...693...23M/abstract). `Wind-AE` is a forward model that solves the energy conservation, momentum conservation, and ionization equilibrium equations at the substellar point using the ["Numerical Recipes in C"](https://ui.adsabs.harvard.edu/abs/1992nrca.book.....P/abstract) relaxation method. This allows `Wind-AE` to quickly compute the atmosphere mass loss rate as well as upper atmosphere (<~100 microbar) velocity, temperature, density, and ionization structure as a function of altitude. 
 
-`Wind-AE` updates [Murray-Clay et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009ApJ...693...23M/abstract) to allow for the modeling of atomic metals and multifrequency XUV stellar spectra (Broome et al. submitted). If you use `Wind-AE`, please consider citing Broome et al. (in prep). 
+`Wind-AE` updates [Murray-Clay et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009ApJ...693...23M/abstract) to allow for the modeling of atomic metals and multifrequency XUV stellar spectra (Broome et al. submitted). If you use `Wind-AE`, please consider citing Broome et al. (submitted). 
 
 
 We appreciate your patience while the docs are developed. In the meantime, take advantage of `Notebooks/Quickstart.ipynb` to get a quick orientation to `Wind-AE` and please report any bugs via [Github](https://github.com/mabroome/wind-ae/issues) or via email to mabroome@ucsc.edu.
@@ -36,7 +36,7 @@ See Broome et al. (submitted) for more details.
 - Do you want to set the mass loss rate ($\dot{M}$) yourself or want an EUV isothermal Parker wind outflow model that runs in nanoseconds? Check out [p-winds](https://github.com/ladsantos/p-winds) ([Dos Santos et al. 2022](https://ui.adsabs.harvard.edu/abs/2022A%26A...659A..62D/abstract)).
 - Do you want to use p-winds and get transit models for metals via Cloudy? Check out [Sunbather](https://github.com/antonpannekoek/sunbather) ([Linssen et al. 2024](https://ui.adsabs.harvard.edu/abs/2024A%26A...688A..43L/abstract))
 - Want to leverage Cloudy and the hydrodynamic code PLUTO for more thorough XUV-irradiated, but slightly more expensive calculations? Check out TPCI ([Salz et al. 2015](https://ui.adsabs.harvard.edu/abs/2015A%26A...576A..21S/abstract))
-- That sound great, but you prefer to code in Python over C/C++? Check out pyTPCI [Riley, Zhang, & Bean 2025](https://ui.adsabs.harvard.edu/abs/2025ApJ...980...34R/abstract)
+- That sound great, but you prefer to code in Python over C/C++? Check out [pyTPCI](https://ascl.net/2506.012). ([Riley, Zhang, & Bean 2025](https://ui.adsabs.harvard.edu/abs/2025ApJ...980...34R/abstract))
 - Do you care about diffusion throughout the wind? Check out [AIOLIS](https://github.com/Schulik/aiolos) ([Schulik & Booth, 2022](https://ui.adsabs.harvard.edu/abs/2023MNRAS.523..286S/abstract)).
 - Want to model the lower atmosphere in more detail? Check out CETIMB (Koskinen et al. 2022)
 - Just want a grid of mass loss rates for pure-Hydrogen, low-flux-EUV-irradiated planets? See [Kubyshkina & Fossati](https://ui.adsabs.harvard.edu/abs/2021RNAAS...5...74K/abstract) 

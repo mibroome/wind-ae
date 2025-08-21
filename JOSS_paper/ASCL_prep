@@ -1,0 +1,10 @@
+# ASCL
+Wind-AE: A Fast 1D Relaxation Code with X-rays and Metals
+Broome, Madelyn I.; McCann, John H.; Murray-Clay, Ruth
+
+`Wind-AE` (pronounced /windy/) stands for "wind atmospheric escape" and is a relatively fast 1D, steady-state, hydrodynamic, non-isothermal, Parker wind relaxation code for modeling atmospheric escape based on `Murray-Clay et al. (2009) <https://ui.adsabs.harvard.edu/abs/2009ApJ...693...23M/abstract>`_. `Wind-AE` is a forward model that solves the energy conservation, momentum conservation, and ionization equilibrium equations at the substellar point using the `"Numerical Recipes in C" <https://ui.adsabs.harvard.edu/abs/1992nrca.book.....P/abstract.`_ relaxation method. This allows `Wind-AE` to quickly compute the atmosphere mass loss rate as well as upper atmosphere (<~100 microbar) velocity, temperature, density, and ionization structure as a function of altitude. 
+
+`Wind-AE` updates Murray-Clay et al. (2009) to allow for the modeling of atomic metals and multifrequency XUV stellar spectra (Broome et al. submitted).
+
+Code site: https://github.com/mibroome/wind-ae   
+Documentation: https://wind-ae.readthedocs.io/en/latest/
