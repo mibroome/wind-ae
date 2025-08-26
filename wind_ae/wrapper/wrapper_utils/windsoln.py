@@ -12,6 +12,7 @@ from scipy import integrate, interpolate, optimize
 import wind_ae.McAstro.atoms.atomic_species as McAtom
 import math
 import importlib.resources as pkg_resources
+from wind_ae.wrapper.wrapper_utils.metals import metal_class
 
 from . import constants as const
 from scipy.special import exp1
@@ -310,7 +311,28 @@ class wind_solution:
         spline = interpolate.CubicSpline(E*const.eV,R)
 
         return spline
+    
+    def current_metallicity(self):
+        """
+        Outputs the current metallicity to the nearest integer IF the mass fractions are a multiple of solar metallicity.
 
+        Args:
+            None
+
+        Returns:
+            float or array: The current metallicity in units of solar metallicity. If not a function of solar metallicity, returns custom mass fractions.
+        """
+        self.metals = metal_class(self)
+        grid = np.zeros(200)
+        for i in range(200):
+            grid[i] = abs(self.metals.metallicity(self.species_list,Z=i+1)[0]-
+                            self.HX[0])
+        if np.mean(abs(min(grid))) > 0.1:
+            print("Current metallicity does not appear to be a multiple of solar metallicity.")
+            print(f"Custom mass fractions: {self.HX}")
+            return self.HX
+        start_Z = np.where(grid==min(grid))[0][0]+1
+        return start_Z
 
     def add_user_vars(self, expedite=False):
         '''Computes postfacto variables for the loaded solution. 
@@ -322,6 +344,7 @@ class wind_solution:
         '''
         self.soln = self.soln.drop(columns=self.soln.columns[6 + 2 * self.nspecies :])
         self.gamma = 5.0 / 3.0  # Read this in from somewhere?
+        self.metallicity = self.current_metallicity()
 
         if expedite is False:
             filepath = pkg_resources.files("wind_ae.wrapper.wrapper_utils").joinpath(
@@ -1023,6 +1046,8 @@ class wind_solution:
         Returns:
             tau (array): optical depth array of size len(r)
         """
+        if photon <= 0:
+            raise ValueError("Photon energy or wavelength must be positive.")
         if units == "cm":
             photon = const.hc / (photon) / const.eV
         elif units == "nm":

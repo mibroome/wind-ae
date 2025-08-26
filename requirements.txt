@@ -9,3 +9,4 @@ pyarrow
 fastparquet 
 requests 
 ChiantiPy
+pytest

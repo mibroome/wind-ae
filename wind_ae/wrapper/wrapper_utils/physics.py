@@ -52,7 +52,7 @@ class physics:
     
     def value(self, var=None):
         if var is None:
-            return (self.Hx)
+            return (self.HX)
         elif var == "HX" or "mass_fraction":
             return self.HX
         elif var == "species_list":

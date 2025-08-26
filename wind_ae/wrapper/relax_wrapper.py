@@ -41,6 +41,7 @@ class wind_simulation:
     def __init__(self, csv_file=path+'inputs/guess.inp', name='Init. Planet',
                  expedite=True):
         self.path = str(pkg_resources.files('wind_ae'))+'/'
+        self.last_print_rastered = False
         self.strat_kappa = 1e-2
         self.inputs = input_handler()
         self.first_print = True
@@ -52,8 +53,17 @@ class wind_simulation:
 #         self.width_factor = 1
 
     def _raster_print(self,msg,end='', pad=100):
-        print(msg + ' '*(pad - len(msg)) + '\r', end=end)
-
+        print('\r'+msg + ' '*(pad - len(msg)), end=end)
+        self.last_print_rastered = True
+        return
+    def _normal_print(self,msg):
+        if self.last_print_rastered:
+            print('\n'+msg+self.clear)
+        else:
+            print(msg+self.clear)
+        self.last_print_rastered = False
+        return
+        
     # def load_nonexpedited(self, csv_file=None):
     #     if csv_file is None:
     #         csv_file = self.last_load
@@ -142,6 +152,7 @@ class wind_simulation:
                 f.write("{"+(','.join('%.4e' %rs for rs in Rs))+"},\n")
         f.write('};\n')
         f.close()
+        return
     
     def load_planet(self, csv_file, calc_postfacto=True, name='Loaded Planet',
                     print_atmo=True, print_warnings=True):
@@ -215,17 +226,17 @@ class wind_simulation:
             remake = True
         #For regridded solutions, the number of points in relaxtion region may change
         if og_length != new_length:
-            print("\nNumber of points in relaxation region has changed from %d to %d. Remaking C code..." 
+            self._normal_print("\nNumber of points in relaxation region has changed from %d to %d. Remaking C code..." 
                   %(og_length, new_length))
             remake=True
         #For solutions with very high rho at the lower boundary, the rho convergence condition should be raised
         if new_RHOSCALE != og_RHOSCALE:
-            print("\nRHOSCALE (convergence condition) has changed from %d to %d. Remaking C code..." 
+            self._normal_print("\nRHOSCALE (convergence condition) has changed from %d to %d. Remaking C code..." 
                   %(og_RHOSCALE, new_RHOSCALE)) 
             remake=True
         #Future users can add additional parameters
         if new_N_ADD_PARAMS != og_N_ADD_PARAMS:
-            print("N_ADD_PARAMS (num. of additional params added by user) has changed from %d to %d. Remaking C code..." 
+            self._normal_print("N_ADD_PARAMS (num. of additional params added by user) has changed from %d to %d. Remaking C code..." 
                   %(og_N_ADD_PARAMS, new_N_ADD_PARAMS)) 
             remake=True
         if remake == True:
@@ -249,16 +260,16 @@ class wind_simulation:
             sub.wait()
             output, error_output = sub.communicate()
             if error_output:
-                print(f'ERROR: Failed loading {csv_file:s} as guess.inp\n')
-                print(error_output)
+                self._normal_print(f'ERROR: Failed loading {csv_file:s} as guess.inp\n')
+                self._normal_print(error_output)
                 return
         # If all is successful update wind_simulation object
         sub = Popen(["cp", 'inputs/guess.inp', 'saves/windsoln.csv'],cwd=self.path, stdout=PIPE, stderr=PIPE)
         sub.wait()
         output, error_output = sub.communicate()
         if error_output:
-            print(f'ERROR: Failed copying {csv_file:s} into saves/windsoln.csv\n')
-            print(error_output)
+            self._normal_print(f'ERROR: Failed copying {csv_file:s} into saves/windsoln.csv\n')
+            self._normal_print(error_output)
             return
         
         self.guess = planet
@@ -276,6 +287,7 @@ class wind_simulation:
             print("Atmosphere Composition")
             print('  Species:   '+(',        '.join('%s' %sp.replace(' ','') for sp in planet.species_list)))
             print('  Mass frac: '+(', '.join('%.2e' %hx for hx in planet.HX)))
+            print('')
         
         self.ramp_class = "system"
         self.last_load = csv_file
@@ -350,7 +362,7 @@ class wind_simulation:
                              .format(Mp, Rp, Mstar, semimajor, Ftot, 
                                      self.windsoln.nspecies, self.windsoln.spectrum_tuple[3])))
         if not overwrite and os.path.isfile(name):
-            print('File already exists.\n'
+            self._normal_print('File already exists.\n'
                   '  To overwrite use save_planet(overwrite=True).')
             return
         print("Saving %s" % name)
@@ -359,7 +371,7 @@ class wind_simulation:
         sub.wait()
         output, error_output = sub.communicate()
         if error_output:
-            print(error_output)
+            self._normal_print(error_output)
         return
     
     
@@ -380,7 +392,7 @@ class wind_simulation:
             None
         """
         if not overwrite and os.path.isfile(output_file):
-            print('File already exists.\n'
+            self._normal_print('File already exists.\n'
                   '  To overwrite use set overwrite=True.')
             return
         f = open(output_file,'w')
@@ -440,14 +452,14 @@ class wind_simulation:
             else:
                 return 1
             if verbose:
-                print(error_output)
+                self._normal_print(error_output)
         else:
             # If successful then update our guess to new solution
             sub = Popen(["cp", 'saves/windsoln.csv', 'inputs/guess.inp'],cwd=self.path,
                         stdout=PIPE, stderr=PIPE)
             output, error_output = sub.communicate()
             if error_output:
-                print(error_output)
+                self._normal_print(error_output)
                 return 2
             #if calc_postfacto==True, takes time to run add_user_vars()
             self.windsoln = wind_solution(calc_postfacto=calc_postfacto, print_warnings=False)
@@ -456,12 +468,12 @@ class wind_simulation:
                 # we probaby need to converge the bcs.
                 if not retry:
                     # Check retry to avoid infinite recursion
-                    print("Retry triggered")
+                    self._normal_print("Retry triggered")
                     self.run_isotherm(called_in_ramp_bcs=True)
                     self.converge_Ncol_sp(expedite=False)
                     return self.run_wind(retry=True)
                 else:
-                    print("Failed on retry to fix analysis errors")
+                    self._normal_print("Failed on retry to fix analysis errors")
                     return 3
             # saves/windsoln.csv and inputs/guess.inp are the same
             self.guess = self.windsoln
@@ -486,7 +498,7 @@ class wind_simulation:
             int: Status code. 0 for success, other values for failure modes.
         """
         if (system is None):# and physics is None):
-            print("Please provide a system to ramp towards. system=system(Mp,Rp,Mstar,a,Ftot,Lstar).")
+            self._normal_print("Please provide a system to ramp towards. system=system(Mp,Rp,Mstar,a,Ftot,Lstar).")
             return 0
         fail = 0
         result = 0
@@ -574,13 +586,27 @@ class wind_simulation:
         elif var_class == "physics":
             var_val = self.physics.value(var)
         else:
-            print("Unrecognized variable class for ramping: %s"
+            self._normal_print("Unrecognized variable class for ramping: %s"
                   .format(var_class))
             return -100
-        print(f'\rRamping {var:s} from {var_val:.3e} to {var_end:.3e}.',
+        
+        if (var == "Mp") or (var=='Mstar') or (var == "atomic_mass"):
+            var_unit = 'g'
+        elif (var == "Rp") or (var == "semimajor"):
+            var_unit = 'cm'
+        elif var == "Ftot":
+            var_unit = 'ergs/s/cm2'
+        elif var == "Lstar":
+            var_unit = 'ergs/s'
+        elif var == "molec_adjust":
+            var_unit = '[m_H]'
+        else:
+            var_unit = ''
+        print(f'\rRamping {str(var)} from {float(var_val):.3e} to {float(var_end):.3e} {str(var_unit)}.',
               end='                                                     \n')
+        self.last_print_rastered = True
         if var_val == var_end or abs(var_val-var_end)/var_end < 1e-10:
-            print(f'  {var:s} already done.',
+            self._normal_print(f'  {var:s} already done.',
                   end='                                                 \n')
             return 0
         # Make sure inputfile matches the planet's parameters and hasn't changed
@@ -642,6 +668,7 @@ class wind_simulation:
             print("\r  Trying: {:s}:{:.6e}, delta:{:.4g}                   "
                   .format(var, val_temp, flip*(val_temp-var_val)/var_val),
                    end="                                                   ")
+            self.last_print_rastered = True
             # See if can relax to partially ramped system
 #             if converge_bcs:
 #                 self.run_isotherm() #TEST - can afford to run each step
@@ -656,18 +683,17 @@ class wind_simulation:
 #                                  self.windsoln.bcs_tuple[-1])
                 if failed == 5:
 #                     self.isotherm_start(run_wind=False) #updates where bolometric heat/cool dominate
-                    if not static_bcs:
+                    if static_bcs:
                         # Converge boundary conditions on partial solution
-                        print("\r...Intermediate ramping BCs activated. Static_bcs=True, so will not ramp BCs (may affect ability to converge).",
-                                 end="                                           ")
+                        print("\n   ...Intermediate ramping BCs activated. Static_bcs=True, so will not ramp BCs (may affect ability to converge).")
                     else:
-                        print("\r...Intermediate ramping BCs activated.",
-                                 end="                                           ")
+                        # self._raster_print("   ...Intermediate ramping BCs activated.\n")
+                        print("\n   ...Intermediate ramping BCs activated.")
                     self.ramp_base_bcs(static=static_bcs,tolerance=0.05)
                     self.run_isotherm()
                     self.converge_Ncol_sp(expedite=True,quiet=True)
             elif result == 2:
-                print("\nFailed to copy. Not good.")
+                self._normal_print("\nFailed to copy. Not good.")
                 return 2
             else:
                 if make_plot:
@@ -685,6 +711,7 @@ class wind_simulation:
                 print("\r  Success %s:%.6e, delta:%.4g" %
                       (var, val_temp, flip*(val_temp-var_val)/var_val),
                        end="                                               ")
+                self.last_print_rastered = True
                 # update our system to partially ramped system
                 var_val = val_temp
                 if var_class == "system":
@@ -719,8 +746,8 @@ class wind_simulation:
                     self.inputs.write_flags(*original_flag_tuple,integrate_out)
                 print(f"\nERROR: Failing to converge {var}.")
                 return 101
-        print("\r  Final: ",
-               end="\n")
+        print("\r  Final: ",end="\n")
+        self.last_print_rastered = False
         # If did not plot last state of system do now
         if make_plot:
             if prcnt_chng != 1.0:
@@ -749,15 +776,15 @@ class wind_simulation:
                 if polish == 0:
                     return 0
                 if polish == 5:
-                    print("\nRamping successful, but polishing BCs to self consistency failed.")
+                    self._normal_print("\nRamping successful, but polishing BCs to self consistency failed.")
                     return 5
             else:
                 return 0
         elif result == 4:
-            print("\nRamping successful, but unable to integrate past sonic point. Option: Try polish_bcs().")
+            self._normal_print("\nRamping successful, but unable to integrate past sonic point. Option: Try polish_bcs().")
             return 4
         else:
-            print(f'\nERROR: Failure at the end game... result={result}')
+            self._normal_print(f'\nERROR: Failure at the end game... result={result}')
             return 1
     
 
@@ -797,15 +824,16 @@ class wind_simulation:
         print("\rRamping {:s} from {:.3e} to {:.3e} g AND "
               "{:s} from {:.3e} to {:.3e} cm."
               .format('Mp', srt_Mp, end_Mp, 'Rp', srt_Rp, end_Rp), end='\n')
-        
+        self.last_print_rastered = True
+
         if srt_Mp != end_Mp:
             slope = (end_sg/srt_sg-1.)/(end_Mp/srt_Mp-1.)
         else:
             slope = 0
         if (var_Mp == end_Mp or abs(var_Mp-end_Mp)/end_Mp < 1e-10):
-            print("  {:s} already done.".format('Mp'), end='\n')
+            self._normal_print("  {:s} already done.".format('Mp'), end='\n')
         if (var_Rp == end_Rp or abs(var_Rp-end_Rp)/end_Rp < 1e-10):
-            print("  {:s} already done.".format('Rp'), end='\n')
+            self._normal_print("  {:s} already done.".format('Rp'), end='\n')
         if ((var_Mp == end_Mp or abs(var_Mp-end_Mp)/end_Mp < 1e-10) and
             (var_Rp == end_Rp or abs(var_Rp-end_Rp)/end_Rp < 1e-10)):
             return 0
@@ -867,6 +895,7 @@ class wind_simulation:
                       .format('Mp', temp_Mp, 'Rp', temp_Rp,
                               M_flip*(temp_Mp-var_Mp)/var_Mp),
                        end="                                               ")
+                self.last_print_rastered = True
             elif var_Mp != end_Mp:
                 # If we never needed to ramp Rp, ramp Mp linearly
                 temp_Mp = var_Mp*(1.+M_delta)
@@ -876,6 +905,7 @@ class wind_simulation:
                 print("\r  Trying: {:s}:{:.6e}, M_delta:{:.4g}"
                       .format('Mp', temp_Mp, M_flip*(temp_Mp-var_Mp)/var_Mp),
                        end="                                               ")
+                self.last_print_rastered = True
             elif var_Rp != end_Rp:
                 # If we never needed to ramp Mp, ramp Rp linearly
                 temp_Rp = var_Rp*(1.+R_delta)
@@ -885,6 +915,7 @@ class wind_simulation:
                 print("\r  Trying: {:s}:{:.6e}, M_delta:{:.4g}"
                       .format('Rp', temp_Rp, R_flip*(temp_Rp-var_Rp)/var_Rp),
                        end="                                               ")
+                self.last_print_rastered = True
             else:
                 print("\nERROR: should be impossible surf_grav ramp condition")
                 return
@@ -899,12 +930,11 @@ class wind_simulation:
                     R_delta /= 2.
                 # Try converging. Can be expensive, so only try every once in a while
                 if failed == 4:
-                    if not static_bcs:
-                        print("\n....Intermediate ramping BCs activated. Static_bcs=True, so will not ramp BCs (may affect ability to converge).",
-                                 end="                                           ")
+                    if static_bcs:
+                        print("\n  ...Intermediate ramping BCs activated. Static_bcs=True, so will not ramp BCs (may affect ability to converge).")
                     else:
-                        print("\n...Intermediate ramping BCs activated.",
-                                 end="                                           ")                   
+                        # self._raster_print(" ...Intermediate ramping BCs activated.\n")
+                        print("\n  ...Intermediate ramping BCs activated.")
                     self.run_isotherm()
                     self.ramp_base_bcs(static=static_bcs,tolerance=0.05) 
                     self.run_isotherm()
@@ -929,6 +959,7 @@ class wind_simulation:
                           %('Mp', temp_Mp, 'Rp', temp_Rp,
                             M_flip*(temp_Mp-var_Mp)/var_Mp),
                            end="                                           ")
+                    self.last_print_rastered = True
                     var_Mp = temp_Mp
                     var_Rp = temp_Rp
                     self.system.assign('Mp', var_Mp)
@@ -937,12 +968,14 @@ class wind_simulation:
                     print("\r  Success %s:%.6e, M_delta:%.4g"
                           %('Mp', temp_Mp, M_flip*(temp_Mp-var_Mp)/var_Mp),
                            end="                                           ")
+                    self.last_print_rastered = True
                     var_Mp = temp_Mp
                     self.system.assign('Mp', var_Mp)
                 elif var_Rp != end_Rp:
                     print("\r  Success %s:%.6e, R_delta:%.4g"
                           %('Rp', temp_Rp, R_flip*(temp_Rp-var_Rp)/var_Rp),
                            end="                                           ")
+                    self.last_print_rastered = True
                     var_Rp = temp_Rp
                     self.system.assign('Rp', var_Rp)
                 if make_plot:
@@ -968,14 +1001,15 @@ class wind_simulation:
                 if not (R_flip == -1 and R_delta >= 0.5):
                     R_delta *= 2
             if failed > 10:
-                # Reset planet_params.inp to last sucessful state
+                # Reset planet_params.inp to last successful state
                 self.inputs.write_planet_params(*self.system.system_tuple())
                 if expedite:
                     # return original flags
                     self.inputs.write_flags(*original_flag_tuple,integrate_out)
-                print("\nERROR: Failing to converge gravity ramp.")
+                self._normal_print("\nERROR: Failing to converge gravity ramp.")
                 return 101
-        print("\r  Final: ")
+        print("\r  Final: ",end="\n")
+        self.last_print_rastered = False
         # If did not plot last state of system do now
         if make_plot:
             if prcnt_chng != 1.0:
@@ -1002,15 +1036,15 @@ class wind_simulation:
                 if polish == 0:
                     return 0
                 if polish == 5:
-                    print("\nRamping successful, but polishing BCs to self consistency failed.")
+                    self._normal_print("\nRamping successful, but polishing BCs to self consistency failed.")
                     return 5
             else:
                 return 0
         elif result == 4:
-            print("\nRamping successful, but unable to integrate past sonic point. Option: Try polish_bcs().")
+            self._normal_print("\nRamping successful, but unable to integrate past sonic point. Option: Try polish_bcs().")
             return 4
         else:
-            print(f'\nERROR: Failure at the end game... result={result}')
+            self._normal_print(f'\nERROR: Failure at the end game... result={result}')
             return 1
         
 
@@ -1061,6 +1095,7 @@ class wind_simulation:
               .format('Mstar', srt_Mstar, end_Mstar,
                       'semimajor', srt_adist, end_adist,
                      'Lstar', srt_Lstar, end_Lstar), end='\n')
+        self.last_print_rastered = True
         if srt_Mstar != end_Mstar:
             slope = (end_R_hill/srt_R_hill-1.)/(end_Mstar/srt_Mstar-1.)
         else:
@@ -1072,13 +1107,13 @@ class wind_simulation:
         #checking if already done
         if (var_Mstar == end_Mstar or
             abs(var_Mstar-end_Mstar)/end_Mstar < 1e-10):
-            print("  {:s} already done.".format('Mstar'), end='\n')
+            self._normal_print("  {:s} already done.".format('Mstar'), end='\n')
         if (var_adist == end_adist or
             abs(var_adist-end_adist)/end_adist < 1e-10):
-            print("  {:s} already done.".format('semimajor'), end='\n')
+            self._normal_print("  {:s} already done.".format('semimajor'), end='\n')
         if (var_Lstar == end_Lstar or
             abs(var_Lstar-end_Lstar)/end_Lstar < 1e-10):
-            print("  {:s} already done.".format('Lstar'), end='\n')
+            self._normal_print("  {:s} already done.".format('Lstar'), end='\n')
         if ((var_Mstar == end_Mstar or
              abs(var_Mstar-end_Mstar)/end_Mstar < 1e-10) and
             (var_adist == end_adist or
@@ -1157,6 +1192,7 @@ class wind_simulation:
                       .format('Mstar', temp_Mstar, 'semimajor', temp_adist,'Lstar', temp_Lstar,
                               M_flip*(temp_Mstar-var_Mstar)/var_Mstar),
                        end="                                                                          ")
+                self.last_print_rastered = True
             #If bolometric luminosity is constant, but M* and a are not
             elif (var_Mstar != end_Mstar) and (var_adist != end_adist) and (abs(var_Lstar-end_Lstar)/end_Lstar < 1e-10):
                 # Ramp Mstar and adist along linear rate of Hill radius change
@@ -1173,6 +1209,7 @@ class wind_simulation:
                       .format('Mstar', temp_Mstar, 'semimajor', temp_adist,
                               M_flip*(temp_Mstar-var_Mstar)/var_Mstar),
                        end="                                                    ")
+                self.last_print_rastered = True
             #If M* is const, but L* and a are not
             elif (abs(var_Mstar-end_Mstar)/end_Mstar < 1e-10) and (var_adist != end_adist) and (var_Lstar != end_Lstar):
                 # Ramp Mstar and adist along linear rate of Hill radius change
@@ -1189,6 +1226,7 @@ class wind_simulation:
                       .format('Lstar', temp_Lstar, 'semimajor', temp_adist,
                               R_flip*(temp_adist-var_adist)/var_adist),
                        end="                                                                            ") 
+                self.last_print_rastered = True
             #If semimajor is const, but M* and L* are not. These values are independent, but this just covers this case
             elif (var_Mstar!=end_Mstar) and (abs(var_adist-end_adist)/end_adist < 1e-10) and (var_Lstar != end_Lstar):
                 # If we never needed to ramp adist, ramp Lstar linearly
@@ -1206,7 +1244,8 @@ class wind_simulation:
                               'Mstar', temp_Mstar,
                               M_flip*(temp_Mstar-var_Mstar)/var_Mstar),
                        end="                                                                ") 
-            #If only M* needs to be ramped
+                self.last_print_rastered = True
+           #If only M* needs to be ramped
             elif (var_Mstar != end_Mstar) and (abs(var_adist-end_adist)/end_adist < 1e-10) and (abs(var_Lstar-end_Lstar)/end_Lstar < 1e-10):
                 # If we never needed to ramp adist, ramp Mstar linearly
                 temp_Mstar = var_Mstar*(1.+M_delta)
@@ -1217,6 +1256,7 @@ class wind_simulation:
                       .format('Mstar', temp_Mstar,
                               M_flip*(temp_Mstar-var_Mstar)/var_Mstar),
                        end="                                               ")
+                self.last_print_rastered = True
             #if only semimajor needs to be ramped
             elif (abs(var_Mstar-end_Mstar)/end_Mstar < 1e-10) and (var_adist != end_adist) and (abs(var_Lstar-end_Lstar)/end_Lstar < 1e-10):
                 # If we never needed to ramp Mstar, ramp adist linearly
@@ -1228,6 +1268,7 @@ class wind_simulation:
                       .format('semimajor', temp_adist,
                               R_flip*(temp_adist-var_adist)/var_adist),
                        end="                                               ")
+                self.last_print_rastered = True
                 self.ramp_base_bcs(intermediate=True,tolerance=0.01,static=static_bcs)
             #if only L* needs to be ramped
             elif (abs(var_Mstar-end_Mstar)/end_Mstar < 1e-10) and (abs(var_adist-end_adist)/end_adist < 1e-10) and (var_Lstar != end_Lstar):
@@ -1240,8 +1281,9 @@ class wind_simulation:
                       .format('Lstar', temp_Lstar,
                               L_flip*(temp_Lstar-var_Lstar)/var_Lstar),
                        end="                                               ")
+                self.last_print_rastered = True
             else:
-                print("\n ERROR: should be impossible surf_grav ramp condition")
+                self._normal_print("\n ERROR: should be impossible surf_grav ramp condition")
                 return 1
             # Write ramped variables to input file and try updating relaxation
             self.inputs.write_planet_params(*temp.system_tuple())
@@ -1249,12 +1291,12 @@ class wind_simulation:
             fail=0
             while result == 4:
                 fail+=1
-                print(f'\r Temporarily increasing Ncol_sp for numerical integration reasons. Failure {fail:d}',
-                  end='                                                                          ')
+                self._normal_print(f'   Temporarily increasing Ncol_sp for numerical integration reasons. Failure {fail:d}',
+                                   end='                                                                          ')
                 self.windsoln.bcs_tuple[5][:] = self.windsoln.Ncol_sp*1.2 
                 self.inputs.write_bcs(*self.windsoln.bcs_tuple)
                 if fail > 10:
-                    print("\nERROR: Failed to integrate outwards too many times. ")
+                    self._normal_print("\nERROR: Failed to integrate outwards too many times. ")
                     return 1
                 result = self.run_wind(expedite=True, calc_postfacto=False)
 
@@ -1271,18 +1313,15 @@ class wind_simulation:
                     count += 1
                     if not static_bcs:
                         # Converge boundary conditions on partial solution
-                        print("\r...Intermediate ramping BCs activated. Static_bcs=True, so will not ramp BCs (may affect ability to converge).",
-                                 end="                                           ")
+                        print("\n  ...Intermediate ramping BCs activated. Static_bcs=True, so will not ramp BCs (may affect ability to converge).")
                     else:
-                        print("\r...Intermediate ramping BCs activated.",
-                                 end="                                           ")
-                    print(f"\r...Intermediate Ramping BCs activated (Instance {count:.0f}).",
-                          end="                                                              ")
+                        # self._raster_print("  ...Intermediate ramping BCs activated (Instance {count:.0f}).\n")
+                        print("\n  ...Intermediate ramping BCs activated.")
                     self.converge_Ncol_sp(expedite=True,quiet=True)
                     self.ramp_base_bcs(static=static_bcs,tolerance=0.05) 
                     self.run_isotherm()
             elif result == 2:
-                print("\nERROR: Failed to copy windsoln to guess. Not great.")
+                self._normal_print("\nERROR: Failed to copy windsoln to guess. Not great.")
                 return 2
             elif result == 0: # Successfully relaxed with updated parameters
                 if make_plot:
@@ -1293,8 +1332,8 @@ class wind_simulation:
                                 prcnt_chng >= conv_every_pc):
                     # converge boundary conditions on partial solution
                     # First update atmosphere to update Rmin location
-                    self.run_isotherm() #TRY HERE OR RUNNING EVERY TIME
-                    self.ramp_base_bcs(intermediate=True,tolerance=0.05,static=static_bcs) #only converge if >10% diff in goal BC
+                    self.run_isotherm()
+                    self.ramp_base_bcs(intermediate=True,tolerance=0.05,static=static_bcs) #only converge if >5% diff in goal BC
                     conv_cntr = 0
                 # update our system to partially ramped system
                 if (var_Mstar != end_Mstar) and (var_adist != end_adist) and (var_Lstar != end_Lstar):
@@ -1302,6 +1341,7 @@ class wind_simulation:
                           %('Mstar', temp_Mstar, 'semimajor', temp_adist, 'Lstar', temp_Lstar,
                             M_flip*(temp_Mstar-var_Mstar)/var_Mstar),
                            end="                                                       ")
+                    self.last_print_rastered = True
                     var_Mstar = temp_Mstar
                     var_adist = temp_adist
                     var_Lstar = temp_Lstar
@@ -1313,6 +1353,7 @@ class wind_simulation:
                           %('Mstar', temp_Mstar, 'semimajor', temp_adist,
                             M_flip*(temp_Mstar-var_Mstar)/var_Mstar),
                            end="                                           ")
+                    self.last_print_rastered = True
                     var_Mstar = temp_Mstar
                     var_adist = temp_adist
                     self.system.assign('Mstar', var_Mstar)
@@ -1322,6 +1363,7 @@ class wind_simulation:
                           %('Mstar', temp_Mstar, 'semimajor', temp_adist,
                             M_flip*(temp_Mstar-var_Mstar)/var_Mstar),
                            end="                                           ")
+                    self.last_print_rastered = True
                     var_Mstar = temp_Mstar
                     var_adist = temp_adist
                     self.system.assign('Mstar', var_Mstar)
@@ -1331,6 +1373,7 @@ class wind_simulation:
                           %('Lstar', temp_Lstar, 'Mstar', temp_Mstar,
                             M_flip*(temp_Mstar-var_Mstar)/var_Mstar),
                            end="                                                ")
+                    self.last_print_rastered = True
                     var_Mstar = temp_Mstar
                     var_Lstar = temp_Lstar
                     self.system.assign('Mstar', var_Mstar)
@@ -1340,6 +1383,7 @@ class wind_simulation:
                           %('Mstar', temp_Mstar,
                             M_flip*(temp_Mstar-var_Mstar)/var_Mstar),
                            end="                                           ")
+                    self.last_print_rastered = True
                     var_Mstar = temp_Mstar
                     self.system.assign('Mstar', var_Mstar)
                 elif var_adist != end_adist:
@@ -1347,6 +1391,7 @@ class wind_simulation:
                           %('semimajor', temp_adist,
                             R_flip*(temp_adist-var_adist)/var_adist),
                            end="                                           ")
+                    self.last_print_rastered = True
                     var_adist = temp_adist
                     self.system.assign('semimajor', var_adist)
                 elif var_Lstar != end_Lstar:
@@ -1354,6 +1399,7 @@ class wind_simulation:
                           %('Lstar', temp_Lstar,
                             L_flip*(temp_Lstar-var_Lstar)/var_Lstar),
                            end="                                           ")
+                    self.last_print_rastered = True
                     var_Lstar = temp_Lstar
                     self.system.assign('Lstar', var_Lstar)
                 if make_plot:
@@ -1387,9 +1433,10 @@ class wind_simulation:
                 if expedite:
                     # return original flags
                     self.inputs.write_flags(*original_flag_tuple,integrate_out)
-                print("\nERROR: Failing to converge on star ramp.")
+                self._normal_print("\nERROR: Failing to converge on star ramp.")
                 return 101
-        print("\r  Final: ")
+        print("\r  Final: ",end="\n") 
+        self.last_print_rastered = False
         # If did not plot last state of system do now
         if make_plot:
             if prcnt_chng != 1.0:
@@ -1416,20 +1463,20 @@ class wind_simulation:
                 if polish == 0:
                     return 0
                 if polish == 5:
-                    print("\nRamping successful, but polishing BCs to self consistency failed.")
+                    self._normal_print("\nRamping successful, but polishing BCs to self consistency failed.")
                     return 5
             else:
                 return 0
         elif result == 4:
-            print("\nRamping successful, but unable to integrate past sonic point. Option: Try polish_bcs().")
+            self._normal_print("\nRamping successful, but unable to integrate past sonic point. Option: Try polish_bcs().")
             return 4
         else:
-            print(f'\nERROR: Failure at the end game... result={result}')
+            self._normal_print(f'\nERROR: Failure at the end game... result={result}')
             return 1
     
     
 #Metals functions    
-    def metallicity(self, metals_list, Z):
+    def calc_metallicity(self, metals_list=None, Z=1):
         """
         Returns an array of the Lodders (2009) Z x solar metallicity MASS fractions for the metals in metals_list.
         Mass fractions must sum to 1, so the difference from 1 is added to the hydrogen mass fraction (always at index 0 in the array).
@@ -1441,6 +1488,8 @@ class wind_simulation:
         Returns:
             np.ndarray: Array of mass fractions for each species in metals_list.
         """
+        if metals_list is None:
+            metals_list = self.windsoln.species_list
         self.metals = metal_class(self.windsoln)
         return self.metals.metallicity(metals_list,Z)
         
@@ -1472,7 +1521,7 @@ class wind_simulation:
             try:
                 McAtom.atomic_species(check_species).mass.iloc[0]
             except IndexError:
-                print("%s is not currently available in Wind-AE. Skipping." %check_species)
+                self._normal_print("%s is not currently available in Wind-AE. Skipping." %check_species)
                 skips = np.append(skips,int(i))
         desired_species = np.delete(desired_species,skips)
         unspaced_desired_list = [sp.replace(' ','') for sp in desired_species]
@@ -1487,7 +1536,7 @@ class wind_simulation:
             if len(custom_mfs) != (len(unspaced_current_list)+len(new_species)):
                 sys.exit("ERROR: Mass fraction and species list must be the same length.")
             if np.round(np.sum(custom_mfs),5) != 1:
-                print('WARNING: Total Mass Fraction must sum to 1. ',
+                self._normal_print('WARNING: Total Mass Fraction must sum to 1. ',
                       'sum(ZX) = %.3f' %np.sum(custom_mfs))
             species_mf_dict = dict(zip(unspaced_desired_list,custom_mfs))
 
@@ -1496,7 +1545,7 @@ class wind_simulation:
         self.metals = metal_class(self.windsoln)
         self.metals.add_species_to_guess(new_species)
         if self.raise_Ncol_sp(by_factor=20) != 0:
-            print("\nAttempted to raise Ncol_sp to increase speed of convergence, but failed.")
+            self._normal_print("\nAttempted to raise Ncol_sp to increase speed of convergence, but failed.")
         if self.run_wind(expedite=True)==0:
             self._raster_print("Metals added to guess, now ramping mass fractions.")
             #setting mass fractions to multiple of solar Z or to custom values
@@ -1519,14 +1568,14 @@ class wind_simulation:
                                             *self.windsoln.physics_tuple[1:])
             result = self.run_wind(expedite=True,calc_postfacto=False)
             if result != 0:
-                print("Failed to ramp mass fracs directly to goal. Taking 10% steps. ")
+                self._normal_print("Failed to ramp mass fracs directly to goal. Taking 10% steps. ")
                 percent = 0.1
                 delta_mfs = (goal_mfs - start_mfs)*0.1
                 step_mfs = self.windsoln.HX + delta_mfs
                 step_mfs[0] = 1 - sum(step_mfs[1:])
                 self.inputs.write_physics_params(step_mfs,
                                                 *self.windsoln.physics_tuple[1:])
-                # print('------%.5e-------'%abs(np.mean((goal_mfs - self.windsoln.HX)/goal_mfs)))
+                # self._normal_print('------%.5e-------'%abs(np.mean((goal_mfs - self.windsoln.HX)/goal_mfs)))
                 while abs(np.mean((goal_mfs - self.windsoln.HX)/goal_mfs)) > 1e-4:
                     failed = 0
                     self._raster_print(f'Avg. fractional difference from goal: {abs(np.mean((goal_mfs - self.windsoln.HX)/goal_mfs)):.3f}')
@@ -1537,23 +1586,23 @@ class wind_simulation:
 
                         self._raster_print(f'   Fail {failed}: Trying smaller stepsize (x{percent:.3f})')
                         if failed > 8:
-                            print(f"\nStruggling to substep towards goal mass fracs: \nCurrent: {self.windsoln.HX} \nGoal: {goal_mfs}")
-                            print("Hint: Try polish_bcs(converge_Rmax=False) then running sim.ramp_metallicity() again.")
+                            self._normal_print(f"\nStruggling to substep towards goal mass fracs: \nCurrent: {self.windsoln.HX} \nGoal: {goal_mfs}")
+                            self._normal_print("Hint: Try polish_bcs(converge_Rmax=False) then running sim.ramp_metallicity() again.")
                             return 1
                         
                     step_mfs = self.windsoln.HX + delta_mfs
                     step_mfs[0] = 1 - sum(step_mfs[1:])
                     self.inputs.write_physics_params(step_mfs,
                                                     *self.windsoln.physics_tuple[1:])
-                    # print('------%.5e-------'%abs(np.mean((goal_mfs - self.windsoln.HX)/goal_mfs)))
+                    # self._normal_print('------%.5e-------'%abs(np.mean((goal_mfs - self.windsoln.HX)/goal_mfs)))
                     
             if Z>1:
-                print(f"Metals successfully added in at Z=1. Ramping to Z={Z}.",end=self.clear)
+                self._normal_print(f"Metals successfully added in at Z=1. Ramping to Z={Z}.")
                 return self.ramp_metallicity(Z=Z,integrate_out=integrate_out,
                                             converge_Ncol_sp=converge_Ncol_sp)
             elif integrate_out==True:
                 if converge_Ncol_sp==True:
-                    print("Successfully ramped mass fracs. Integrating out & converging Ncol_sp...",end=self.clear)
+                    self._normal_print("Successfully ramped mass fracs. Integrating out & converging Ncol_sp...")
                     if self.converge_Rmax(final_converge_Ncol=False) != 0:
                         return 4
                     else:
@@ -1561,20 +1610,20 @@ class wind_simulation:
                 if converge_Ncol_sp==False:
                     self.inputs.write_flags(*self.windsoln.flags_tuple,
                                             integrate_out=True)
-                    print("Successfully ramped mass fractions. Integrating out, but not converging Ncol_sp.",end=self.clear)
+                    self._normal_print("Successfully ramped mass fractions. Integrating out, but not converging Ncol_sp.")
                     if self.run_wind(calc_postfacto=False) != 0:
                         return 4
                     else:
                         return 0
             else:
                 if converge_Ncol_sp==True:
-                    print("Successfully ramped mass fracs. Converging Ncol_sp, but not integrating out...",end=self.clear)
+                    self._normal_print("Successfully ramped mass fracs. Converging Ncol_sp, but not integrating out...")
                     return self.converge_Ncol_sp()
                 else:
                     self._raster_print("Successfully ramped mass fractions.")
                     return 0
         else:
-            print("\nFailed to add new species. That shouldn't have happened. Try polishing solution before adding metals.")
+            self._normal_print("\nFailed to add new species. That shouldn't have happened. Try polishing solution before adding metals.")
             return 1
 
         
@@ -1597,7 +1646,7 @@ class wind_simulation:
             self.load_planet(self.path+'inputs/guess.inp',calc_postfacto=False,
                              print_atmo=False,print_warnings=False)
         except ValueError:
-            print('\nOne or more of the species you are attempting to remove is not present in simulation.')
+            self._normal_print('\nOne or more of the species you are attempting to remove is not present in simulation.')
             return 1
         if run_wind == True:
             if self.run_wind(expedite=True,calc_postfacto=False) != 0:
@@ -1606,13 +1655,11 @@ class wind_simulation:
                 fractions of the species you want to remove. Recall that total mass fraction 
                 must sum to 1.
                 '''
-                print(warning)
+                self._normal_print(warning)
             else:
-                print("\n"+','.join('%s' %sp for sp in remove_species_list)+" removed and new windsoln generated.")         
+                self._normal_print("\n"+','.join('%s' %sp for sp in remove_species_list)+" removed and new windsoln generated.")         
         return
 
-    
-    
     def ramp_metallicity(self, Z=1, custom_mfs=[], static_bcs=False,
                         integrate_out=True, converge_Ncol_sp=True, polish_bcs=False):
         """
@@ -1631,38 +1678,38 @@ class wind_simulation:
         """
         goal_Z = Z
         if goal_Z >= 50:
-            print("Note: For high metallicities, consider increasing mean molecular weight (molec_adjust).")
+            self._normal_print("Note: For high metallicities, consider increasing mean molecular weight (molec_adjust).")
             for sp in self.windsoln.species_list:
                 if (sp[:2] == 'Fe') or (sp[:2] == 'Ca'):
-                    print("WARNING: At high Z, Fe and Ca line cooling are significant, but have not yet been implemented.")
-            print("\n")
+                    self._normal_print("WARNING: At high Z, Fe and Ca line cooling are significant, but have not yet been implemented.")
+            self._normal_print("\n")
             
         if len(custom_mfs) != 0:
             if len(custom_mfs) != len(self.windsoln.species_list):
                 sys.exit("ERROR: Mass fraction and species list must be the same length.")
             if np.round(np.sum(custom_mfs),5) != 1:
-                print('WARNING: Total Mass Fraction must sum to 1. ',
+                self._normal_print('WARNING: Total Mass Fraction must sum to 1. ',
                       'sum(ZX) = %.3f \n' %np.sum(custom_mfs))
-            print("NOTE: Goal mass fractions will override any goal Z metallicity provided.")
+            self._normal_print("NOTE: Goal mass fractions will override any goal Z metallicity provided.")
             goal_mass_fracs = custom_mfs
             
             current_HX = np.copy(self.windsoln.HX)
             ratio = goal_mass_fracs/self.windsoln.atomic_masses
             goal_nfs = ratio/sum(ratio)
             if goal_nfs[0] < 0.5:
-                print("NOTE: Secondary ionization calcs assume H is the dominant species, therefore may not be accurate.")
+                self._normal_print("NOTE: Secondary ionization calcs assume H is the dominant species, therefore may not be accurate.")
             self.inputs.write_bcs(*self.windsoln.bcs_tuple[:-2],
                                  0.5*goal_nfs, #an arbitrary value that works well for ramping
                                  self.windsoln.bcs_tuple[-1])
             self.inputs.write_physics_params(goal_mass_fracs,*self.windsoln.physics_tuple[1:])
             self._raster_print(f' Goal {goal_mass_fracs}: Attempting {goal_mass_fracs}')
             if self.run_wind(expedite=True,calc_postfacto=False) == 0:
-                print(f'Mass fractions successfully ramped to: {self.windsoln.HX}')
+                self._normal_print(f'Mass fractions successfully ramped to: {self.windsoln.HX}')
                 if integrate_out == True:
-                    print("Integrating out and attempting to converge Ncol_sp...")
+                    print("  Integrating out and attempting to converge Ncol_sp...")
                     return self.converge_Rmax()
                 elif (integrate_out == False) & (converge_Ncol_sp==True):
-                    print("Attempting to converge Ncol_sp...")
+                    print("  Attempting to converge Ncol_sp...")
                     return self.converge_Ncol_sp(expedite=False,quiet=True)
                 elif converge_Ncol_sp == False:
                     print("Note: Ncol_sp has not been converged to self-consistency.")
@@ -1690,24 +1737,24 @@ class wind_simulation:
                     while self.run_wind(expedite=True,calc_postfacto=False) != 0:
                         fail+=1
                         if fail==3:
-                            print("    Intermediate BC ramping activated.",
+                            print("  ...Intermediate BC ramping activated.",
                                   self.run_isotherm(),self.ramp_base_bcs(intermediate=True,static=static_bcs,tolerance=0.05))     
                             self.raise_Ncol_sp(by_factor=10)                    
                         step = self.windsoln.HX+percent*delta/(fail+1)
-                        self._raster_print(f' Fail {fail:d}: Attempting {step}')
+                        self._raster_print(f'  Fail {fail:d}: Attempting {step}')
                         self.inputs.write_physics_params(step,
                                                          *self.windsoln.physics_tuple[1:]) 
                         if fail>10:
-                            print(f"Failed to ramp mass fractions. Current: {self.windsoln.HX}."
+                            self._normal_print(f"Failed to ramp mass fractions. Current: {self.windsoln.HX}."
                                   f" Goal: {custom_mfs}")
                             return 1
-                print(f'Mass fractions successfully ramped to: {self.windsoln.HX}')
+                self._normal_print(f'Mass fractions successfully ramped to: {self.windsoln.HX}')
                 
         else: 
             #Just getting a grid of metallicity to print what the current Z is 
             grid = np.zeros(200)
             for i in range(200):
-                grid[i] = abs(self.metallicity(self.windsoln.species_list,Z=i+1)[0]-
+                grid[i] = abs(self.calc_metallicity(self.windsoln.species_list,Z=i+1)[0]-
                               self.windsoln.HX[0])
             start_Z = np.where(grid==min(grid))[0][0]+1
             print("Starting metallicity: %d xSolar"%start_Z)
@@ -1722,7 +1769,7 @@ class wind_simulation:
                         step_Z -= 10
                 elif abs(goal_Z - current_Z) < 10:
                     step_Z = goal_Z
-                self._raster_print(f' Success! Attemping to ramp Z from {current_Z:.1f} to {step_Z:.1f}')
+                self._raster_print(f'  Attempting to ramp Z from {current_Z:.1f} to {step_Z:.1f}')
                 step_mfs = self.metals.metallicity(self.windsoln.species_list,Z=step_Z)
                 ratio = step_mfs/self.windsoln.atomic_masses
                 step_nfs = ratio/sum(ratio)
@@ -1739,7 +1786,7 @@ class wind_simulation:
                     step_Z = current_Z + delta/(2**fail)
                     self._raster_print(f' Failed {fail}: Attempting to ramp Z from {current_Z:.1f} to {step_Z:.1f}')
                     if fail>5:
-                        print('Failed at Z = ',current_Z)
+                        self._normal_print('Failed at Z = ',current_Z)
                         sys.exit(1)
                         
                     step_mfs = self.metals.metallicity(self.windsoln.species_list,Z=step_Z)
@@ -1747,16 +1794,16 @@ class wind_simulation:
                                                      self.windsoln.molec_adjust)                    
                     fail+=1
                 current_Z = step_Z    
-            print(f'Success! Ramped to goal metallicity, Z = {current_Z:.0f} x Solar',end=self.clear)
+            print(f'Success! Ramped to goal metallicity, Z = {current_Z:.0f} x Solar')
 
             if integrate_out == True:
-                print("Integrating out and attempting to converge Ncol_sp...")
+                print("  Integrating out and attempting to converge Ncol_sp...")
                 return self.converge_Rmax()
             elif (integrate_out == False) & (converge_Ncol_sp==True):
-                print("Attempting to converge Ncol_sp...")
+                self._normal_print("  Attempting to converge Ncol_sp...")
                 return self.converge_Ncol_sp(expedite=False,quiet=True)
             elif converge_Ncol_sp == False:
-                print("Note: Ncol_sp has not been converged to self-consistency.")
+                self._normal_print("  Note: Ncol_sp has not been converged to self-consistency.")
                 return 0
 
 
@@ -1777,7 +1824,7 @@ class wind_simulation:
         """
         #Checking that base bcs (Rmin, rho, T) have been converged
         #--------------
-        print('Polishing up boundary conditions...',end=self.clear)
+        print('Polishing up boundary conditions...')
         self.ramp_base_bcs(static=static_bcs,polish=True) 
         goal_bcs = self.base_bcs()
         curr_bcs = np.array(self.windsoln.bcs_tuple[:4])   
@@ -1792,9 +1839,9 @@ class wind_simulation:
         self.windsoln.add_user_vars(expedite=True) #do postfacto calcs to get 'heat_ion' & 'boloheat'
         while len(np.where(self.windsoln.soln['heat_ion'][idx:]<self.windsoln.soln['boloheat'][idx:])[0]) > 20:
             width /= 2
-            self._raster_print(f"...Shortening transition from molecular to atomic region. Erf width = {width:.2f} Hsc")
+            self._raster_print(f"  ...Shortening transition from molecular to atomic region. Erf width = {width:.2f} Hsc")
             if self.run_isotherm(polish=True,width_factor=width) != 0:
-                print("Attempting to shorten erfc transition region between molecular and atomic regions",
+                self._normal_print("Attempting to shorten erfc transition region between molecular and atomic regions",
                       f" failed at {width:.3f}Hsc. Check energy_plot() to ensure bolometric heating/cooling",
                      "doesn't impede on photoionization heated region.")
                 isotherm=1
@@ -1809,15 +1856,15 @@ class wind_simulation:
                   self.windsoln.soln['heat_ion'][idx-10:idx+10]):
             width+=1
             if width > 10:
-                print("Warning: 20 scaleheights is an unlikely width for the error function",
+                self._normal_print("Warning: 20 scaleheights is an unlikely width for the error function",
                       " transitioning between molecular and atomic regions.",
                       "\nCheck energy_plot(). Stopping here.")
                 isotherm=1
                 break
-            self._raster_print(f"...Smoothing transition from molecular to atomic region. Erf width = {width:.2f} Hsc")
+            self._raster_print(f"  ...Smoothing transition from molecular to atomic region. Erf width = {width:.2f} Hsc")
             isotherm = self.run_isotherm(polish=True,width_factor=width/2)
             if isotherm != 0:
-                print("Failed to smooth transition from molecular to atomic region."+self.clear,
+                self._normal_print("Failed to smooth transition from molecular to atomic region."+self.clear,
                       "Unphysical kinks in wind profile may be present at base of wind. ",
                       "\n       Mass loss rate relatively unaffected.")
                 isotherm=1
@@ -1881,9 +1928,9 @@ class wind_simulation:
             return 0
         else:
             if converge_Rmax == True:
-                print(warn2 %(bc_result,iso_result,ncol_result,rcori_result))
+                self._normal_print(warn2 %(bc_result,iso_result,ncol_result,rcori_result))
             else:
-                print(warn2 %(bc_result,iso_result,ncol_result))
+                self._normal_print(warn2 %(bc_result,iso_result,ncol_result))
             return 5
         
         
@@ -1938,17 +1985,16 @@ class wind_simulation:
             return
         
         if sum(abs((goal_bcs - curr_bcs)/goal_bcs)[[0,2,3]]) > 1e-2:
-            print('\n')
-            self._raster_print(f"Attempting to ramp Rmin:{curr_bcs[0]:.2f}->{goal_bcs[0]:.2f}Rp, rho:{curr_bcs[2]*rho_scale:.3e}->{goal_bcs[2]*rho_scale:.3e}g/cm3, T:{curr_bcs[3]*T_scale:.0f}->{goal_bcs[3]*T_scale:.0f}K")
+            self._raster_print(f"  Attempting to ramp Rmin:{curr_bcs[0]:.2f}->{goal_bcs[0]:.2f}Rp, rho:{curr_bcs[2]*rho_scale:.3e}->{goal_bcs[2]*rho_scale:.3e}g/cm3, T:{curr_bcs[3]*T_scale:.0f}->{goal_bcs[3]*T_scale:.0f}K")
             self.inputs.write_bcs(*goal_bcs,*self.windsoln.bcs_tuple[4:])
 
             if self.run_wind(expedite=True,calc_postfacto=False) == 1: 
-                print(f"..Initial jump failed. Ramping variables individually.",end=self.clear)
+                self._normal_print(f"  ..Initial jump failed. Ramping variables individually.")
                 if abs((self.windsoln.Rmin - goal_bcs[0])/goal_bcs[0]) > 4e-3:
                     self.ramp_Rmin(goal_bcs[0])
                 if abs((self.windsoln.T_rmin  - goal_bcs[3])/goal_bcs[3]) > 1e-2:
                     if (polish == True) & (self.windsoln.bolo_heat_cool==0):
-                        print(f"Skipping ramping T to avoid costly iterations. Current: {self.windsoln.T_rmin*T_scale:.0f}K. Estimated goal: {goal_bcs[3]*T_scale:.0f}K")
+                        self._normal_print(f"  Skipping ramping T to avoid costly iterations. Current: {self.windsoln.T_rmin*T_scale:.0f}K. Estimated goal: {goal_bcs[3]*T_scale:.0f}K")
                     else:
                         self.ramp_T_rmin(goal_bcs[3])
                 if abs((self.windsoln.rho_rmin -  goal_bcs[2])/goal_bcs[2]) > 1e-4:
@@ -1957,14 +2003,16 @@ class wind_simulation:
         curr_bcs = np.array(self.windsoln.bcs_tuple[0:4])
         if sum(abs((goal_bcs - curr_bcs)/goal_bcs)[[0,2,3]]) > 1e-2: 
             if (polish == True) & (self.windsoln.bolo_heat_cool==0):
-                print("Successfully ramped base boundary conditions.",end=self.clear)          
+                # self._normal_print("Successfully ramped base boundary conditions.")    
+                self._raster_print("  Successfully ramped base boundary conditions.")          
                 return 0
             else:
-                print("Failed to ramp bcs. This can occur when attempting to set base at too high or too low of pressure (e.g., for very high or very low gravity planets).",end=self.clear)
-                print(f"  Rmin: Current {curr_bcs[0]:.2f}, Goal {goal_bcs[0]:.2f}Rp; Rho: Curr {curr_bcs[2]*rho_scale:.3e}, Goal {goal_bcs[2]*rho_scale:.3e}g/cm3; T: Curr {curr_bcs[3]*T_scale:.0f}, Goal {goal_bcs[3]*T_scale:.0f}K")
+                self._normal_print("  Failed to ramp bcs. This can occur when attempting to set base at too high or too low of pressure (e.g., for very high or very low gravity planets).")
+                self._normal_print(f"  Rmin: Current {curr_bcs[0]:.2f}, Goal {goal_bcs[0]:.2f}Rp; Rho: Curr {curr_bcs[2]*rho_scale:.3e}, Goal {goal_bcs[2]*rho_scale:.3e}g/cm3; T: Curr {curr_bcs[3]*T_scale:.0f}, Goal {goal_bcs[3]*T_scale:.0f}K")
                 return 1
         else:
-            print("Successfully ramped base boundary conditions.",end=self.clear)           
+            self._raster_print("  Successfully ramped base boundary conditions.")          
+            # self._normal_print("Successfully ramped base boundary conditions.")           
             return 0
        
     
@@ -2016,7 +2064,7 @@ class wind_simulation:
         
         Rp = self.windsoln.Rp
         if molec_adjust <= 1:
-            print("WARNING: Molecular adjustment factor should be >1 to account for increased",
+            self._normal_print("WARNING: Molecular adjustment factor should be >1 to account for increased",
                   "mean weight due to molecules, instead of atoms, lower in atmosphere (below the wind).")
         F_opt = self.windsoln.Lstar/(4*np.pi*self.windsoln.semimajor**2)
         T_skin = (F_opt*(Kappa_opt+Kappa_IR/4)/(2*const.sig_SB*Kappa_IR))**0.25
@@ -2045,7 +2093,7 @@ class wind_simulation:
             # R_IR = rho_Rp*np.exp(-Rp/Hsc)
             R_IR = Rp**2 /( Hsc * np.log(rho_IR/rho_Rp*np.exp(Rp/Hsc)) )
         if R_IR > Rp:
-            print('Using vertical tau=1 for IR photons, R_IR.')
+            self._normal_print('Using vertical tau=1 for IR photons, R_IR.')
             return R_IR/Rp,self.windsoln.Rmax,rho_IR/rho_scale,T_eff/T_scale
         else:
             if self.windsoln.bolo_heat_cool == 0: #an approximation
@@ -2076,16 +2124,16 @@ class wind_simulation:
                 while out == 4:
                     attempt += 1
                     self.windsoln.bcs_tuple[-2] = self.windsoln.Ncol_sp*10*attempt
-                    self._raster_print(f"Raising Ncol to allow outward integration. Attempt {attempt:d}.")
+                    self._raster_print(f"  ..Raising Ncol to allow outward integration. Attempt {attempt:d}.")
                     self.inputs.write_bcs(*self.windsoln.bcs_tuple)
                     if attempt > 6:
-                        print("Failed to integrate outwards even after raising Ncol. Suspicious.",end=self.clear)
+                        self._normal_print("Failed to integrate outwards even after raising Ncol. Suspicious.")
                         self.converge_Ncol_sp()
                         return 1
                     out = self.run_wind(calc_postfacto=False)
                 else:
                     if out == 1:
-                        print("Relaxation error.",end=self.clear)
+                        self._normal_print("Relaxation error.")
                         return 1
                     elif out == 0:
                         self._raster_print("Successfully integrated outwards. Now converging Rmax...")
@@ -2095,7 +2143,7 @@ class wind_simulation:
     
         # First while statement extends domain far past true Coriolis length
         while (self.windsoln.Rmax < self.windsoln.R_cori):
-            self._raster_print("..Rmax {:.4e}, r_Cori {:.4e}"
+            self._raster_print("  ..Rmax {:.4e}, r_Cori {:.4e}"
                   .format(self.windsoln.Rmax, self.windsoln.R_cori))
             bcs_tuple = self.windsoln.bcs_tuple
             # Just go far enough to ensure true R_cori is within domain
@@ -2104,7 +2152,7 @@ class wind_simulation:
             self.inputs.write_bcs(*bcs_tuple)
             failed = 0
             if self.run_wind(calc_postfacto=False) != 0:
-                print("\nERROR: Failed to integrate outwards to r_Cori: {:.3e} "
+                self._normal_print("\nERROR: Failed to integrate outwards to r_Cori: {:.3e} "
                       "reverting back to {:.3e}."
                       .format(self.windsoln.R_cori, self.windsoln.Rmax))
                 bcs_tuple[1] = self.windsoln.Rmax
@@ -2114,7 +2162,7 @@ class wind_simulation:
             
         # Second while statement whittles down to true Coriolis length
         while (abs(1.-self.windsoln.Rmax/self.windsoln.R_cori) > 1e-2):
-            self._raster_print("..Rmax {:.4e}, r_Cori {:.4e}"
+            self._raster_print("  ..Rmax {:.4e}, r_Cori {:.4e}"
                   .format(self.windsoln.Rmax, self.windsoln.R_cori))
             delta_Rmax = self.windsoln.Rmax-self.windsoln.R_cori
             bcs_tuple = self.windsoln.bcs_tuple
@@ -2122,17 +2170,17 @@ class wind_simulation:
             self.inputs.write_bcs(*bcs_tuple)
             failed = self.run_wind(calc_postfacto=False)
             if failed:
-                print('\nERROR: Failed to even get relax code to run')
+                self._normal_print('\nERROR: Failed to even get relax code to run')
                 return 1
             self.windsoln.calc_Coriolis()
         if final_converge_Ncol == True:
             result = self.converge_Ncol_sp(expedite=False,integrate_out=True)
             if result == 0:
-                print(f"Successfully converged Rmax to {self.windsoln.Rmax:.6f} (Ncol also converged).",end=self.clear)
+                self._normal_print(f"Successfully converged Rmax to {self.windsoln.Rmax:.6f} (Ncol also converged).")
             if result == 3:
-                print(f"Successfully converged Rmax to {self.windsoln.Rmax:.6f} (To preserve outward integration, Ncol was slightly increased => Mdot error < ~10%).")
+                self._normal_print(f"Successfully converged Rmax to {self.windsoln.Rmax:.6f} (To preserve outward integration, Ncol was slightly increased => Mdot error < ~10%).")
         else:
-            print(f"Successfully converged Rmax to {self.windsoln.Rmax:.6f}. It is recommended to run converge_Ncol_sp(integrate_out=True) as Ncol will have updated.",end=self.clear)
+            self._normal_print(f"Successfully converged Rmax to {self.windsoln.Rmax:.6f}. It is recommended to run converge_Ncol_sp(integrate_out=True) as Ncol will have updated.")
         self.windsoln.add_user_vars()
         # self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=True)
         self.integrate_out(quiet=True)
@@ -2172,10 +2220,10 @@ class wind_simulation:
         while np.abs(np.mean((Ncol_goal-Ncol_current)/Ncol_goal)) > 0.08:
             niter += 1
             if niter > 10:
-                print(f'Too many iterations (current average diff {avg:.2e}).')
+                self._normal_print(f'Too many iterations (current average diff {avg:.2e}).')
                 return 1
             avg = np.abs(np.mean((Ncol_goal-Ncol_current)/Ncol_goal))
-            self._raster_print(f' ...Ramping Ncol Iter {niter:d}: Current average diff {avg:.2e}')            
+            self._raster_print(f'  ...Ramping Ncol Iter {niter:d}: Current average diff {avg:.2e}')            
             self.windsoln.bcs_tuple[5][:] = Ncol_goal  
             self.inputs.write_bcs(*self.windsoln.bcs_tuple)
             fail = 1
@@ -2185,11 +2233,11 @@ class wind_simulation:
                 attempt = 0
                 if result == 4:
                     if integrate_out == False:
-                        self._raster_print("Integration error. Turning off outward integration.")
+                        self._raster_print(" ...Integration error. Turning off outward integration.")
                         self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=False)
                         result = self.run_wind(expedite=expedite,calc_postfacto=False) 
                     else:
-                        self._raster_print("Integration error. To preserve outward integration, raising Ncol_sp slightly and returning.")
+                        self._raster_print("  ...Integration error. To preserve outward integration, raising Ncol_sp slightly and returning.")
                         self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=True)
                         self.inputs.write_bcs(*self.windsoln.bcs_tuple[:-2],
                                              Ncol_goal*1.1,
@@ -2198,7 +2246,7 @@ class wind_simulation:
                         result = self.run_wind(expedite=False,calc_postfacto=False)
                         while result==4:
                             fail+=1
-                            self._raster_print(f"Attempting to integrate out. Ncol_sp x{(1+(fail+1)/10):.1f}")
+                            self._raster_print(f"  ...Attempting to integrate out. Ncol_sp x{(1+(fail+1)/10):.1f}")
                             self.inputs.write_bcs(*self.windsoln.bcs_tuple[:-2],
                                                   Ncol_goal*1+(fail+1)/10,
                                                   self.windsoln.bcs_tuple[:-1])
@@ -2207,18 +2255,18 @@ class wind_simulation:
                             if fail == 0:
                                 return 0  
                             if fail > 0:
-                                self._raster_print(f"Successfully integrated out w/ Ncol_sp = {(1+(fail)/10):.1f} x goal Ncol_sp. Error in Mdot < ~10%.")
+                                self._raster_print(f"  Successfully integrated out w/ Ncol_sp = {(1+(fail)/10):.1f} x goal Ncol_sp. Error in Mdot < ~10%.\n")
                                 return 3
                 else:
                     delta = (Ncol_goal - Ncol_current)/(2*fail)
                     Ncol_step = Ncol_current + delta
                     self.windsoln.bcs_tuple[5][:] = Ncol_step 
                     self.inputs.write_bcs(*self.windsoln.bcs_tuple)
-                    self._raster_print(f'...Fail {fail:d}: Attempting Ncol_sp = {Ncol_step*scale}.')
+                    self._raster_print(f'  ...Fail {fail:d}: Attempting Ncol_sp = {Ncol_step*scale}.')
 
                     if fail > 10:
-                        print(f"\nFailed at Ncol_sp = {Ncol_current} ",
-                              f"& Goal = {Ncol_goal}.",end=self.clear) #summed neutral number density
+                        self._normal_print(f"\nFailed at Ncol_sp = {Ncol_current} ",
+                              f"& Goal = {Ncol_goal}.") #summed neutral number density
                         return 2
                     result = self.run_wind(expedite=expedite,calc_postfacto=False)
                     fail += 1
@@ -2235,11 +2283,11 @@ class wind_simulation:
         if niter != 0:
             if expedite == True:
                 if quiet == False:
-                    self._raster_print('...Attempting Final Ncol Convergence. (Note: This is an estimate. Cannot converge precisely without outward integration).')  
+                    self._raster_print('  ...Attempting Final Ncol Convergence. (Note: This is an estimate. Cannot converge precisely without outward integration).')  
                     integrate_out=0
             if expedite == False:
                 if quiet == False:
-                    self._raster_print('...Attempting Final Ncol Convergence.')  
+                    self._raster_print('  ...Attempting Final Ncol Convergence.')  
 
             self.windsoln.bcs_tuple[5][:] = Ncol_goal
             self.inputs.write_bcs(*self.windsoln.bcs_tuple)
@@ -2247,11 +2295,11 @@ class wind_simulation:
             result = self.run_wind(expedite=expedite,calc_postfacto=False)
             if result == 4:
                 if quiet == False:
-                    print('Failure at last Ncol convergence.',
-                          f' Last working solution should be fine for most purposes. Average diff from self-consistent value: {avg:.2e}',end=self.clear)
+                    self._normal_print('Failure at last Ncol convergence.',
+                          f' Last working solution should be fine for most purposes. Average diff from self-consistent value: {avg:.2e}')
                 return 4
             elif result == 1:
-                print('Failure at the endgame.',end=self.clear)
+                self._normal_print('Failure at the endgame.')
                 return 1            
         return 0
 
@@ -2292,7 +2340,7 @@ class wind_simulation:
             currents = self.windsoln.Ncol_sp
         if self.windsoln.flags_tuple[-1] == 0:
             if warning:
-                print("This is an estimate of Ncol. Cannot converge precisely without outward integration.") 
+                self._normal_print("This is an estimate of Ncol. Cannot converge precisely without outward integration.") 
             return currents, goals#*8 #to account for the fact that we can't cumsum n out to Rmax
         if self.windsoln.flags_tuple[-1] == 1:
             return currents, goals 
@@ -2358,7 +2406,7 @@ class wind_simulation:
                                 limit = 4
                             if fail >= limit:
                                 current_erfs = self.windsoln.erf_drop
-                                print(f"Too many attempts to ramp error function. Skipping subsequent attempts until polishing. Goal: {goal_erfs[0]:.3e}, {goal_erfs[1]:.3e}.",
+                                self._normal_print(f"Too many attempts to ramp error function. Skipping subsequent attempts until polishing. Goal: {goal_erfs[0]:.3e}, {goal_erfs[1]:.3e}.",
                                       f" Current: {current_erfs[0]:.3e}, {current_erfs[1]:.3e}.")
                                 self.skip = True
                                 return 1#self.turn_off_bolo()
@@ -2367,14 +2415,14 @@ class wind_simulation:
                                 step_erfs[1] *= 5*fail
                                 self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
                                                       step_erfs)
-                                self._raster_print(f" Erf Fail {fail:d}: Smoothing transition: {step_erfs[1]}")
+                                self._raster_print(f" Erfc Fail {fail:d}: Smoothing transition: {step_erfs[1]}")
                                 if fail == 2:
                                     try_smoothing=False #if this doesn't work, don't keep trying
 
                             elif (fail<limit) : #try taking a smaller step
                                 smaller_delta = delta/(fail+1)
                                 step_erfs = current_erfs+smaller_delta
-                                self._raster_print(f" Erf Fail {fail:d}: goal {goal_erfs[0]:.3e} {goal_erfs[1]:.3e}, step {step_erfs[0]:.3e} {step_erfs[1]:.3e}")
+                                self._raster_print(f" Erfc Fail {fail:d}: goal {goal_erfs[0]:.3e} {goal_erfs[1]:.3e}, step {step_erfs[0]:.3e} {step_erfs[1]:.3e}")
                                 self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
                                                       step_erfs)
                         current_erfs = self.windsoln.erf_drop
@@ -2390,9 +2438,8 @@ class wind_simulation:
             cool = self.windsoln.soln['cool_PdV']
 #                 heat,cool = self.quick_calc_heat_cool()
             if len(np.where(-cool[:20]<heat[:20])[0]) > 3:
-                print("NOTE: Photoionization heating dominates down to base",
-                      f"of sim ({self.windsoln.Rmin:.3f} Rp).",
-                      "\n      Bolometric heat/cooling still turned off. Max error in dM/dt ~ 10%. \n       See documentation for workaround.")
+                out_str = f"  NOTE: Photoionization heating dominates down to base of sim ({self.windsoln.Rmin:.3f} Rp).\n       | Bolometric heat/cooling still turned off. Max error in dM/dt ~ 10%. \n       | See documentation for workaround."
+                print(out_str)
                 return 1
             else: #if appropriate, ramp back in bolometric heating/cooling
                 while self.windsoln.bolo_heat_cool < 1:
@@ -2407,10 +2454,10 @@ class wind_simulation:
                         self._raster_print(f'Ramping back in bolometric heating & cooling. Trying factor of {flags[2]:.2f}')
                         self.inputs.write_flags(*flags)
                         if fail>10:
-                            print("Warning: Bolometric heating/cooling failed to ramp back in.")
+                            self._normal_print("Warning: Bolometric heating/cooling failed to ramp back in.")
                             energy_plot(self.windsoln)
                             return 1
-                print("  Bolometric heating/cooling successfully ramped back in.")
+                self._normal_print("  Bolometric heating/cooling successfully ramped back in.")
                 return 0
                             
 #             else:
@@ -2456,7 +2503,7 @@ class wind_simulation:
         # Adapted from Mocassin (Shull & Steenberg 1985)
         # Accounts for secondary ionizations due to highly energetic (>100eV) incoming photons
         frac_in_heat = 0.9971 * (1 - pow(1-pow(background_ioniz_frac,0.2663),1.3163))
-    #     print(frac_in_heat)
+    #     self._normal_print(frac_in_heat)
         for s, species in enumerate(self.windsoln.species): #48s
             E_matrix = np.tile(self.windsoln.E_wl,(len(background_ioniz_frac),1))
             Ncol_matrix = np.tile(Ncol_arr.iloc[:,s],(self.windsoln.npts,1)).T
@@ -2492,10 +2539,10 @@ class wind_simulation:
         self.load_planet(self.path+'saves/windsoln.csv',calc_postfacto=False,
                          print_atmo=False,print_warnings=False)
 #         if failed_bolo_turn_off == True:
-#             print("Previously failed to turn off bolometric heating and cooling, so not trying here.")
+#             self._normal_print("Previously failed to turn off bolometric heating and cooling, so not trying here.")
 #             return
         if self.windsoln.bolo_heat_cool == 1:
-            print('..Turning off bolometric heating/cooling.')
+            self._raster_print('  ...Turning off bolometric heating/cooling.')
         #turning off bolo_heat_cool
         while self.windsoln.bolo_heat_cool > 0:
             flags = self.windsoln.flags_tuple
@@ -2507,7 +2554,7 @@ class wind_simulation:
             while self.run_wind(expedite=True,calc_postfacto=False) != 0:
                 fail+=1
                 if fail>5:
-                    print(f"WARNING: Failed to turn off bolometric heating/cooling. This is unusual. Current multiplicative factor: {self.windsoln.bolo_heat_cool}. Goal: 0.")
+                    self._normal_print(f"WARNING: Failed to turn off bolometric heating/cooling. This is unusual. Current multiplicative factor: {self.windsoln.bolo_heat_cool}. Goal: 0.")
                     self.windsoln.flags_tuple[2] = 1
                     self.inputs.write_flags(*self.windsoln.flags_tuple)
                     return 1
@@ -2515,7 +2562,7 @@ class wind_simulation:
                 flags[2] = bolo_flag + delta
                 self._raster_print(f'Turning off bolometric heating & cooling. Trying factor of {flags[2]:.2f}')
                 self.inputs.write_flags(*flags) 
-                
+        self._raster_print('  ...Successfully turned off bolometric heating/cooling (and molecular layer)\n')      
         return 0
     
     
@@ -2576,7 +2623,7 @@ class wind_simulation:
             slope = (v[drop_index+10] - v[drop_index-10])/(r[drop_index+10] - r[drop_index-10])
         else:
             slope = (v[drop_index+10] - v[drop_index])/(r[drop_index+10] - r[drop_index])
-#         print('drop index',drop_index)
+#         self._normal_print('drop index',drop_index)
         current_width = current_rate / (slope*Hsc)
         if width_factor == 0:
             width_factor = current_width
@@ -2589,8 +2636,6 @@ class wind_simulation:
                 return v[0],rate_calc(0,width_factor)
             else:
                 return v[0],rate_calc(0,width_factor),width_factor,0
-        
-        #If it has previously failed to ramp deeper 
         elif (drop_index<=10):# and (self.failed_deeper_bcs_ramp==True):
             self.turn_off_bolo()
             if return_idx==False:
@@ -2640,15 +2685,15 @@ class wind_simulation:
         stepsize=0.1
         while np.round(flag,4) > 0:
             flag+= -stepsize    
-            self._raster_print(f'Trying {flag:.4f} x tidal grav term')
+            self._raster_print(f'  Trying {flag:.4f} x tidal grav term')
             self.inputs.write_flags(1,flag,1,0,integrate_out=False)
             if self.run_wind() == 0:
                 continue
             else:
                 flag+=stepsize #reset to last working
                 stepsize/=10 
-                print(f'Failed. Trying smaller stepsize {stepsize:.4f}.',end=self.clear)
-        print('Success! Tidal gravity turned off.',end=self.clear)
+                self._raster_print(f'  Failed. Trying smaller stepsize {stepsize:.4f}.')
+        self._normal_print('  Success! Tidal gravity turned off.')
         return
 
         
@@ -2664,8 +2709,8 @@ class wind_simulation:
             int: 0 if successful, 1 if failed to converge.
         """
         T_scale = self.windsoln.scales_dict['T']
-        if goal_T > 1:
-            print("WARNING: T should be in units of 1e4 K. Returning...")
+        if goal_T > 1.1:
+            self._normal_print("WARNING: T should be in units of 1e4 K. Returning...")
             return 
         while (abs(1.-self.windsoln.T_rmin/goal_T) > 1e-10):
             bcs_tuple = self.windsoln.bcs_tuple
@@ -2681,9 +2726,9 @@ class wind_simulation:
                 self._raster_print(f'..T_rmin {self.windsoln.T_rmin*T_scale:.0f}, '
                       f'try {bcs_tuple[3]*T_scale:.0f}')
                 if failed > 15:
-                    print("\nStruggling to substep towards new T_rmin")
+                    self._normal_print("\nStruggling to substep towards new T_rmin")
                     return 1
-        self._raster_print(f"   Successfully converged T_rmin to {self.windsoln.T_rmin*T_scale:.0f}",end=self.clear)
+        self._raster_print(f"   Successfully converged T_rmin to {self.windsoln.T_rmin*T_scale:.0f}")
         self.run_isotherm(called_in_ramp_bcs=True) #TEST
         
         if integrate_out==True:
@@ -2706,7 +2751,7 @@ class wind_simulation:
             int: 0 if successful, 1 if failed to converge.
         """
         if goal_Rmin > 30:
-            print("WARNING: Rmin should be in units of Rp. Returning...")
+            self._normal_print("WARNING: Rmin should be in units of Rp. Returning...")
             return
         current_Rmin = self.windsoln.Rmin
 #         goal_Rmin    = self.base_bcs()[0]
@@ -2732,7 +2777,7 @@ class wind_simulation:
                 if result == 4:
                     self.inputs.write_flags(*self.windsoln.flags_tuple,
                                             integrate_out=False)
-                    print("Turning off outward integration temporarily.")
+                    self._normal_print("Turning off outward integration temporarily.")
                 else:
                     bcs_tuple = self.windsoln.bcs_tuple
                     step_Rmin = current_Rmin + delta/(fail+1)
@@ -2741,7 +2786,7 @@ class wind_simulation:
                     self._raster_print(f'..Fail {fail:d}: Rmin {current_Rmin:.5g}Rp, trying {step_Rmin:.5g}Rp')
                     self.inputs.write_bcs(*bcs_tuple)
                 if fail > 10:
-                    print(f"   Failed at {current_Rmin} Rp. Goal {goal_Rmin} Rp.")
+                    self._normal_print(f"   Failed at {current_Rmin} Rp. Goal {goal_Rmin} Rp.")
                     return 1
                 result = self.run_wind(expedite=True,calc_postfacto=False)
             current_Rmin = self.windsoln.Rmin
@@ -2768,14 +2813,14 @@ class wind_simulation:
         """
         rho_scale = self.windsoln.scales_dict['rho']
         if goal_rho < 10:
-            print("WARNING: Rho should be in units of RHO0 =  %.0e ~nBAR*MH/K/T0"%rho_scale)
+            self._normal_print("WARNING: Rho should be in units of RHO0 =  %.0e ~nBAR*MH/K/T0"%rho_scale)
             return
         failed = 0
         OOM_old = np.copy(np.floor(np.log10(self.windsoln.rho_rmin)))
         while (abs(1.-self.windsoln.rho_rmin/goal_rho) > 1e-10):
             OOM_current = np.floor(np.log10(self.windsoln.rho_rmin))
             if OOM_old != OOM_current:
-                print(f'..Order of mag of rho_rmin has changed, C source code does not update dynamically. If run takes a long time or fails to converge, halt run and restart ramp_rho_rmin() to update rho_rmin convergence scale.')            
+                self._normal_print(f'..Order of mag of rho_rmin has changed, C source code does not update dynamically. If run takes a long time or fails to converge, halt run and restart ramp_rho_rmin() to update rho_rmin convergence scale.')            
                 new_RHOSCALE = 10**np.floor(np.log10(self.windsoln.rho_rmin*0.001))
                 h = (open(self.path+'src/defs.h','r')).readlines()
                 f = open(self.path+'src/defs.h','w')
@@ -2790,31 +2835,31 @@ class wind_simulation:
                 f.close() 
                 sub = Popen('make',cwd=self.path, stdout=PIPE, stderr=PIPE) 
                 output, error_output = sub.communicate() #FIX (put output check)
-#                 print(error_output)
+#                 self._normal_print(error_output)
                 OOM_old = np.copy(np.floor(np.log10(self.windsoln.rho_rmin)))
 
             if failed > 2:
                 bcs_tuple = self.windsoln.bcs_tuple
                 bcs_tuple[2] = self.windsoln.rho_rmin+(bcs_tuple[2]-self.windsoln.rho_rmin)/(10**failed) #here
                 self.inputs.write_bcs(*bcs_tuple)
-                self._raster_print(f'..Proceeding with smaller stepsize: rho_rmin {self.windsoln.rho_rmin:.5g}, goal {goal_rho:.5g}')
+                self._raster_print(f'  ..Proceeding with smaller stepsize: rho_rmin {self.windsoln.rho_rmin:.5g}, goal {goal_rho:.5g}')
                 fail2 = 0
                 while self.run_wind(expedite=True,calc_postfacto=False) == 1: 
                     fail2 += 1
                     delta_rho = (bcs_tuple[2]-self.windsoln.rho_rmin)/10**(failed+fail2)
                     bcs_tuple[2] = self.windsoln.rho_rmin+delta_rho
                     self.inputs.write_bcs(*bcs_tuple)
-                    self._raster_print(f'..Attempt {failed:d}: rho_rmin {self.windsoln.rho_rmin*rho_scale:.3e} g/cm3, '
+                    self._raster_print(f'  ..Attempt {failed:d}: rho_rmin {self.windsoln.rho_rmin*rho_scale:.3e} g/cm3, '
                           f'try {bcs_tuple[2]*rho_scale:.3e}')
                     if fail2 > 8:
-                        print("\n  Struggling to substep towards new rho_rmin")
+                        self._normal_print("\n  Struggling to substep towards new rho_rmin")
                         return 1
             else:
                 bcs_tuple = self.windsoln.bcs_tuple
                 bcs_tuple[2] = goal_rho
                 self.inputs.write_bcs(*bcs_tuple)
                 failed = 0
-                self._raster_print(f'..Goal rho_rmin: {goal_rho*rho_scale:.3e} g/cm3. Current: {self.windsoln.rho_rmin*rho_scale:.3e}.')
+                self._raster_print(f' ..Goal rho_rmin: {goal_rho*rho_scale:.3e} g/cm3. Current: {self.windsoln.rho_rmin*rho_scale:.3e}.')
 
                 while self.run_wind(expedite=True,calc_postfacto=False) != 0:
                     failed += 1
@@ -2823,10 +2868,10 @@ class wind_simulation:
                     delta_rho = (bcs_tuple[2]-self.windsoln.rho_rmin)/10
                     bcs_tuple[2] = self.windsoln.rho_rmin+delta_rho
                     self.inputs.write_bcs(*bcs_tuple)
-                    self._raster_print(f'..Attempt {failed:d}: rho_rmin {self.windsoln.rho_rmin*rho_scale:.3e} g/cm3, '
+                    self._raster_print(f'  ..Attempt {failed:d}: rho_rmin {self.windsoln.rho_rmin*rho_scale:.3e} g/cm3, '
                           f'try {bcs_tuple[2]*rho_scale:.3e}')
                     if failed > 8:
-                        print("\nStruggling to substep towards new rho_rmin",end=self.clear)
+                        self._normal_print("\n  Struggling to substep towards new rho_rmin")
                         return 1
         self._raster_print(f"   Successfully converged rho_rmin to {self.windsoln.rho_rmin*rho_scale:.5e} g/cm3")
         self.run_isotherm(called_in_ramp_bcs=True) #TEST
@@ -2867,7 +2912,7 @@ class wind_simulation:
                 return self.ramp_var("Ftot",goal_total_flux,make_plot=plot,
                                     converge_bcs=converge_bcs,integrate_out=integrate_out)
             else:
-                print("Flux ramping already done.")
+                self._normal_print("  Flux ramping already done.")
                 return 0
         else:
             return goal_total_flux
@@ -2896,11 +2941,11 @@ class wind_simulation:
         ons = np.copy(np.array([self.spectrum.norm_span[0], self.spectrum.norm_span[1]]))
         wl_norm = 1e-7
         if (kind == 'mono') and (self.windsoln.spec_kind == 'multi'):
-            print("WARNING: Trouble ramping from multifrequency to monofrequency solutions. Start from a monofrequency solution and ramp flux using ramp_var('Ftot',...).")
+            self._normal_print("WARNING: Trouble ramping from multifrequency to monofrequency solutions. Start from a monofrequency solution and ramp flux using ramp_var('Ftot',...).")
             return
         
         if self.windsoln.nspecies > 4:
-            print("WARNING: Ramping spectrum with large number of metals can be expensive and fail.\n  Suggestion: Ramp spectrum for H,He version of planet, then add metals.")
+            self._normal_print("WARNING: Ramping spectrum with large number of metals can be expensive and fail.\n  Suggestion: Ramp spectrum for H,He version of planet, then add metals.")
                
         if len(norm_spec_range)== 0:
             norm_spec_range = goal_spec_range
@@ -2917,7 +2962,7 @@ class wind_simulation:
             spec_range = np.array(spec_range)
 
             if spec_range[0] > spec_range[1]:
-                print('WARNING: Spectrum range limits should be in ascending order')
+                self._normal_print('WARNING: Spectrum range limits should be in ascending order')
                 return 3
             if units == 'eV':
                 E_top = spec_range[1]*const.eV #ergs
@@ -2943,11 +2988,11 @@ class wind_simulation:
         if normalize == True:
             if Fnorm == 0.0:
                 if (norm_span[0]<curr_span[0]) or (norm_span[1]>curr_span[1]):
-                    print('When Fnorm=0.0, flux is normalized to the current value in norm_spec_range.')  
-                    print('However, bounds of normalization range exceed the current',
+                    self._normal_print('When Fnorm=0.0, flux is normalized to the current value in norm_spec_range.')  
+                    self._normal_print('However, bounds of normalization range exceed the current',
                           f'bounds of spectrum. (Norm: [{norm_span[0]:.2f},{norm_span[1]:.2f}]nm',
                           f'Current: [{curr_span[0]:.2f},{curr_span[1]:.2f}]nm.)')
-                    print('So, flux will be normalized to total flux in current spectrum range.')
+                    self._normal_print('So, flux will be normalized to total flux in current spectrum range.')
                     norm_span[0] = max(norm_span[0],curr_span[0])
                     norm_span[1] = min(norm_span[1],curr_span[1])
                 #set Fnorm to the current value in the normalization range
@@ -2955,14 +3000,14 @@ class wind_simulation:
                 flux_per_bin = E*self.windsoln.Ftot*self.windsoln.wPhi_wl
                 Fnorm = sum(flux_per_bin[(E<E_top_norm) & (E>E_bot_norm)])
                 
-                print(f'Spectrum will be normalized such that',
+                self._normal_print(f'Spectrum will be normalized such that',
                       f'sum(Flux[{norm_span[0]:.2f},',
                       f'{norm_span[1]:.2f}]nm) = {Fnorm:.0f} ergs/s/cm2.')
         
 
         if kind != self.windsoln.spec_kind:
-            print("Warning: Ramper sometimes has difficulty changing from 'full' to 'mono'.")
-            print("Consider ramping from existing monofrequency solution.")
+            self._normal_print("Warning: Ramper sometimes has difficulty changing from 'full' to 'mono'.")
+            self._normal_print("Consider ramping from existing monofrequency solution.")
         
         if self.windsoln.spec_src_file == 'scaled-solar':
             spec = spectrum(date=self.windsoln.spec_date)
@@ -2971,7 +3016,7 @@ class wind_simulation:
         for sps in self.windsoln.species_list:
             spec.add_species(sps)
 
-        print(f'Goal: {goal_span} nm')
+        self._normal_print(f'Goal: {goal_span} nm')
         spec.set_resolved(*goal_span) #
         spec.set_normalized(*goal_span) 
         spec.set_window(*goal_span,kind=kind)
@@ -2996,7 +3041,7 @@ class wind_simulation:
                 avg_diff = abs(sum((goal_span-self.windsoln.spec_resolved/self.spectrum.wl_norm)/goal_span))
                 curr = self.windsoln.spec_resolved/self.spectrum.wl_norm
                 step_span = self.windsoln.spec_resolved/self.spectrum.wl_norm + delta / 2
-                self._raster_print(f'Fail 1: Current [{curr[0]:.1f},{curr[1]:.1f}]. Attempting [{step_span[0]:.1f},{step_span[1]:.1f}]')
+                self._raster_print(f'  Fail 1: Current [{curr[0]:.1f},{curr[1]:.1f}]. Attempting [{step_span[0]:.1f},{step_span[1]:.1f}]')
                 spec.set_resolved(*step_span) #
                 spec.set_normalized(*step_span) 
                 spec.set_window(*step_span,kind='full')
@@ -3005,7 +3050,7 @@ class wind_simulation:
                 
                 if np.array_equal(self.windsoln.spec_resolved,last_spec):
                     if gen_fail > 5:
-                        print("Spectrum ramping cannot proceed. Try ramping spectrum for an H,He atmosphere then add metals.",end=self.clear)
+                        self._normal_print("Spectrum ramping cannot proceed. Try ramping spectrum for an H,He atmosphere then add metals.")
                         return 1
                     gen_fail += 1
                     delta /= 3 
@@ -3018,8 +3063,8 @@ class wind_simulation:
                     if fail > 6:
                         curr = self.windsoln.spec_resolved/self.spectrum.wl_norm
                         eV = const.hc/self.windsoln.spec_resolved / const.eV
-                        print(f'Failure: Too many attempts. Final range: [{curr[0]:.2f},{curr[1]:.2f}]nm ([{eV[1]:.2f},{eV[0]:.2f}]eV).',end=self.clear)
-                        print('          To ramp manually, see tutorial.')
+                        self._normal_print(f'Failure: Too many attempts. Final range: [{curr[0]:.2f},{curr[1]:.2f}]nm ([{eV[1]:.2f},{eV[0]:.2f}]eV).')
+                        self._normal_print('          To ramp manually, see tutorial.')
                         if normalize == True:
                             self._raster_print(f'Now normalizing spectrum. \n ..Fnorm = {Fnorm:.0f} ergs/s/cm2. Norm range = [{norm_span[0]:.2f},{norm_span[1]:.2f}]nm') 
                             ranges = [const.hc/(norm_span[1]*wl_norm)/const.eV,
@@ -3027,11 +3072,11 @@ class wind_simulation:
                             result =  self.flux_norm(Fnorm,ranges,
                                                 ramp=True,plot=plot,integrate_out=True,converge_bcs=False)
                             curr = self.windsoln.spec_resolved/self.spectrum.wl_norm
-                            print(f'Final Ftot at planet across [{curr[0]:.2f},{curr[1]:.2f}]nm = {self.windsoln.Ftot:.0f} ergs/s/cm2.',end=self.clear)
+                            self._normal_print(f'Final Ftot at planet across [{curr[0]:.2f},{curr[1]:.2f}]nm = {self.windsoln.Ftot:.0f} ergs/s/cm2.')
                         return 1
                     curr = self.windsoln.spec_resolved/self.spectrum.wl_norm
                     step_span = curr + delta*factor
-                    self._raster_print(f'Fail {fail}: Current [{curr[0]:.1f},{curr[1]:.1f}]. Attempting {step_span}nm')
+                    self._raster_print(f'  Fail {fail}: Current [{curr[0]:.1f},{curr[1]:.1f}]. Attempting {step_span}nm')
                     spec.set_resolved(*step_span) #
                     spec.set_normalized(*step_span) 
                     spec.set_window(*step_span,kind='full')
@@ -3040,14 +3085,14 @@ class wind_simulation:
 
             else:
                 if normalize == True:
-                    self._raster_print('Ramped spectrum wavelength range, now normalizing spectrum.'+self.clear,
+                    self._raster_print('  Ramped spectrum wavelength range, now normalizing spectrum.'+self.clear,
                                       f'  ..Fnorm = {Fnorm:.0f} ergs/s/cm2. Norm range = [{norm_span[0]:.2f},{norm_span[1]:.2f}]nm') 
                     ranges = [const.hc/(norm_span[1]*wl_norm)/const.eV,
                             const.hc/(norm_span[0]*wl_norm)/const.eV]
                     result =  self.flux_norm(Fnorm,ranges,
                                         ramp=True,plot=plot,integrate_out=True,converge_bcs=False)
                     curr = self.windsoln.spec_resolved/self.spectrum.wl_norm
-                    print(f'Final Ftot at planet across [{curr[0]:.2e},{curr[1]:.2e}]nm = {self.windsoln.Ftot:.0f} ergs/s/cm2.',end=self.clear)
+                    self._normal_print(f'Final Ftot at planet across [{curr[0]:.2e},{curr[1]:.2e}]nm = {self.windsoln.Ftot:.0f} ergs/s/cm2.')
                     final_result = result
                     # return result
                 else:
@@ -3205,7 +3250,7 @@ class wind_simulation:
                         if avg < abs(np.average(delta_wPhi*percent)):
                             step_wPhi = wPhi
                         if plot == False:
-                            self._raster_print(f"..Trying a {percent*100:.0f}% step")
+                            self._raster_print(f"  ..Trying a {percent*100:.0f}% step")
                         step_wPhi[0] = step_wPhi[1]
                         step_wPhi[-1] = step_wPhi[-2]
                         self.inputs.write_spectrum(*self.windsoln.spectrum_tuple[:3],
@@ -3217,7 +3262,7 @@ class wind_simulation:
                                                 integrate_out=False)
                         while self.run_wind(expedite=True,calc_postfacto=False) != 0:
                             fail+=1
-                            self._raster_print(f"Fail {fail:d}: delta = {percent/(fail+1):.3f}")
+                            self._raster_print(f"  Fail {fail:d}: delta = {percent/(fail+1):.3f}")
                             step_wPhi = np.array(current_wPhi+delta_wPhi*(percent/(fail+1)))
                             step_wPhi[0] = step_wPhi[1]
                             step_wPhi[-1] = step_wPhi[-2]
@@ -3229,7 +3274,7 @@ class wind_simulation:
                             self.inputs.write_flags(*self.windsoln.flags_tuple,
                                                     integrate_out=False)
                             if fail > 10:
-                                print("Failed to ramp to new stellar spectrum.")
+                                self._normal_print("Failed to ramp to new stellar spectrum.")
                                 return 1
 
                         self.converge_Ncol_sp(expedite=True,quiet=True)
@@ -3253,13 +3298,13 @@ class wind_simulation:
                         else:
                             self._raster_print(f" Success! Average difference now {avg:.2e}")
             except ValueError:
-                print(f"Succeeded in full jump to {spectrum_filename}",end=self.clear)
-        print("*** REMINDER: Goal spectrum (orange) oversmoothed? Lower the hires_savgol_window value. ***")
+                self._normal_print(f"Succeeded in full jump to {spectrum_filename}")
+        self._normal_print("*** REMINDER: Goal spectrum (orange) oversmoothed? Lower the hires_savgol_window value. ***")
 
         #Ramping to desired spectral range and flux
         self.converge_Ncol_sp(expedite=True,quiet=True)
         self.run_isotherm()
-        print(f'\nSuccess ramping to {spectrum_filename} spectrum shape!')
+        self._normal_print(f'\nSuccess ramping to {spectrum_filename} spectrum shape!')
         if plot == True:
             plt.plot(const.hc/old_E/1e-7,old_wPhi,label='Original')
             plt.plot(const.hc/self.windsoln.sim_spectrum['E']/1e-7,self.windsoln.sim_spectrum['wPhi'],
@@ -3271,7 +3316,7 @@ class wind_simulation:
             plt.show()
 
         if ramp_range==True:
-            print('     Now ramping flux and spectral range.')
+            self._normal_print('     Now ramping flux and spectral range.')
             self.load_spectrum()
             if len(goal_spec_range) == 0:
                 goal_spec_range = self.windsoln.spec_resolved/self.spectrum.wl_norm
@@ -3286,10 +3331,10 @@ class wind_simulation:
                                         goal_spec_range,units,normalize,
                                         kind='full',plot=plot)
             if (result == 0) or (result==4):
-                print("Success! Ramped to user-input stellar spectrum "+spectrum_filename,end=self.clear)
+                self._normal_print("Success! Ramped to user-input stellar spectrum "+spectrum_filename)
                 return 0
             else:
-                print("Ramped successfully to user-input spectrum, but ramping spectral range and/or flux was not successful.")
+                self._normal_print("Ramped successfully to user-input spectrum, but ramping spectral range and/or flux was not successful.")
                 return 2
         else:
             return 0
@@ -3317,13 +3362,13 @@ class wind_simulation:
         flux_1au = np.array(flux_1au)
 
         if len(wl) != len(flux_1au):
-            print("Wavelength and flux at 1 au arrays must be same length.")
+            self._normal_print("Wavelength and flux at 1 au arrays must be same length.")
             return    
 
         file = self.path+'McAstro/stars/spectrum/additional_spectra/'+spectrum_name
 
         if (exists(file)==True) and (overwrite == False):
-            print("To overwrite existing file, set overwrite=True.")
+            self._normal_print("To overwrite existing file, set overwrite=True.")
             return
 
         g = open(file,'w')
@@ -3339,13 +3384,13 @@ class wind_simulation:
         elif wl_units == 'cm':
             wl_cm = wl
         else:
-            print("Invalid units: Options = 'A','nm','cm',or 'm'.")
+            self._normal_print("Invalid units: Options = 'A','nm','cm',or 'm'.")
             return
         if np.median(flux_1au) < 1e-8:
-            print("WARNING: Flux at 1 au from star should be in units of ergs/s/cm2 (check that your input is not the flux at Earth).")
+            self._normal_print("WARNING: Flux at 1 au from star should be in units of ergs/s/cm2 (check that your input is not the flux at Earth).")
             
         if wl_cm[-1] > 1e-4:
-            print(f"WARNING: Double check - Input wavelength array might not be in units of {wl_units:s}.")
+            self._normal_print(f"WARNING: Double check - Input wavelength array might not be in units of {wl_units:s}.")
         
         total_EUV_flux = sum(flux_1au[(wl>min(np.max(wl),1.2e-6))&(wl<max(np.min(wl),9.1e-6))])
         g.write('%.5f\n'%total_EUV_flux)
@@ -3366,7 +3411,7 @@ class wind_simulation:
         df.to_csv(g, header=True, index=False)
         g.close()
 
-        print('Spectrum saved in Wind-AE readable format at',file)
+        self._normal_print('Spectrum saved in Wind-AE readable format at',file)
 
         return
     
@@ -3467,22 +3512,22 @@ class wind_simulation:
         if result==4:
             factor = 2
             self.raise_Ncol_sp(by_factor=2)
-            self._raster_print(f"Raising Ncol_sp x{factor:d} to allow outward integration to the currently computed R_cori.")
+            self._raster_print(f"  Raising Ncol_sp x{factor:d} to allow outward integration to the currently computed R_cori.")
             while self.run_wind()==4:
                 factor+=2
                 self.raise_Ncol_sp(by_factor=factor)
-                self._raster_print(f"Raising Ncol_sp x{factor:d} to allow outward integration to the currently computed R_cori.")
+                self._raster_print(f"  Raising Ncol_sp x{factor:d} to allow outward integration to the currently computed R_cori.")
             else:
                 if not quiet:
-                    print(f"Success! Ncol_sp raised x{factor:d} from self consistent value to allow outward integration",end=self.clear)
+                    self._normal_print(f"Success! Ncol_sp raised x{factor:d} from self consistent value to allow outward integration")
                 return 0
         elif result==1:
             if not quiet:
-                print("Relaxation Error",end=self.clear)
+                self._normal_print("Relaxation Error")
             return 1
         elif result == 0:
             if not quiet:
-                print("Success! Integrated outwards.",end=self.clear)
+                self._normal_print("Success! Integrated outwards.")
             return 0
         
         
