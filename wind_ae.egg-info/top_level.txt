@@ -1,5 +1,0 @@
-Notebooks
-dist
-docs
-saves
-wind_ae
