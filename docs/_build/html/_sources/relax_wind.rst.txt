@@ -4,7 +4,7 @@ Relaxation Module
 =====================
 For examples of how to use these functions, see `Quickstart <Quickstart.ipynb>`_.
 
-.. automodule:: wrapper.relax_wrapper
+.. automodule:: wind_ae.wrapper.relax_wrapper
 
 Loading and interacting with wind solutions
 ------------------------------------------------

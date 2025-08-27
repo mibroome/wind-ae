@@ -22,7 +22,7 @@ def test_load_uservars():
 def test_generate_rate_coeffs():
     sim.load_uservars(filename)
     sim.generate_rate_coeffs()
-    with open('../wind_ae/src/rate_coeffs.h', 'r') as f:
+    with open(path+'src/rate_coeffs.h', 'r') as f:
         lines = f.readlines()
         output = lines[3][:15]
     assert output == "double R[6][59]"

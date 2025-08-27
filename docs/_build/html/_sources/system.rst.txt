@@ -12,7 +12,7 @@ Mostly for internal use, however it is useful for printing system parameters in 
    sim.load_planet('planet.csv')
    sim.system.print_system()
 
-.. automodule:: wrapper.wrapper_utils.system
+.. automodule:: wind_ae.wrapper.wrapper_utils.system
    :members:
    :undoc-members:
    :show-inheritance:

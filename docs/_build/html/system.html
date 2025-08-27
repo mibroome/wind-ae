@@ -57,12 +57,12 @@
 <li class="toctree-l2"><a class="reference internal" href="metals.html">Metals Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="inputs.html">Inputs.py</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">System Module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#wrapper.wrapper_utils.system.system"><code class="docutils literal notranslate"><span class="pre">system</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.system.system.system_tuple"><code class="docutils literal notranslate"><span class="pre">system.system_tuple()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.system.system.print_system"><code class="docutils literal notranslate"><span class="pre">system.print_system()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.system.system.value"><code class="docutils literal notranslate"><span class="pre">system.value()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.system.system.assign"><code class="docutils literal notranslate"><span class="pre">system.assign()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.system.system.deepcopy"><code class="docutils literal notranslate"><span class="pre">system.deepcopy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.system.system"><code class="docutils literal notranslate"><span class="pre">system</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.system.system.system_tuple"><code class="docutils literal notranslate"><span class="pre">system.system_tuple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.system.system.print_system"><code class="docutils literal notranslate"><span class="pre">system.print_system()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.system.system.value"><code class="docutils literal notranslate"><span class="pre">system.value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.system.system.assign"><code class="docutils literal notranslate"><span class="pre">system.assign()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.system.system.deepcopy"><code class="docutils literal notranslate"><span class="pre">system.deepcopy()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -107,21 +107,21 @@
 <span class="n">sim</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">print_system</span><span class="p">()</span>
 </pre></div>
 </div>
-<dl class="py class" id="module-wrapper.wrapper_utils.system">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.system.system">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wrapper.wrapper_utils.system.</span></span><span class="sig-name descname"><span class="pre">system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Mp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mstar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semimajor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ftot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lstar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'My</span> <span class="pre">Planet'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.system.system" title="Link to this definition"></a></dt>
+<dl class="py class" id="module-wind_ae.wrapper.wrapper_utils.system">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.system.system">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.system.</span></span><span class="sig-name descname"><span class="pre">system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Mp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mstar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semimajor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ftot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lstar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'My</span> <span class="pre">Planet'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.system.system" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Object containing information about the planetary system</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.system.system.system_tuple">
-<span class="sig-name descname"><span class="pre">system_tuple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.system.system.system_tuple" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.system.system.system_tuple">
+<span class="sig-name descname"><span class="pre">system_tuple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.system.system.system_tuple" title="Link to this definition"></a></dt>
 <dd><p>Return variable values that describe the planetary system. Currently not
 including the given (unphysical) name of system in return.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.system.system.print_system">
-<span class="sig-name descname"><span class="pre">print_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Jupiter'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.system.system.print_system" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.system.system.print_system">
+<span class="sig-name descname"><span class="pre">print_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Jupiter'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.system.system.print_system" title="Link to this definition"></a></dt>
 <dd><p>Prints system variables in table.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -131,13 +131,13 @@ including the given (unphysical) name of system in return.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.system.system.value">
-<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.system.system.value" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.system.system.value">
+<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.system.system.value" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.system.system.assign">
-<span class="sig-name descname"><span class="pre">assign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.system.system.assign" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.system.system.assign">
+<span class="sig-name descname"><span class="pre">assign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.system.system.assign" title="Link to this definition"></a></dt>
 <dd><dl class="simple">
 <dt>Description:</dt><dd><p>Assigns a new value to the given variable. Recognized variables:
 Mp, Rp, Mstar, semimajor, Ftot, name</p>
@@ -154,8 +154,8 @@ Mp, Rp, Mstar, semimajor, Ftot, name</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.system.system.deepcopy">
-<span class="sig-name descname"><span class="pre">deepcopy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.system.system.deepcopy" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.system.system.deepcopy">
+<span class="sig-name descname"><span class="pre">deepcopy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.system.system.deepcopy" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

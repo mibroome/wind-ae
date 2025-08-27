@@ -56,17 +56,17 @@
 <li class="toctree-l1 current"><a class="reference internal" href="additional_modules.html">Additional Modules</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="plots.html">Plotting</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Spectrum Module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum"><code class="docutils literal notranslate"><span class="pre">spectrum</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum.path"><code class="docutils literal notranslate"><span class="pre">spectrum.path</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum.set_resolved"><code class="docutils literal notranslate"><span class="pre">spectrum.set_resolved()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum.set_normalized"><code class="docutils literal notranslate"><span class="pre">spectrum.set_normalized()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum.set_window"><code class="docutils literal notranslate"><span class="pre">spectrum.set_window()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum.add_species"><code class="docutils literal notranslate"><span class="pre">spectrum.add_species()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum.remove_species"><code class="docutils literal notranslate"><span class="pre">spectrum.remove_species()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum.change_date"><code class="docutils literal notranslate"><span class="pre">spectrum.change_date()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum.generate"><code class="docutils literal notranslate"><span class="pre">spectrum.generate()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum.binning_plot"><code class="docutils literal notranslate"><span class="pre">spectrum.binning_plot()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.spectrum.spectrum.plot"><code class="docutils literal notranslate"><span class="pre">spectrum.plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum"><code class="docutils literal notranslate"><span class="pre">spectrum</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.path"><code class="docutils literal notranslate"><span class="pre">spectrum.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.set_resolved"><code class="docutils literal notranslate"><span class="pre">spectrum.set_resolved()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.set_normalized"><code class="docutils literal notranslate"><span class="pre">spectrum.set_normalized()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.set_window"><code class="docutils literal notranslate"><span class="pre">spectrum.set_window()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.add_species"><code class="docutils literal notranslate"><span class="pre">spectrum.add_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.remove_species"><code class="docutils literal notranslate"><span class="pre">spectrum.remove_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.change_date"><code class="docutils literal notranslate"><span class="pre">spectrum.change_date()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.generate"><code class="docutils literal notranslate"><span class="pre">spectrum.generate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.binning_plot"><code class="docutils literal notranslate"><span class="pre">spectrum.binning_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.plot"><code class="docutils literal notranslate"><span class="pre">spectrum.plot()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -164,18 +164,18 @@ for a high resolution spectrum to be adequate for <strong>Wind-AE</strong>.</p>
 <span class="n">spec</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">savefile</span><span class="o">=</span><span class="s1">&#39;wind_ae/inputs/spectrum.inp&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="py class" id="module-wrapper.wrapper_utils.spectrum">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wrapper.wrapper_utils.spectrum.</span></span><span class="sig-name descname"><span class="pre">spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lisird</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2009-01-01'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wl_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_warning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum" title="Link to this definition"></a></dt>
+<dl class="py class" id="module-wind_ae.wrapper.wrapper_utils.spectrum">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.spectrum.</span></span><span class="sig-name descname"><span class="pre">spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lisird</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2009-01-01'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wl_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_warning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum.path">
-<span class="sig-name descname"><span class="pre">path</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/Users/m/Research/wind-ae/wind_ae/'</span></em><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum.path" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum.path">
+<span class="sig-name descname"><span class="pre">path</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/Users/m/Research/wind-ae/wind_ae/'</span></em><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.path" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum.set_resolved">
-<span class="sig-name descname"><span class="pre">set_resolved</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum.set_resolved" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum.set_resolved">
+<span class="sig-name descname"><span class="pre">set_resolved</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.set_resolved" title="Link to this definition"></a></dt>
 <dd><p>Wavelength of upper and lower boundaries for the desired range of the input spectrum.
 Values are in NANOMETERS. Suggested to set to same as window.</p>
 <dl class="field-list simple">
@@ -192,8 +192,8 @@ Values are in NANOMETERS. Suggested to set to same as window.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum.set_normalized">
-<span class="sig-name descname"><span class="pre">set_normalized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum.set_normalized" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum.set_normalized">
+<span class="sig-name descname"><span class="pre">set_normalized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.set_normalized" title="Link to this definition"></a></dt>
 <dd><p>Wavelength of upper and lower boundaries for the desired range of the input spectrum.
 Values are in NANOMETERS. Suggested to set to same as window.</p>
 <dl class="field-list simple">
@@ -210,8 +210,8 @@ Values are in NANOMETERS. Suggested to set to same as window.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum.set_window">
-<span class="sig-name descname"><span class="pre">set_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum.set_window" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum.set_window">
+<span class="sig-name descname"><span class="pre">set_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.set_window" title="Link to this definition"></a></dt>
 <dd><p>Wavelength of upper and lower boundaries for the desired range of the input spectrum.
 Window values are in NANOMETERS.</p>
 <dl class="field-list simple">
@@ -227,8 +227,8 @@ Window values are in NANOMETERS.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum.add_species">
-<span class="sig-name descname"><span class="pre">add_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum.add_species" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum.add_species">
+<span class="sig-name descname"><span class="pre">add_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.add_species" title="Link to this definition"></a></dt>
 <dd><p>Adds species to spectrum smoothing algorithm in McAstro/planets/insolation/glq_spectrum.py.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -238,8 +238,8 @@ Window values are in NANOMETERS.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum.remove_species">
-<span class="sig-name descname"><span class="pre">remove_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum.remove_species" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum.remove_species">
+<span class="sig-name descname"><span class="pre">remove_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.remove_species" title="Link to this definition"></a></dt>
 <dd><p>Removes species from spectrum smoothing algorithm in McAstro/planets/insolation/glq_spectrum.py.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -249,15 +249,15 @@ Window values are in NANOMETERS.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum.change_date">
-<span class="sig-name descname"><span class="pre">change_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum.change_date" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum.change_date">
+<span class="sig-name descname"><span class="pre">change_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.change_date" title="Link to this definition"></a></dt>
 <dd><p>DEPRECATED: Unlikely to need. Changes date if using solar FISM2 spectra downloaded from the Lisird database.
 Wind-AE no longer scrapes the database for spectra.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum.generate">
-<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savefile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/Users/m/Research/wind-ae/wind_ae/inputs/spectrum.inp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum.generate" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savefile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/Users/m/Research/wind-ae/wind_ae/inputs/spectrum.inp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.generate" title="Link to this definition"></a></dt>
 <dd><p>Generates the spectrum file in wind_ae/inputs/spectrum.inp.
 Will not write newly generated spectrum unless this function is called.</p>
 <dl class="field-list simple">
@@ -271,8 +271,8 @@ Will not write newly generated spectrum unless this function is called.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum.binning_plot">
-<span class="sig-name descname"><span class="pre">binning_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F_wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semimajor_au</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_polys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum.binning_plot" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum.binning_plot">
+<span class="sig-name descname"><span class="pre">binning_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F_wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semimajor_au</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_polys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.binning_plot" title="Link to this definition"></a></dt>
 <dd><p>Plot the spectrum with binning lines for the spectrum loaded into the spectrum() object.</p>
 <blockquote>
 <div><p><em>Legend Key:</em>
@@ -301,8 +301,8 @@ APPROXIMATE fluxes in ergs/s/cm2 each range.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.spectrum.spectrum.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F_wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semimajor_au</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_euv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.spectrum.spectrum.plot" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.spectrum.spectrum.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F_wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semimajor_au</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_euv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.plot" title="Link to this definition"></a></dt>
 <dd><p>Plot the spectrum. Displays the observations, smoothed, and spans.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

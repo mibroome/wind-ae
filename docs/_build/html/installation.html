@@ -49,8 +49,12 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pip-install">Pip install</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#compile-from-source-development-version">Compile from source (development version)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pip-install">Pip install</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Pip install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compile-from-source-beta">Compile from source (BETA)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#confirming-the-import">Confirming the import</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#future-features-and-known-problems">Future features and known problems</a></li>
 </ul>
 </li>
@@ -105,47 +109,49 @@
 </section>
 <section id="pip-install">
 <h2>Pip install<a class="headerlink" href="#pip-install" title="Link to this heading"></a></h2>
-<p>To install the required packages using pip, run the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>wind_ae
-</pre></div>
-</div>
-<p>You can test the install by running:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import wind_ae&quot;</span>
-</pre></div>
-</div>
-</section>
-<section id="compile-from-source-development-version">
-<h2>Compile from source (development version)<a class="headerlink" href="#compile-from-source-development-version" title="Link to this heading"></a></h2>
-<p>Clone the repository using:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mibroome/wind-ae/<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>wind_ae
-</pre></div>
-</div>
-<p>or navigate to <a class="reference external" href="https://github.com/mibroome/wind-ae/">github.com/mibroome/wind-ae/</a> and download and unzip the zip file.</p>
-<p>Until <strong>Wind-AE</strong> is dockerized, it is recommended to use a Python environment to avoid dependency issues.
-However, if your system meets the above requirements, there is no need to create an environment and you can skip to the
-compilation step.</p>
-<p>To create an environment use either:</p>
+<p>Until <code class="docutils literal notranslate"><span class="pre">Wind-AE</span></code> is dockerized, it is recommended to use a Python environment to avoid dependency issues. However, if your system meets the above requirements, there is no need to create an environment and you can skip to the compilation step.</p>
+<p>To create an environment use either</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv_name.venv
 <span class="nb">source</span><span class="w"> </span>venv_name.venv/bin/activate
 </pre></div>
 </div>
-<p>or using conda:</p>
+<p>or using <code class="docutils literal notranslate"><span class="pre">conda</span></code></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>venv_name
 conda<span class="w"> </span>activate<span class="w"> </span>venv_name
 conda<span class="w"> </span>install<span class="w"> </span>pip
 </pre></div>
 </div>
-<p>To compile from the source:</p>
+<section id="id2">
+<h3>Pip install<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<p>Recommended to upgrade pip first:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
-python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
-<p>REMEMBER to make the C code before running Wind-AE for the first time:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>wind_ae/wind_ae/<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make
+<p>Then</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>wind_ae
 </pre></div>
 </div>
-<p>You can ignore any warnings that pop up.</p>
-<p>You can test the install by running:</p>
+</section>
+<section id="compile-from-source-beta">
+<h3>Compile from source (BETA)<a class="headerlink" href="#compile-from-source-beta" title="Link to this heading"></a></h3>
+<p>Clone the repository using</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mibroome/wind-ae/
+</pre></div>
+</div>
+<p>or navigate to <a class="reference external" href="https://github.com/mibroome/wind-ae/">github.com/mibroome/wind-ae/</a> and download and unzip the zip file.</p>
+<p>To compile from the source</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="confirming-the-import">
+<h3>Confirming the import<a class="headerlink" href="#confirming-the-import" title="Link to this heading"></a></h3>
+<p>Run tests (optional). Estimated time: 4 minutes</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>wind-ae<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pytest
+</pre></div>
+</div>
+<p>Otherwise, you can test the install by running</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import wind_ae&quot;</span>
 </pre></div>
 </div>
@@ -164,6 +170,7 @@ within the <code class="docutils literal notranslate"><span class="pre">wind_ae/
 parameters detailed in the input files in the <code class="docutils literal notranslate"><span class="pre">Inputs/</span></code> folder. There is generally no need to interface with the
 C code and most standard tasks can be accomplished by using the Python wrapper.</p>
 </div>
+</section>
 </section>
 <section id="future-features-and-known-problems">
 <h2>Future features and known problems<a class="headerlink" href="#future-features-and-known-problems" title="Link to this heading"></a></h2>

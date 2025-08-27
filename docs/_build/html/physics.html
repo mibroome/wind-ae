@@ -57,12 +57,12 @@
 <li class="toctree-l2"><a class="reference internal" href="inputs.html">Inputs.py</a></li>
 <li class="toctree-l2"><a class="reference internal" href="system.html">System Module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Physics Module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#wrapper.wrapper_utils.physics.physics"><code class="docutils literal notranslate"><span class="pre">physics</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.physics.physics.physics_tuple"><code class="docutils literal notranslate"><span class="pre">physics.physics_tuple()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.physics.physics.print_physics"><code class="docutils literal notranslate"><span class="pre">physics.print_physics()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.physics.physics.value"><code class="docutils literal notranslate"><span class="pre">physics.value()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.physics.physics.assign"><code class="docutils literal notranslate"><span class="pre">physics.assign()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.physics.physics.deepcopy"><code class="docutils literal notranslate"><span class="pre">physics.deepcopy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.physics.physics"><code class="docutils literal notranslate"><span class="pre">physics</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.physics.physics.physics_tuple"><code class="docutils literal notranslate"><span class="pre">physics.physics_tuple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.physics.physics.print_physics"><code class="docutils literal notranslate"><span class="pre">physics.print_physics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.physics.physics.value"><code class="docutils literal notranslate"><span class="pre">physics.value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.physics.physics.assign"><code class="docutils literal notranslate"><span class="pre">physics.assign()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.physics.physics.deepcopy"><code class="docutils literal notranslate"><span class="pre">physics.deepcopy()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -99,35 +99,35 @@
   <section id="physics-module">
 <span id="physics"></span><h1>Physics Module<a class="headerlink" href="#physics-module" title="Link to this heading"></a></h1>
 <p>Typically called via the functions in <a class="reference internal" href="relax_wind.html#relax-wind"><span class="std std-ref">Relaxation Module</span></a>.</p>
-<dl class="py class" id="module-wrapper.wrapper_utils.physics">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.physics.physics">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wrapper.wrapper_utils.physics.</span></span><span class="sig-name descname"><span class="pre">physics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">HX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molec_adjust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atomic_masses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0])</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.physics.physics" title="Link to this definition"></a></dt>
+<dl class="py class" id="module-wind_ae.wrapper.wrapper_utils.physics">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.physics.physics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.physics.</span></span><span class="sig-name descname"><span class="pre">physics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">HX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molec_adjust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atomic_masses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0])</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.physics.physics" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Object containing information about the physical parameters of the
 simualation.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.physics.physics.physics_tuple">
-<span class="sig-name descname"><span class="pre">physics_tuple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.physics.physics.physics_tuple" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.physics.physics.physics_tuple">
+<span class="sig-name descname"><span class="pre">physics_tuple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.physics.physics.physics_tuple" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.physics.physics.print_physics">
-<span class="sig-name descname"><span class="pre">print_physics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.physics.physics.print_physics" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.physics.physics.print_physics">
+<span class="sig-name descname"><span class="pre">print_physics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.physics.physics.print_physics" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.physics.physics.value">
-<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.physics.physics.value" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.physics.physics.value">
+<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.physics.physics.value" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.physics.physics.assign">
-<span class="sig-name descname"><span class="pre">assign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.physics.physics.assign" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.physics.physics.assign">
+<span class="sig-name descname"><span class="pre">assign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.physics.physics.assign" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.physics.physics.deepcopy">
-<span class="sig-name descname"><span class="pre">deepcopy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.physics.physics.deepcopy" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.physics.physics.deepcopy">
+<span class="sig-name descname"><span class="pre">deepcopy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.physics.physics.deepcopy" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

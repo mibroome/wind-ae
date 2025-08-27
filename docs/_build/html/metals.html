@@ -55,12 +55,12 @@
 <li class="toctree-l2"><a class="reference internal" href="plots.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="spectrum.html">Spectrum Module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Metals Module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class"><code class="docutils literal notranslate"><span class="pre">metal_class</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class.load_spectrum_add_metals"><code class="docutils literal notranslate"><span class="pre">metal_class.load_spectrum_add_metals()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class.add_species_to_guess"><code class="docutils literal notranslate"><span class="pre">metal_class.add_species_to_guess()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class.remove_species_from_guess"><code class="docutils literal notranslate"><span class="pre">metal_class.remove_species_from_guess()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class.rewrite_guess"><code class="docutils literal notranslate"><span class="pre">metal_class.rewrite_guess()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wrapper.wrapper_utils.metals.metal_class.metallicity"><code class="docutils literal notranslate"><span class="pre">metal_class.metallicity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class"><code class="docutils literal notranslate"><span class="pre">metal_class</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class.load_spectrum_add_metals"><code class="docutils literal notranslate"><span class="pre">metal_class.load_spectrum_add_metals()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class.add_species_to_guess"><code class="docutils literal notranslate"><span class="pre">metal_class.add_species_to_guess()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class.remove_species_from_guess"><code class="docutils literal notranslate"><span class="pre">metal_class.remove_species_from_guess()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class.rewrite_guess"><code class="docutils literal notranslate"><span class="pre">metal_class.rewrite_guess()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class.metallicity"><code class="docutils literal notranslate"><span class="pre">metal_class.metallicity()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -100,16 +100,16 @@
   <section id="metals-module">
 <span id="metals"></span><h1>Metals Module<a class="headerlink" href="#metals-module" title="Link to this heading"></a></h1>
 <p>Typically called via the functions in <a class="reference internal" href="relax_wind.html#relax-wind"><span class="std std-ref">Relaxation Module</span></a> (<cite>sim.add_metals</cite>,`sim.metallicity`, etc.)</p>
-<p id="module-wrapper.wrapper_utils.metals">metals.py:
+<p id="module-wind_ae.wrapper.wrapper_utils.metals">metals.py:
 Contains the class for ramping in new species to existing solutions,
 as well as computing mass fractions of species for a given metallicity.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wrapper.wrapper_utils.metals.</span></span><span class="sig-name descname"><span class="pre">metal_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.metals.metal_class">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.metals.</span></span><span class="sig-name descname"><span class="pre">metal_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class.load_spectrum_add_metals">
-<span class="sig-name descname"><span class="pre">load_spectrum_add_metals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">generate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wl_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class.load_spectrum_add_metals" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.metals.metal_class.load_spectrum_add_metals">
+<span class="sig-name descname"><span class="pre">load_spectrum_add_metals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">generate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wl_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class.load_spectrum_add_metals" title="Link to this definition"></a></dt>
 <dd><p>Identical behavior to load_spectrum() function in relax_wrapper.py.
 Loads the high resolution spectrum referenced in the guess solution so that it can be re-smoothed when new metals are added to the solution.</p>
 <dl class="field-list simple">
@@ -123,8 +123,8 @@ Loads the high resolution spectrum referenced in the guess solution so that it c
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class.add_species_to_guess">
-<span class="sig-name descname"><span class="pre">add_species_to_guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_species_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class.add_species_to_guess" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.metals.metal_class.add_species_to_guess">
+<span class="sig-name descname"><span class="pre">add_species_to_guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_species_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class.add_species_to_guess" title="Link to this definition"></a></dt>
 <dd><p>Adds new species to the list of species in the wind solution object and updates
 all species-dependent properties.</p>
 <dl class="field-list simple">
@@ -135,8 +135,8 @@ all species-dependent properties.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class.remove_species_from_guess">
-<span class="sig-name descname"><span class="pre">remove_species_from_guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remove_species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class.remove_species_from_guess" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.metals.metal_class.remove_species_from_guess">
+<span class="sig-name descname"><span class="pre">remove_species_from_guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remove_species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class.remove_species_from_guess" title="Link to this definition"></a></dt>
 <dd><p>Removes specified species from the wind solution object. Likely to break if removing Helium,
 so it is recommended to ramp directly from pure-H solutions provided.</p>
 <dl class="field-list simple">
@@ -147,8 +147,8 @@ so it is recommended to ramp directly from pure-H solutions provided.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class.rewrite_guess">
-<span class="sig-name descname"><span class="pre">rewrite_guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ramping_metals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class.rewrite_guess" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.metals.metal_class.rewrite_guess">
+<span class="sig-name descname"><span class="pre">rewrite_guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ramping_metals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class.rewrite_guess" title="Link to this definition"></a></dt>
 <dd><p>Reformats wind_ae/inputs/guess.inp (the guess needed for relaxation routine).
 Only called when new species is added to solution.</p>
 <dl class="field-list simple">
@@ -163,8 +163,8 @@ Only called when new species is added to solution.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wrapper.wrapper_utils.metals.metal_class.metallicity">
-<span class="sig-name descname"><span class="pre">metallicity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wrapper.wrapper_utils.metals.metal_class.metallicity" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.metals.metal_class.metallicity">
+<span class="sig-name descname"><span class="pre">metallicity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class.metallicity" title="Link to this definition"></a></dt>
 <dd><dl class="simple">
 <dt>Given a metallicity (Z, where Z=1 is solar), returns an array of mass</dt><dd><p>fractions for the species in species_list. NOTE: Mass fraction must
 sum to 1, so delta=1-sum(mass fraction Z) is added to the mass fraction

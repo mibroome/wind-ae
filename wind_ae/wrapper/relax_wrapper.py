@@ -2999,10 +2999,8 @@ class wind_simulation:
                 E = self.windsoln.E_wl
                 flux_per_bin = E*self.windsoln.Ftot*self.windsoln.wPhi_wl
                 Fnorm = sum(flux_per_bin[(E<E_top_norm) & (E>E_bot_norm)])
-                
-                self._normal_print(f'Spectrum will be normalized such that',
-                      f'sum(Flux[{norm_span[0]:.2f},',
-                      f'{norm_span[1]:.2f}]nm) = {Fnorm:.0f} ergs/s/cm2.')
+                flux_str = f'Spectrum will be normalized such that sum(Flux[{norm_span[0]:.2f}, {norm_span[1]:.2f}]nm) = {Fnorm:.0f} ergs/s/cm2.'
+                self._normal_print(flux_str)
         
 
         if kind != self.windsoln.spec_kind:

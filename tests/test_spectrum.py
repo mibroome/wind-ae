@@ -11,9 +11,10 @@ def test_load_spectrum():
     assert sim.spectrum is not None
 
 def test_ramp_spectrum():
+    sim.load_planet(path+'/saves/test.csv')
     result = sim.ramp_spectrum(Fnorm=0,norm_spec_range=[13.6,2000],goal_spec_range=[13.6,2000])
     assert result == 0
 
 def test_ramp_to_user_spectrum():
-    result = sim.ramp_to_user_spectrum('hd189733', updated_F=sim.windsoln.Ftot)
-    assert result == 0
+    sim.load_planet(path+'/saves/test.csv')
+    assert sim.ramp_to_user_spectrum('hd189733', updated_F=sim.windsoln.Ftot,plot=False) == 0

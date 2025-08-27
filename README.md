@@ -9,6 +9,11 @@
 
 We appreciate your patience while the docs are developed. In the meantime, take advantage of `Notebooks/Quickstart.ipynb` to get a quick orientation to `Wind-AE` and please report any bugs via [Github](https://github.com/mabroome/wind-ae/issues) or via email to mabroome@ucsc.edu.
 
+![Build Status](https://github.com/sblunt/orbitize/actions/workflows/python-package.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/mibroome/wind-ae/badge.svg?branch=main)](https://coveralls.io/github/mibroome/wind-ae?branch=main)
+![PyPI - Version](https://img.shields.io/pypi/v/wind_ae)
+![Read the Docs (version)](https://img.shields.io/readthedocs/wind-ae/latest)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![A rectangular badge, half black half purple containing the text made at Code Astro](https://img.shields.io/badge/Made%20at-Code/Astro-blueviolet.svg)](https://semaphorep.github.io/codeastro/)
 
 Is Wind-AE the right tool for me?
@@ -49,7 +54,7 @@ Requirements
 
 `Wind-AE` requires the following packages and will pip install them automatically by following the Installation guide below.
 
-* `python` 
+* `python`>3.13
 * `numpy` 
 * `scipy`
 * `astropy`
@@ -63,15 +68,8 @@ Requirements
 
 Installation
 ------------
-### Compile from source (only available in beta)
-
-Clone the repository using
-```angular2html
-git clone https://github.com/mibroome/wind-ae/
-```
-or navigate to [github.com/mibroome/wind-ae/](https://github.com/mibroome/wind-ae/) and download and unzip the zip file.
-
 Until `Wind-AE` is dockerized, it is recommended to use a Python environment to avoid dependency issues. However, if your system meets the above requirements, there is no need to create an environment and you can skip to the compilation step.
+
 To create an environment use either
 ```angular2html
 python3 -m venv venv_name.venv
@@ -83,6 +81,26 @@ conda create -n venv_name
 conda activate venv_name
 conda install pip
 ```
+### Pip install
+
+Recommended:
+```angular2html
+pip install --upgrade pip
+```
+
+Then 
+```angular2html
+pip install wind_ae
+```
+
+
+### OR Compile from source (BETA)
+
+Clone the repository using
+```angular2html
+git clone https://github.com/mibroome/wind-ae/
+```
+or navigate to [github.com/mibroome/wind-ae/](https://github.com/mibroome/wind-ae/) and download and unzip the zip file.
 
 To compile from the source,
 ```angular2html
@@ -90,7 +108,14 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-You can test the install by running
+### Confirming the import was successful
+
+Run tests (optional). Estimated time: 4 minutes.
+```angular2html
+cd wind-ae && pytest
+```
+
+Otherwise, you can test the install by running
 ```angular2html
 python -c "import wind_ae"
 ```
@@ -106,6 +131,23 @@ from wind_ae.wrapper.wrapper_utils.spectrum import spectrum
 
 > **Note**: If you ever need to interface directly with the `C` code, it lives in `wind_ae/src/` and can be excecuted from within the `wind_ae/` folder via `./bin/relaxed_ae`. The solution generated will be for a planet with the parameters detailed in the input files in the `Inputs/` folder. There is generally no need to interface with the `C` code and most standard tasks can be accomplished by using the Python wrapper.
 
-Future features and known problems
+## Future features and known problems:
+
+- Computation of the complementary error function that governs the drop-off of bolometric heating/cooling is not truly self-consistent (`run_isotherm(polish=True, width=)`) and may require visual confirmation via `energy_plot()` (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the `width` parameter or:
+
+```python
+sim.load_planet('path/to/planet/file')
+bcs = np.copy(sim.windsoln.bcs_tuple)
+# erf_loc - normalized velocity value at radius where you want the erf to drop
+# erf_rate - how quickly the erf drops off in units of Hsc at erf_loc
+# To get initial estimate, run sim.erf_velocity(polish=True)
+bcs[-1] = np.array([erf_loc, erf_rate])
+sim.inputs.write_bcs(*bcs)
+sim.run_wind()
+```
+
+- Knudsen number calculations currently only contain H-H collisions.
+- Converting spectrum ``kind`` from ``'full'`` to ``'mono'`` occasionally has issues.
+
 --------
-Check out the [open issues](https://github.com/mabroome/wind-ae/issues).
+### Check out the [open issues](https://github.com/mabroome/wind-ae/issues).

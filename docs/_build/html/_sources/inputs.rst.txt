@@ -3,7 +3,7 @@
 Inputs.py
 =====================
 
-.. automodule:: wrapper.wrapper_utils.inputs
+.. automodule:: wind_ae.wrapper.wrapper_utils.inputs
    :members:
    :undoc-members:
    :show-inheritance:

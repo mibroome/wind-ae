@@ -69,7 +69,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#metals-functions">Metals functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.metallicity"><code class="docutils literal notranslate"><span class="pre">wind_simulation.metallicity()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.add_metals"><code class="docutils literal notranslate"><span class="pre">wind_simulation.add_metals()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.remove_metals"><code class="docutils literal notranslate"><span class="pre">wind_simulation.remove_metals()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_metallicity"><code class="docutils literal notranslate"><span class="pre">wind_simulation.ramp_metallicity()</span></code></a></li>
@@ -148,7 +147,7 @@
   <section id="relaxation-module">
 <span id="relax-wind"></span><h1>Relaxation Module<a class="headerlink" href="#relaxation-module" title="Link to this heading"></a></h1>
 <p>For examples of how to use these functions, see <a class="reference internal" href="Quickstart.html"><span class="doc">Quickstart</span></a>.</p>
-<dl class="simple" id="module-wrapper.relax_wrapper">
+<dl class="simple" id="module-wind_ae.wrapper.relax_wrapper">
 <dt>relax_wrapper.py:</dt><dd><p>Contains the class for wrapping the relaxation code. Handles loading, saving, running, and converging boundary conditions for the relaxation simulations.
 The goal is find the solution of interest to the end-user and automate the choices one must make to be intelligently picked and consistent, i.e., the boundary conditions and ramping thru parameter space.
 Handling of the solution is done by the other major class wind_solution found in wind_ae/wrapper/wrapper_utils/windsoln.py.</p>
@@ -301,7 +300,7 @@ Note: It is not necessary to define a folder. All files will be saved in the sav
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>system</strong> (<a class="reference internal" href="system.html#wrapper.wrapper_utils.system.system" title="wrapper.wrapper_utils.system.system"><em>system</em></a><em>, </em><em>optional</em>) – The target system to ramp towards. Syntax: system = system(Mp, Rp, Mstar, a, Ftot, Lstar) in cgs. Defaults to None.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="system.html#wind_ae.wrapper.wrapper_utils.system.system" title="wind_ae.wrapper.wrapper_utils.system.system"><em>system</em></a><em>, </em><em>optional</em>) – The target system to ramp towards. Syntax: system = system(Mp, Rp, Mstar, a, Ftot, Lstar) in cgs. Defaults to None.</p></li>
 <li><p><strong>intermediate_converge_bcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, converges boundary conditions during and after each ramp function. Increases runtime, but may improve likelihood of convergence for sensitive solutions or solutions distant from the initial guess. Defaults to False.</p></li>
 <li><p><strong>final_polish</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, converges boundary conditions (i.e. polish_bcs()) after all ramping is done. Defaults to False.</p></li>
 <li><p><strong>integrate_out</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, integrates final solution out past sonic point to Coriolis radius. Defaults to True.</p></li>
@@ -379,7 +378,7 @@ var_class=’physics’: var = ‘HX’, ‘species_list’, ‘atomic_masses’
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>system</strong> (<a class="reference internal" href="system.html#wrapper.wrapper_utils.system.system" title="wrapper.wrapper_utils.system.system"><em>system</em></a>) – System object with Mp, Rp, Mstar, semimajor, Ftot, Lstar in cgs units.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="system.html#wind_ae.wrapper.wrapper_utils.system.system" title="wind_ae.wrapper.wrapper_utils.system.system"><em>system</em></a>) – System object with Mp, Rp, Mstar, semimajor, Ftot, Lstar in cgs units.</p></li>
 <li><p><strong>delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Default stepsize. Defaults to 0.02.</p></li>
 <li><p><strong>converge_bcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, runs polish_bcs(), which can be costly but may improve likelihood of convergence. Defaults to False.</p></li>
 <li><p><strong>make_plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plots temperature, velocity, density, and ionization fraction profiles at steps throughout the ramp. Defaults to True.</p></li>
@@ -414,7 +413,7 @@ If semimajor axis and Lstar change, ramps linearly along optical flux (essential
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>system</strong> (<a class="reference internal" href="system.html#wrapper.wrapper_utils.system.system" title="wrapper.wrapper_utils.system.system"><em>system</em></a>) – System object that takes Mp, Rp, Mstar, semimajor, Ftot, Lstar in cgs units.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="system.html#wind_ae.wrapper.wrapper_utils.system.system" title="wind_ae.wrapper.wrapper_utils.system.system"><em>system</em></a>) – System object that takes Mp, Rp, Mstar, semimajor, Ftot, Lstar in cgs units.</p></li>
 <li><p><strong>delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Default stepsize. Defaults to 0.02. (Unlikely to need to change)</p></li>
 <li><p><strong>converge_bcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, runs polish_bcs(), which can be costly but may improve likelihood of convergence. Defaults to True.</p></li>
 <li><p><strong>make_plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plots temperature, velocity, density, and ionization fraction profiles at steps throughout the ramp. Defaults to True.</p></li>
@@ -444,27 +443,6 @@ Note: R_cori will still need to be computed by running converge_Rmax().</p></li>
 </section>
 <section id="metals-functions">
 <h2>Metals functions<a class="headerlink" href="#metals-functions" title="Link to this heading"></a></h2>
-<dl class="py method">
-<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.metallicity">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">metallicity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metals_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.metallicity" title="Link to this definition"></a></dt>
-<dd><p>Returns an array of the Lodders (2009) Z x solar metallicity MASS fractions for the metals in metals_list.
-Mass fractions must sum to 1, so the difference from 1 is added to the hydrogen mass fraction (always at index 0 in the array).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>metals_list</strong> (<em>list</em><em> of </em><em>str</em>) – List of metals, e.g., [‘H I’, ‘He I’, ‘Mg II’].</p></li>
-<li><p><strong>Z</strong> (<em>float</em>) – Multiple of solar metallicity.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Array of mass fractions for each species in metals_list.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.add_metals">
 <span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">add_metals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desired_species_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_mfs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ncol_sp_tot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrate_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converge_Ncol_sp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.add_metals" title="Link to this definition"></a></dt>

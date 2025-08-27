@@ -23,61 +23,71 @@ ______________
 Pip install
 ________________
 
-To install the required packages using pip, run the following command:
+Until ``Wind-AE`` is dockerized, it is recommended to use a Python environment to avoid dependency issues. However, if your system meets the above requirements, there is no need to create an environment and you can skip to the compilation step.
 
-.. code-block:: bash
-
-    pip install wind_ae
-
-You can test the install by running:
-
-.. code-block:: bash
-
-	python -c "import wind_ae"
-
-Compile from source (development version)
-_____________________________________________
-
-Clone the repository using:
-
-.. code-block:: bash
-
-	git clone https://github.com/mibroome/wind-ae/ && cd wind_ae
-
-or navigate to `github.com/mibroome/wind-ae/ <https://github.com/mibroome/wind-ae/>`_ and download and unzip the zip file.
-
-Until **Wind-AE** is dockerized, it is recommended to use a Python environment to avoid dependency issues. 
-However, if your system meets the above requirements, there is no need to create an environment and you can skip to the 
-compilation step.
-
-To create an environment use either:
+To create an environment use either
 
 .. code-block:: bash
 
 	python3 -m venv venv_name.venv
 	source venv_name.venv/bin/activate
 
-or using conda:
+or using ``conda``
 
 .. code-block:: bash
 
-	conda create -n venv_name
-	conda activate venv_name
-	conda install pip
+    conda create -n venv_name
+    conda activate venv_name
+    conda install pip
 
-To compile from the source:
+Pip install
+-----------
+
+Recommended to upgrade pip first:
 
 .. code-block:: bash
 
     pip install --upgrade pip
-	pip install -r requirements.txt
-    python3 -m pip install -e .
 
-You can test the install by running:
+Then
 
 .. code-block:: bash
 
-	python -c "import wind_ae"
+    pip install wind_ae
+
+OR Compile from source (BETA)
+-------------------------------
+
+Clone the repository using
+
+.. code-block:: bash
+
+	git clone https://github.com/mibroome/wind-ae/
+
+or navigate to `github.com/mibroome/wind-ae/ <https://github.com/mibroome/wind-ae/>`_ and download and unzip the zip file.
+
+To compile from the source
+
+.. code-block:: bash
+
+    pip install -r requirements.txt
+    pip install -e .
+
+Confirming the import was successful
+---------------------------------------
+
+Run tests (optional). Estimated time: 4 minutes
+
+.. code-block:: bash
+
+    cd wind-ae && pytest
+
+Otherwise, you can test the install by running
+
+.. code-block:: bash
+
+    python -c "import wind_ae"
+
 
 Now you can run **Wind-AE** from anywhere! As seen in the tutorial, the following imports are helpful for most purposes:
 
