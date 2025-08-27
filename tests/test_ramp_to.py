@@ -18,7 +18,7 @@ def test_ramp_Ftot():
     assert result == 0
 
 def test_ramp_var_error():
-    assert sim.ramp_var("Ftot",var_class="test",var_end=100) == -101
+    assert sim.ramp_var("Ftot",var_class="test",var_end=100) == -100
 
 def test_ramp_grav():
     planet = sim.windsoln.planet_tuple

@@ -606,7 +606,7 @@ class wind_simulation:
               end='                                                     \n')
         self.last_print_rastered = True
         if var_val == var_end or abs(var_val-var_end)/var_end < 1e-10:
-            self._normal_print(f'  {var:s} already done.',
+            print(f'  {var:s} already done.',
                   end='                                                 \n')
             return 0
         # Make sure inputfile matches the planet's parameters and hasn't changed
@@ -831,9 +831,9 @@ class wind_simulation:
         else:
             slope = 0
         if (var_Mp == end_Mp or abs(var_Mp-end_Mp)/end_Mp < 1e-10):
-            self._normal_print("  {:s} already done.".format('Mp'), end='\n')
+            print("  {:s} already done.".format('Mp'), end='\n')
         if (var_Rp == end_Rp or abs(var_Rp-end_Rp)/end_Rp < 1e-10):
-            self._normal_print("  {:s} already done.".format('Rp'), end='\n')
+            print("  {:s} already done.".format('Rp'), end='\n')
         if ((var_Mp == end_Mp or abs(var_Mp-end_Mp)/end_Mp < 1e-10) and
             (var_Rp == end_Rp or abs(var_Rp-end_Rp)/end_Rp < 1e-10)):
             return 0
@@ -1107,13 +1107,13 @@ class wind_simulation:
         #checking if already done
         if (var_Mstar == end_Mstar or
             abs(var_Mstar-end_Mstar)/end_Mstar < 1e-10):
-            self._normal_print("  {:s} already done.".format('Mstar'), end='\n')
+            print("  {:s} already done.".format('Mstar'), end='\n')
         if (var_adist == end_adist or
             abs(var_adist-end_adist)/end_adist < 1e-10):
-            self._normal_print("  {:s} already done.".format('semimajor'), end='\n')
+            print("  {:s} already done.".format('semimajor'), end='\n')
         if (var_Lstar == end_Lstar or
             abs(var_Lstar-end_Lstar)/end_Lstar < 1e-10):
-            self._normal_print("  {:s} already done.".format('Lstar'), end='\n')
+            print("  {:s} already done.".format('Lstar'), end='\n')
         if ((var_Mstar == end_Mstar or
              abs(var_Mstar-end_Mstar)/end_Mstar < 1e-10) and
             (var_adist == end_adist or
@@ -1291,7 +1291,7 @@ class wind_simulation:
             fail=0
             while result == 4:
                 fail+=1
-                self._normal_print(f'   Temporarily increasing Ncol_sp for numerical integration reasons. Failure {fail:d}',
+                print(f'   Temporarily increasing Ncol_sp for numerical integration reasons. Failure {fail:d}',
                                    end='                                                                          ')
                 self.windsoln.bcs_tuple[5][:] = self.windsoln.Ncol_sp*1.2 
                 self.inputs.write_bcs(*self.windsoln.bcs_tuple)
