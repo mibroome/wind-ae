@@ -20,7 +20,7 @@ ______________
 - requests
 - ChiantiPy
 
-Pip install
+Installation Instructions
 ________________
 
 Until ``Wind-AE`` is dockerized, it is recommended to use a Python environment to avoid dependency issues. However, if your system meets the above requirements, there is no need to create an environment and you can skip to the compilation step.
