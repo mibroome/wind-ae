@@ -49,10 +49,10 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pip-install">Pip install</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id2">Pip install</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#compile-from-source-beta">Compile from source (BETA)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#confirming-the-import">Confirming the import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-instructions">Installation Instructions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pip-install">Pip install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#or-compile-from-source-beta">OR Compile from source (BETA)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#confirming-the-import-was-successful">Confirming the import was successful</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#future-features-and-known-problems">Future features and known problems</a></li>
@@ -107,8 +107,8 @@
 <li><p>ChiantiPy</p></li>
 </ul>
 </section>
-<section id="pip-install">
-<h2>Pip install<a class="headerlink" href="#pip-install" title="Link to this heading"></a></h2>
+<section id="installation-instructions">
+<h2>Installation Instructions<a class="headerlink" href="#installation-instructions" title="Link to this heading"></a></h2>
 <p>Until <code class="docutils literal notranslate"><span class="pre">Wind-AE</span></code> is dockerized, it is recommended to use a Python environment to avoid dependency issues. However, if your system meets the above requirements, there is no need to create an environment and you can skip to the compilation step.</p>
 <p>To create an environment use either</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv_name.venv
@@ -121,8 +121,8 @@ conda<span class="w"> </span>activate<span class="w"> </span>venv_name
 conda<span class="w"> </span>install<span class="w"> </span>pip
 </pre></div>
 </div>
-<section id="id2">
-<h3>Pip install<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<section id="pip-install">
+<h3>Pip install<a class="headerlink" href="#pip-install" title="Link to this heading"></a></h3>
 <p>Recommended to upgrade pip first:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
 </pre></div>
@@ -132,8 +132,8 @@ conda<span class="w"> </span>install<span class="w"> </span>pip
 </pre></div>
 </div>
 </section>
-<section id="compile-from-source-beta">
-<h3>Compile from source (BETA)<a class="headerlink" href="#compile-from-source-beta" title="Link to this heading"></a></h3>
+<section id="or-compile-from-source-beta">
+<h3>OR Compile from source (BETA)<a class="headerlink" href="#or-compile-from-source-beta" title="Link to this heading"></a></h3>
 <p>Clone the repository using</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mibroome/wind-ae/
 </pre></div>
@@ -145,8 +145,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </pre></div>
 </div>
 </section>
-<section id="confirming-the-import">
-<h3>Confirming the import<a class="headerlink" href="#confirming-the-import" title="Link to this heading"></a></h3>
+<section id="confirming-the-import-was-successful">
+<h3>Confirming the import was successful<a class="headerlink" href="#confirming-the-import-was-successful" title="Link to this heading"></a></h3>
 <p>Run tests (optional). Estimated time: 4 minutes</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>wind-ae<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pytest
 </pre></div>

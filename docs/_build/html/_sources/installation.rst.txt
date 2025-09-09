@@ -20,7 +20,7 @@ ______________
 - requests
 - ChiantiPy
 
-Pip install
+Installation Instructions
 ________________
 
 Until ``Wind-AE`` is dockerized, it is recommended to use a Python environment to avoid dependency issues. However, if your system meets the above requirements, there is no need to create an environment and you can skip to the compilation step.
@@ -55,8 +55,8 @@ Then
 
     pip install wind_ae
 
-Compile from source (BETA)
--------------------
+OR Compile from source (BETA)
+-------------------------------
 
 Clone the repository using
 
@@ -73,8 +73,8 @@ To compile from the source
     pip install -r requirements.txt
     pip install -e .
 
-Confirming the import
----------------------
+Confirming the import was successful
+---------------------------------------
 
 Run tests (optional). Estimated time: 4 minutes
 
@@ -85,7 +85,7 @@ Run tests (optional). Estimated time: 4 minutes
 Otherwise, you can test the install by running
 
 .. code-block:: bash
-	
+
     python -c "import wind_ae"
 
 
