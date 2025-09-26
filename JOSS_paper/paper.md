@@ -25,7 +25,6 @@ affiliations:
 date: 21 August 2025
 bibliography: paper.bib
 
-aas-doi: 10.3847/xxxxx
 aas-journal: Astrophysical Journal
 ---
 

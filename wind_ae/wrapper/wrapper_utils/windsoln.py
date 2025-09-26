@@ -312,7 +312,7 @@ class wind_solution:
 
         return spline
     
-    def current_metallicity(self):
+    def current_metallicity(self,quiet=False):
         """
         Outputs the current metallicity to the nearest integer IF the mass fractions are a multiple of solar metallicity.
 
@@ -328,8 +328,9 @@ class wind_solution:
             grid[i] = abs(self.metals.metallicity(self.species_list,Z=i+1)[0]-
                             self.HX[0])
         if np.mean(abs(min(grid))) > 0.1:
-            print("Current metallicity does not appear to be a multiple of solar metallicity.")
-            print(f"Custom mass fractions: {self.HX}")
+            if quiet==False:
+                print("Current metallicity does not appear to be a multiple of solar metallicity.")
+                print(f"Custom mass fractions: {self.HX}")
             return self.HX
         start_Z = np.where(grid==min(grid))[0][0]+1
         return start_Z
@@ -344,7 +345,7 @@ class wind_solution:
         '''
         self.soln = self.soln.drop(columns=self.soln.columns[6 + 2 * self.nspecies :])
         self.gamma = 5.0 / 3.0  # Read this in from somewhere?
-        self.metallicity = self.current_metallicity()
+        self.metallicity = self.current_metallicity(quiet=True)
 
         if expedite is False:
             filepath = pkg_resources.files("wind_ae.wrapper.wrapper_utils").joinpath(
