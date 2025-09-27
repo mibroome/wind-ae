@@ -22,7 +22,7 @@ authors:
 affiliations:
  - name: University of California Santa Cruz, Dept. of Astronomy & Astrophysics, Santa Cruz, US
    index: 1
-date: 26 September 2025
+date: 25 September 2025
 bibliography: paper.bib
 
 aas-journal: Astrophysical Journal
