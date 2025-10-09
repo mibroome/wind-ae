@@ -789,6 +789,7 @@ class wind_solution:
             drop_index = np.where(self.soln["heat_ion"] > -self.soln["cool_PdV"])[0][0]
             self.R_XUV = self.soln_norm["r"][drop_index]
         except IndexError:
+            drop_index = 0
             self.R_XUV = 0
         ## conduction
         kappa = 4.45e4 * (self.soln["T"] / 1e3) ** (0.7)
@@ -800,9 +801,9 @@ class wind_solution:
         )
         try:
             cond_idx = len(
-                np.where(abs(self.soln["cool_cond"] / self.soln["heat_ion"]) > 0.1)[0]
+                np.where(abs(self.soln["cool_cond"][drop_index:] / self.soln["heat_ion"][drop_index:]) > 0.1)[0]
             )
-            if cond_idx > 50:
+            if cond_idx > 10:
                 if self.print_warnings is True:
                     print(
                         "Warning: Post-facto calculations indicate conductive cooling may be significant in this planet.\n         Wind-AE does not currently model conductive cooling. \n         Plot energy_plot(all_terms=True) to check."
@@ -973,9 +974,11 @@ class wind_solution:
             self.smoothing_erf_mu[i] = 1 - math.erf(
                 (v[i] - self.erf_drop[0]) / (self.erf_drop[1] / 4)
             )
-
-        self.smoothing_erf /= np.max(self.smoothing_erf)
-        self.smoothing_erf_mu /= np.max(self.smoothing_erf_mu)
+        
+        if np.max(self.smoothing_erf) != 0:
+            self.smoothing_erf /= np.max(self.smoothing_erf)
+        if np.max(self.smoothing_erf_mu) != 0:
+            self.smoothing_erf_mu /= np.max(self.smoothing_erf_mu)
         self.smoothing_erf_mu *= self.bolo_heat_cool
 
         # erf set above. Drops mu from molec_adjust (usually 2.3 mH) below wind to mu inside wind

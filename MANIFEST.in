@@ -4,3 +4,5 @@ include wind_ae/McAstro/atoms/*.txt
 include wind_ae/McAstro/atoms/*.csv
 include wind_ae/saves/*.csv
 include wind_ae/inputs/*
+include wind_ae/src/*
+include wind_ae/bin/*

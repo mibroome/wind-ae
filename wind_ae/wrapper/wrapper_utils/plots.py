@@ -9,8 +9,6 @@ from matplotlib.lines import Line2D
 from wind_ae.wrapper.wrapper_utils import constants as const
 from wind_ae.wrapper.wrapper_utils.spectrum import spectrum
 
-
-import pylab as pl
 from IPython import display
 
 
@@ -521,7 +519,7 @@ def energy_plot(windsoln, ax=0, alpha=0.8, all_terms=False,
         ax: The axis to plot on (default is 0, which creates a new figure)
         alpha: Transparency level for the plot lines (default is 0.8). 
                 Useful when overplotting multiple on same axes
-        all_terms: If True, plot terms not included in Wind-AE, e.g., free-free cooling, conduction (default is False)
+        all_terms: If True, plot terms not included in Wind-AE, e.g., free-free cooling, (default is False)
         CII_line_cool: If True, include CII line cooling terms (default is False)
         CIII_line_cool: If True, include CIII line cooling terms (default is False)
         OII_line_cool: If True, include OII line cooling terms (default is False)
@@ -537,11 +535,11 @@ def energy_plot(windsoln, ax=0, alpha=0.8, all_terms=False,
     except KeyError:
         windsoln.add_user_vars()
     ## Uncommenting this block allows for live updating of plots in some versions of Jupyter notebooks
-#     display.display(pl.gcf())
+#     display.display(plt.gcf())
 #     display.clear_output(wait=True)
-#     pl.clf()
+#     plt.clf()
 #     if ax==0:
-#         fig,ax = pl.subplots()
+#         fig,ax = plt.subplots()
     if ax==0:
         fig,ax = plt.subplots()
     ncols=1
@@ -567,15 +565,16 @@ def energy_plot(windsoln, ax=0, alpha=0.8, all_terms=False,
             alpha=alpha, c='maroon', label='advective heating')
     ax.plot(r, -windsoln.soln['heat_advect'][1:], '-.',
             alpha=alpha, c='dodgerblue', label='advective cooling')
+    # if all_terms:
+    ncols=2
+    fontsize=12
+    ax.plot(r, -windsoln.soln['cool_rec'][1:], ':',
+        alpha=alpha, c='teal',label='recombination cooling')
     if all_terms:
-        ncols=2
-        fontsize=12
-        ax.plot(r, -windsoln.soln['cool_rec'][1:], ':',
-            alpha=alpha, c='teal',label='recombination cooling')
-        ax.plot(r, -windsoln.soln['cool_cond'][1:], ':',
-            alpha=alpha, c='navy',label='conductive cooling')
         ax.plot(r, windsoln.soln['cool_cond'][1:], ':',
-            alpha=alpha, c='lightsalmon',label='conductive heating')
+            alpha=alpha, c='navy',label='conductive cooling')
+    ax.plot(r, -windsoln.soln['cool_cond'][1:], ':',
+        alpha=alpha, c='lightsalmon',label='conductive heating')
 #         ax.plot(r, -windsoln.soln['cool_free'][1:], ':',
 #             alpha=alpha, c='paleturquoise',label='free-free cooling')
     if CII_line_cool:

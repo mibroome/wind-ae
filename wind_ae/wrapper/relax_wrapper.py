@@ -16,7 +16,6 @@ from scipy.optimize import fsolve
 from os.path import exists
 import math
 import sys
-import pylab as pl
 from IPython import display
 from scipy.interpolate import CubicSpline
 from scipy.special import exp1
@@ -3281,17 +3280,17 @@ class wind_simulation:
 
                         avg = abs(np.average((wPhi - self.windsoln.sim_spectrum['wPhi'])))
                         if plot == True:
-                            pl.clf()
-                            pl.plot(const.hc/old_E/1e-7,start_wPhi(old_E),label='Original')
-                            pl.plot(const.hc/old_E/1e-7,wPhi,label='Goal')
-                            pl.plot(const.hc/old_E/1e-7,self.windsoln.sim_spectrum['wPhi'],
+                            plt.clf()
+                            plt.plot(const.hc/old_E/1e-7,start_wPhi(old_E),label='Original')
+                            plt.plot(const.hc/old_E/1e-7,wPhi,label='Goal')
+                            plt.plot(const.hc/old_E/1e-7,self.windsoln.sim_spectrum['wPhi'],
                                          label='Current',ls='--')
-                            pl.xlabel('Wavelength (nm)')
-                            pl.ylabel('Photon Density')
-                            pl.legend()
-                            pl.yscale('log')
-                            pl.title(f" Success! Average difference now {avg:.2e}")
-                            display.display(pl.gcf())
+                            plt.xlabel('Wavelength (nm)')
+                            plt.ylabel('Photon Density')
+                            plt.legend()
+                            plt.yscale('log')
+                            plt.title(f" Success! Average difference now {avg:.2e}")
+                            display.display(plt.gcf())
                             display.clear_output(wait=True)
                         else:
                             self._raster_print(f" Success! Average difference now {avg:.2e}")
