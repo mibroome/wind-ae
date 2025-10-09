@@ -253,7 +253,6 @@ def quick_plot(soln, Mdot_legend=True, c='k', ls='-', label='',label_dim=[0,1.3,
     radius_norm = 1.0
     alpha=0.5
     radius = soln.soln_norm['r']
-    minrad = float(radius[soln.soln['T'] == np.min(soln.soln['T'])].iloc[0])
     R_H = soln.semimajor*(soln.Mp/(3*soln.Mstar))**(1/3) / soln.Rp
     nspecies = soln.nspecies
     
