@@ -613,6 +613,7 @@ class wind_solution:
             self.I_mean /= self.Phi0
             # Efficiency 2 represents the simulations total heating
             self.eff2 = integrate.simpson(self.soln["heat_ion"], self.soln["r"]) / self.F0
+            
             # Knudsen number (collisionality) - Only computed for H
             ys_HI = "Ys_" + (self.species_list[0]).replace(" ", "")
             self.soln["DlnP"] = 1.0 / np.gradient(
@@ -621,7 +622,7 @@ class wind_solution:
             # Hardbody collisions (3 angstroms) - area ~ 1e-15 cm2
             self.soln["mfp_hb"] = 1.0 / (
                 self.soln["rho"]
-                / const.mH  # FIX
+                / const.mH  
                 * np.pi
                 * (2.0 * 1e-8) ** 2
             )
@@ -801,7 +802,7 @@ class wind_solution:
         )
         try:
             cond_idx = len(
-                np.where(abs(self.soln["cool_cond"][drop_index:] / self.soln["heat_ion"][drop_index:]) > 0.1)[0]
+                np.where(abs(self.soln["cool_cond"][drop_index+50:] / self.soln["heat_ion"][drop_index+50:]) > 0.1)[0]
             )
             if cond_idx > 10:
                 if self.print_warnings is True:
