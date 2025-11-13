@@ -110,7 +110,7 @@ def four_panel_plot(windsoln, ax, ax_Ys=None, label=None, alpha=0.8,
             ymin = min(ylims[0], 0.9*ylo/norm[i][j])
             if ymin < 0:
                 ymin = 0
-            ax[i][j].set_ylim([min(ylims[0], 0.9*ylo/norm[i][j]),
+            ax[i][j].set_ylim([ymin,
                                max(ylims[1], 1.1*yhi/norm[i][j])])
             if ax[i][j].get_yscale() == 'linear':
                 ax[i][j].yaxis.set_major_locator(ticker.AutoLocator())

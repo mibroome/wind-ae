@@ -260,11 +260,11 @@ class wind_solution:
         self.R_hill = (self.semimajor / self.Rp) * (self.Mp / (3.0 * self.Mstar)) ** (
             1.0 / 3.0
         )
-        if self.R_sp >= 0.95 * self.R_hill:
-            if self.print_warnings is True:
-                print(
-                    f"Warning: Sonic point ({self.R_sp:.2f} Rp) may be unphysically close to R_hill ({self.R_hill:.2f} Rp)."
-                )
+        # if self.R_sp >= 0.95 * self.R_hill:
+        #     if self.print_warnings is True:
+        #         print(
+        #             f"Warning: Sonic point ({self.R_sp:.2f} Rp) close to R_hill ({self.R_hill:.2f} Rp)."
+        #         )
         self.crit_index = len(self.soln[self.soln_norm["r"] < self.R_sp]) - 1
         self.v_crit = self.soln["v"][self.crit_index]
         # Mass loss
@@ -619,12 +619,11 @@ class wind_solution:
             self.soln["DlnP"] = 1.0 / np.gradient(
                 np.log(self.soln["P"]), -self.soln["r"]
             )  # 1/press. scaleheight
-            # Hardbody collisions (3 angstroms) - area ~ 1e-15 cm2
+            # Hardbody collisions (2 angstroms) - area ~ 1e-15 cm2
             self.soln["mfp_hb"] = 1.0 / (
-                self.soln["rho"]
-                / const.mH  
+                self.soln["n_HI"]
                 * np.pi
-                * (2.0 * 1e-8) ** 2
+                * (3.0 * 1e-8) ** 2 
             )
             # proton-proton coloumb cross section for H (see RMC 2009)
             self.soln["mfp_Co"] = 1.0 / (

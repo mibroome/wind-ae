@@ -45,13 +45,14 @@ class wind_simulation:
         self.inputs = input_handler()
         self.first_print = True
         self.skip = False
+        self.static_bcs = False
         self.df = pd.read_csv(pkg_resources.files('wind_ae.wrapper.wrapper_utils').joinpath('dere_table29.dat'),
                               sep=r'\s+', names=list(range(45)))  
         self.df = self.df.rename(columns={0:'Z', 1:'Ion', 2:'NS', 3:'I', 4:'Tmin'})
         self.clear = 100*' '+'\n'
 #         self.width_factor = 1
 
-    def _raster_print(self,msg,end='', pad=100):
+    def _raster_print(self,msg,end='', pad=130):
         print('\r'+msg + ' '*(pad - len(msg)), end=end)
         self.last_print_rastered = True
         return
@@ -468,7 +469,7 @@ class wind_simulation:
                 if not retry:
                     # Check retry to avoid infinite recursion
                     self._normal_print("Retry triggered")
-                    self.run_isotherm(called_in_ramp_bcs=True)
+                    self.converge_mol_atomic_transition(_called_in_ramp_bcs=True)
                     self.converge_Ncol_sp(expedite=False)
                     return self.run_wind(retry=True)
                 else:
@@ -499,13 +500,17 @@ class wind_simulation:
         if (system is None):# and physics is None):
             self._normal_print("Please provide a system to ramp towards. system=system(Mp,Rp,Mstar,a,Ftot,Lstar).")
             return 0
+        if static_bcs is None:
+            static_bcs = self.static_bcs
+        else:
+            self.static_bcs = static_bcs
         fail = 0
         result = 0
         if system is not None:
             self.ramp_class = "system"
             result = self.ramp_var("Ftot", system.value("Ftot"),
                                   converge_bcs=intermediate_converge_bcs, make_plot=make_plot,
-                                  expedite=True,
+                                  expedite=True,static_bcs=static_bcs,
                                   integrate_out=False)
             fail = result
             
@@ -514,7 +519,7 @@ class wind_simulation:
             
             # Ramps Mp and Rp simultaneously, ~constant surface gravity
             result = self.ramp_grav(system, converge_bcs=intermediate_converge_bcs,
-                                   make_plot=make_plot, expedite=True,
+                                   make_plot=make_plot, expedite=True,static_bcs=static_bcs,
                                    integrate_out=False)
             fail = result 
             
@@ -523,7 +528,7 @@ class wind_simulation:
                 
             # Ramps Mstar and semimajor simultaneously, ~constant Hill radius
             result = self.ramp_star(system, converge_bcs=intermediate_converge_bcs,
-                                   make_plot=make_plot, expedite=True,
+                                   make_plot=make_plot, expedite=True,static_bcs=static_bcs,
                                    integrate_out=False)
             fail = result
 
@@ -551,6 +556,10 @@ class wind_simulation:
         Returns:
             int: Status code from ramp_var.
         """
+        if static_bcs is None:
+            static_bcs = self.static_bcs
+        else:
+            self.static_bcs = static_bcs
         return self.ramp_var("Ftot",F_goal,converge_bcs=converge_bcs,make_plot=make_plot,
                         expedite=expedite,integrate_out=integrate_out,static_bcs=static_bcs)
     
@@ -608,6 +617,10 @@ class wind_simulation:
             print(f'  {var:s} already done.',
                   end='                                                 \n')
             return 0
+        if static_bcs is None:
+            static_bcs = self.static_bcs
+        else:
+            self.static_bcs = static_bcs
         # Make sure inputfile matches the planet's parameters and hasn't changed
         self.inputs.write_planet_params(*self.windsoln.planet_tuple)
         self.inputs.write_physics_params(*self.windsoln.physics_tuple)
@@ -670,7 +683,7 @@ class wind_simulation:
             self.last_print_rastered = True
             # See if can relax to partially ramped system
 #             if converge_bcs:
-#                 self.run_isotherm() #TEST - can afford to run each step
+#                 self.converge_mol_atomic_transition() #TEST - can afford to run each step
             result = self.run_wind(expedite=True,calc_postfacto=False)
             if result != 0:
                 failed += 1
@@ -688,8 +701,8 @@ class wind_simulation:
                     else:
                         # self._raster_print("   ...Intermediate ramping BCs activated.\n")
                         print("\n   ...Intermediate ramping BCs activated.")
-                    self.ramp_base_bcs(static=static_bcs,tolerance=0.05)
-                    self.run_isotherm()
+                    self.ramp_base_bcs(static_bcs=static_bcs,tolerance=0.05)
+                    self.converge_mol_atomic_transition()
                     self.converge_Ncol_sp(expedite=True,quiet=True)
             elif result == 2:
                 self._normal_print("\nFailed to copy. Not good.")
@@ -703,8 +716,8 @@ class wind_simulation:
                                 prcnt_chng >= conv_every_pc):
                     
                     # converge boundary conditions on partial solution
-                    self.ramp_base_bcs(intermediate=True,tolerance=0.1,static=static_bcs) #only converge if >10% diff in goal BC               
-                    self.run_isotherm()
+                    self.ramp_base_bcs(intermediate=True,tolerance=0.1,static_bcs=static_bcs) #only converge if >10% diff in goal BC               
+                    self.converge_mol_atomic_transition()
 #                     self.converge_Ncol_sp() #MAYBE
                     conv_cntr = 0
                 print("\r  Success %s:%.6e, delta:%.4g" %
@@ -878,7 +891,7 @@ class wind_simulation:
         conv_every_pc = 0.25
         conv_every_n = 10
         while (var_Mp != end_Mp) or (var_Rp != end_Rp):
-            self.ramp_base_bcs(intermediate=True,tolerance=0.1,static=static_bcs) #only converge if >10% diff in goal BC  
+            self.ramp_base_bcs(intermediate=True,tolerance=0.1,static_bcs=static_bcs) #only converge if >10% diff in goal BC  
             if (var_Mp != end_Mp) and (var_Rp != end_Rp):
                 # Ramp Mp and Rp along linear rate of surface gravity change
                 temp_Mp = var_Mp*(1.+M_delta)
@@ -934,9 +947,9 @@ class wind_simulation:
                     else:
                         # self._raster_print(" ...Intermediate ramping BCs activated.\n")
                         print("\n  ...Intermediate ramping BCs activated.")
-                    self.run_isotherm()
-                    self.ramp_base_bcs(static=static_bcs,tolerance=0.05) 
-                    self.run_isotherm()
+                    self.converge_mol_atomic_transition()
+                    self.ramp_base_bcs(static_bcs=static_bcs,tolerance=0.05) 
+                    self.converge_mol_atomic_transition()
 #                     self.converge_Ncol_sp()
             elif result == 2:
                 print("\nERROR: Failed to copy windsoln to guess, not great.")
@@ -949,8 +962,8 @@ class wind_simulation:
                 if converge_bcs and (conv_cntr >= conv_every_n or
                                 prcnt_chng >= conv_every_pc):
                     # converge boundary conditions on partial solution
-                    self.ramp_base_bcs(intermediate=True,tolerance=0.1,static=static_bcs) #only converge if >10% diff in goal BC
-                    self.run_isotherm()
+                    self.ramp_base_bcs(intermediate=True,tolerance=0.1,static_bcs=static_bcs) #only converge if >10% diff in goal BC
+                    self.converge_mol_atomic_transition()
                     conv_cntr = 0
                 # update our system to partially ramped system
                 if (var_Mp != end_Mp) and (var_Rp != end_Rp):
@@ -1120,6 +1133,10 @@ class wind_simulation:
             (var_Lstar == end_Lstar or
              abs(var_Lstar-end_Lstar)/end_Lstar < 1e-10)):
             return 0
+        if static_bcs is None:
+            static_bcs = self.static_bcs
+        else:
+            self.static_bcs = static_bcs
         # Make sure inputfile matches the planet's parameters and hasn't changed
         self.inputs.write_planet_params(*self.windsoln.planet_tuple)
         self.inputs.write_physics_params(*self.windsoln.physics_tuple)
@@ -1268,7 +1285,7 @@ class wind_simulation:
                               R_flip*(temp_adist-var_adist)/var_adist),
                        end="                                               ")
                 self.last_print_rastered = True
-                self.ramp_base_bcs(intermediate=True,tolerance=0.01,static=static_bcs)
+                self.ramp_base_bcs(intermediate=True,tolerance=0.01,static_bcs=static_bcs)
             #if only L* needs to be ramped
             elif (abs(var_Mstar-end_Mstar)/end_Mstar < 1e-10) and (abs(var_adist-end_adist)/end_adist < 1e-10) and (var_Lstar != end_Lstar):
                 # If we never needed to ramp adist, ramp Lstar linearly
@@ -1317,8 +1334,8 @@ class wind_simulation:
                         # self._raster_print("  ...Intermediate ramping BCs activated (Instance {count:.0f}).\n")
                         print("\n  ...Intermediate ramping BCs activated.")
                     self.converge_Ncol_sp(expedite=True,quiet=True)
-                    self.ramp_base_bcs(static=static_bcs,tolerance=0.05) 
-                    self.run_isotherm()
+                    self.ramp_base_bcs(static_bcs=static_bcs,tolerance=0.05) 
+                    self.converge_mol_atomic_transition()
             elif result == 2:
                 self._normal_print("\nERROR: Failed to copy windsoln to guess. Not great.")
                 return 2
@@ -1331,8 +1348,8 @@ class wind_simulation:
                                 prcnt_chng >= conv_every_pc):
                     # converge boundary conditions on partial solution
                     # First update atmosphere to update Rmin location
-                    self.run_isotherm()
-                    self.ramp_base_bcs(intermediate=True,tolerance=0.05,static=static_bcs) #only converge if >5% diff in goal BC
+                    self.converge_mol_atomic_transition()
+                    self.ramp_base_bcs(intermediate=True,tolerance=0.05,static_bcs=static_bcs) #only converge if >5% diff in goal BC
                     conv_cntr = 0
                 # update our system to partially ramped system
                 if (var_Mstar != end_Mstar) and (var_adist != end_adist) and (var_Lstar != end_Lstar):
@@ -1675,8 +1692,12 @@ class wind_simulation:
         Returns:
             int: Status code. 0 for success, other values for failure modes.
         """
+        if static_bcs is None:
+            static_bcs = self.static_bcs
+        else:
+            self.static_bcs = static_bcs
         goal_Z = Z
-        if goal_Z >= 50:
+        if goal_Z >= 100:
             self._normal_print("Note: For high metallicities, consider increasing mean molecular weight (molec_adjust).")
             for sp in self.windsoln.species_list:
                 if (sp[:2] == 'Fe') or (sp[:2] == 'Ca'):
@@ -1737,7 +1758,7 @@ class wind_simulation:
                         fail+=1
                         if fail==3:
                             print("  ...Intermediate BC ramping activated.",
-                                  self.run_isotherm(),self.ramp_base_bcs(intermediate=True,static=static_bcs,tolerance=0.05))     
+                                  self.converge_mol_atomic_transition(),self.ramp_base_bcs(intermediate=True,static_bcs=static_bcs,tolerance=0.05))     
                             self.raise_Ncol_sp(by_factor=10)                    
                         step = self.windsoln.HX+percent*delta/(fail+1)
                         self._raster_print(f'  Fail {fail:d}: Attempting {step}')
@@ -1751,8 +1772,8 @@ class wind_simulation:
                 
         else: 
             #Just getting a grid of metallicity to print what the current Z is 
-            grid = np.zeros(200)
-            for i in range(200):
+            grid = np.zeros(2000)
+            for i in range(2000):
                 grid[i] = abs(self.calc_metallicity(self.windsoln.species_list,Z=i+1)[0]-
                               self.windsoln.HX[0])
             start_Z = np.where(grid==min(grid))[0][0]+1
@@ -1810,76 +1831,76 @@ class wind_simulation:
 #Polishing Boundary Conditions functions (many of these these enforce self-consistency, and 
 #are not neccessary for precision, but are for maximal accuracy (within the inherent uncertainty 
 #in the model))
-    def polish_bcs(self, converge_Rmax=True, static_bcs=False):
+    def polish_bcs(self, converge_Rmax=True, static_bcs=None, user_override_press=False,base_press=1,bolo_on=True):
         """
         Polishes upper and lower boundary conditions to self-consistency.
 
         Args:
             converge_Rmax (bool, optional): If True, converges Rmax (more costly). Defaults to True.
-            static_bcs (bool, optional): If True, skips running ramp_base_bcs() and maintains the current boundary conditions. Defaults to False.
+            static_bcs (bool, optional): If True, skips running ramp_base_bcs() and maintains the current boundary conditions. Defaults to None (i.e., the value of self.static_bcs).
+            user_override_press (bool, optional): If True, allows user to override pressure boundary conditions. Defaults to False.
+            base_press (float, optional): Base pressure in microbars (barye) to use for boundary conditions. Defaults to 1.
 
         Returns:
             int: 0 if successfully polished all BCs, 5 if failed at polishing one or more BCs. See printout for more details. If "Molec. to atomic transition" has failed, plot energy_plot() to assess whether the current solution is satisfactory.
         """
+        if static_bcs is None:
+            static_bcs = self.static_bcs
+        else:
+            self.static_bcs = static_bcs
         #Checking that base bcs (Rmin, rho, T) have been converged
         #--------------
         print('Polishing up boundary conditions...')
-        self.ramp_base_bcs(static=static_bcs,polish=True) 
-        goal_bcs = self.base_bcs()
+        self.ramp_base_bcs(static_bcs=static_bcs,polish=True,base_press=base_press,user_override_press=user_override_press) 
+        goal_bcs = self.base_bcs(user_override_press=user_override_press,base_press=base_press)
         curr_bcs = np.array(self.windsoln.bcs_tuple[:4])   
         avg_diff = sum(np.array((abs(curr_bcs-goal_bcs)/goal_bcs)[[0,2,3]]))
 
         #Checking that the molecular to atomic transition is occuring at the correct radius
         #--------------
-        isotherm = self.run_isotherm(polish=True) #temporary fix
+        isotherm = self.converge_mol_atomic_transition(polish=True,bolo_on=bolo_on)
         width,idx = self.erf_velocity(return_idx=True,polish=True)[-2:]
+        
         #Does bolometric heating/cooling impede too far into wind? 
         #If so, make it a sharper drop off
         self.windsoln.add_user_vars(expedite=True) #do postfacto calcs to get 'heat_ion' & 'boloheat'
         while len(np.where(self.windsoln.soln['heat_ion'][idx:]<self.windsoln.soln['boloheat'][idx:])[0]) > 20:
             width /= 2
             self._raster_print(f"  ...Shortening transition from molecular to atomic region. Erf width = {width:.2f} Hsc")
-            if self.run_isotherm(polish=True,width_factor=width) != 0:
-                self._normal_print("Attempting to shorten erfc transition region between molecular and atomic regions",
-                      f" failed at {width:.3f}Hsc. Check energy_plot() to ensure bolometric heating/cooling",
-                     "doesn't impede on photoionization heated region.")
+            if self.converge_mol_atomic_transition(polish=True,width_factor=width) != 0:
+                self._normal_print(f"Attempting to shorten erfc transition region between molecular and atomic regions failed at {width:.3f}Hsc. Check energy_plot() to ensure bolometric heating/cooling doesn't impede on photoionization heated region.")
                 isotherm=1
                 break
             idx = self.erf_velocity(return_idx=True,polish=True)[-1]
-            self.windsoln.add_user_vars(expedite=True)
+            self.windsoln.add_user_vars(expedite=True) #annoying but have to repopulate for some reason
 
-            
         #If bolo heat/cooling drops off too early, it can induce an unphysical and numerically
         #unstable spike in advective cooling. This extends the range of bolo to smooth spike.
-        while any(-self.windsoln.soln['heat_advect'][idx-10:idx+10]>
-                  self.windsoln.soln['heat_ion'][idx-10:idx+10]):
-            width+=1
-            if width > 10:
-                self._normal_print("Warning: 20 scaleheights is an unlikely width for the error function",
-                      " transitioning between molecular and atomic regions.",
-                      "\nCheck energy_plot(). Stopping here.")
-                isotherm=1
-                break
-            self._raster_print(f"  ...Smoothing transition from molecular to atomic region. Erf width = {width:.2f} Hsc")
-            isotherm = self.run_isotherm(polish=True,width_factor=width/2)
-            if isotherm != 0:
-                self._normal_print("Failed to smooth transition from molecular to atomic region."+self.clear,
-                      "Unphysical kinks in wind profile may be present at base of wind. ",
-                      "\n       Mass loss rate relatively unaffected.")
-                isotherm=1
-                break
-            self.windsoln.add_user_vars(expedite=True)
+        # while any(-self.windsoln.soln['heat_advect'][100:idx+10]>
+        #           self.windsoln.soln['heat_ion'][100:idx+10]):
+        #     width+=1
+        #     if width > 10:
+        #         self._normal_print("Warning: 20 scaleheights is an unlikely width for the error function",
+        #               " transitioning between molecular and atomic regions.",
+        #               "\nCheck energy_plot(). Stopping here.")
+        #         isotherm=1
+        #         break
+        #     self._raster_print(f"  ...Smoothing transition from molecular to atomic region. Erf width = {width:.2f} Hsc")
+        #     isotherm = self.converge_mol_atomic_transition(polish=True,width_factor=width/2)
+        #     if isotherm != 0:
+        #         self._normal_print("Failed to smooth transition from molecular to atomic region."+self.clear,
+        #               "Unphysical kinks in wind profile may be present at base of wind. ",
+        #               "\n       Mass loss rate relatively unaffected.")
+        #         isotherm=1
+        #         break
+        #     self.windsoln.add_user_vars(expedite=True)
 
        #Converging Rmax (sets Rmax=r_cori) and/or Ncol_sp
         rcori_result = 'Success'
         if converge_Rmax==True:
             Rmax = self.converge_Rmax(final_converge_Ncol=True)
-#             if Rmax == 3: #occurs when cannot lower Ncol to self-consistent value
-#                 Ncol=1
-#                 Rmax=self.converge_Rmax(final_converge_Ncol=False)
             if Rmax == 1: #occurs when relax fails
                 Ncol = 0
-#                 Rmax = self.converge_Rmax()
             if Rmax==0:
                 Ncol=0 
             rcori_str = f'\n   Setting Rmax to R_coriolis:         %s'
@@ -1900,12 +1921,12 @@ class wind_simulation:
                 bc_result = 'Failed'
             elif static_bcs==True:
                 bc_result = 'Held const.'
-        if isotherm != 0 and self.windsoln.bolo_heat_cool != 0:
+        if isotherm == 1 or (self.windsoln.bolo_heat_cool > 0.0 and self.windsoln.bolo_heat_cool < 1.0):
             fails += 1
-            warn += ' bolometric heating/cooling & molecular layer (run_isotherm),'
+            warn += ' bolometric heating/cooling & molecular layer (converge_mol_atomic_transition),'
             iso_result = 'Failed'
         else:
-            self.run_isotherm(polish=True)
+            self.converge_mol_atomic_transition(polish=True) #run again to ensure polished
         if Ncol != 0:
             fails += 1
             warn += ' Ncol at sonic point (converge_Ncol_sp),'
@@ -1924,6 +1945,7 @@ class wind_simulation:
         if fails == 0:
             #enforces outward integration
             self.integrate_out(quiet=True)
+            self._normal_print("  All boundary conditions succesfully polished to self-consistency.")
             return 0
         else:
             if converge_Rmax == True:
@@ -1932,11 +1954,175 @@ class wind_simulation:
                 self._normal_print(warn2 %(bc_result,iso_result,ncol_result))
             return 5
         
+
         
-    def ramp_base_bcs(self,base_press=1,
-                      user_override_press=False, static=False,
-                      Kappa_opt=4e-3,Kappa_IR=1e-2,molec_adjust=2.3, 
-                      adiabat=False, polish=False, 
+    def converge_mol_atomic_transition(self,width_factor=0.,_called_in_ramp_bcs=False,polish=False, bolo_on=True):
+        """
+        Ramps the complementary error function that governs the transition from the molecular to atomic regions in the atmosphere. Both the mean molecular weight and bolometric heating/cooling are transitioned using the same error function. 
+
+        If the bolometric heating/cooling flag is off (sim.windsoln.bolo_heat_cool=0.0) there will be no bolometric heating/cooling, but the mean molecular weight will still transition from molecular to atomic unless sim.windsoln.molec_adjust = 0.0.
+        To turn off the bolometric heating/cooling run sim.turn_off_bolo(). To turn off the molecular layer mu adjustement, run sim.turn_off_molec_adjust().
+
+        Criterion for transition: when photoionization heating begins to dominate over the PdV cooling and a wind will launch.
+        Below the wind, for an average planet, molecules have not photodissociated so mu should be mean molecular weight instead of mean atomic weight and the erf enforces this. Molecular opacities mean that bolometric heating and cooling dominate the energy budget and create an isotherm in the molecular region below the wind. In the optically thin atomic wind, bolometric heating and cooling are negligible, so the erf also enforces the drop off of bolometric heating and cooling.
+
+        If a user needs to call this function for some reason, width_factor is the only argument they should need to change. For numerical or physical reasons it may be necessary for the transition to occur over more than 1 scaleheight. In this case, increase width_factor.
+
+        Args:
+            width_factor (float, optional): Factor to adjust the width in scaleheights of the transition region. Defaults to 0.
+            _called_in_ramp_bcs (bool, optional): Set True if called within ramp_base_bcs to avoid recursion issues. Defaults to False.
+            polish (bool, optional): If True, computes full postfacto heat_ion & cool_PdV for more accurate transition point. Defaults to False.
+            bolo_on (bool, optional): If polish=True, bolo_on=True turns on bolometric heating/cooling if appropriate. Defaults to True.
+
+        Returns:
+            int or tuple: Index of transition if return_idx is True, otherwise status code.
+        """
+        #if the molecular layer has been turned off and not polishing
+        if (self.windsoln.bolo_heat_cool == 0.0) and (polish==False):
+            return 0
+        #if we have stipulated it should be skipped
+        if (polish==False) and (self.skip==True):
+            return 0
+        
+        #loading last working solution to do this
+        self.load_planet(self.path+'saves/windsoln.csv',calc_postfacto=False,
+                         print_atmo=False,print_warnings=False)
+    
+        
+        #if there is an unphysical spike in heat_advect at base of wind, widen erfc
+        #to-do: probably should just do this in polish, not every time since costly
+        if polish:
+            #generate the goal erfc parameters
+            v_drop,rate,width,idx = self.erf_velocity(_called_in_ramp_bcs=_called_in_ramp_bcs,
+                                                        polish=polish,
+                                                        width_factor=width_factor,
+                                                        return_idx=True) 
+            self.windsoln.add_user_vars(expedite=True)
+            while any(-self.windsoln.soln['heat_advect'][100:idx+10]>
+                    self.windsoln.soln['heat_ion'][100:idx+10]):
+                width+=1
+                if width > 10:
+                    self._normal_print("Warning: 20 scaleheights is an unlikely width for the error function transitioning between molecular and atomic regions. \nCheck energy_plot(). Stopping here.")
+                    #reset to last working solution
+                    self.load_planet(self.path+'saves/windsoln.csv',calc_postfacto=False,
+                                    print_atmo=False,print_warnings=False)
+                    break
+                self._raster_print(f"  ...Smoothing transition from molecular to atomic region to prevent numerical instabilities. Trying erf width = {width:.2f} Hsc")
+                v_drop,rate = self.erf_velocity(width_factor=width,_called_in_ramp_bcs=_called_in_ramp_bcs,polish=polish)
+                #for now, keep current radial erfc drop off location and just change width
+                isotherm = self.ramp_molecular_erfc(v_drop=self.windsoln.erf_drop[0], rate=rate, polish=polish)
+                if isotherm != 0:
+                    # if polish == True:
+                    self._normal_print("Failed to smooth transition from molecular to atomic region. Unphysical kinks in wind profile may be present at base of wind. \n       Mass loss rate relatively unaffected.")
+                    self.load_planet(self.path+'saves/windsoln.csv',calc_postfacto=False,
+                                    print_atmo=False,print_warnings=False)
+                    break
+                self.windsoln.add_user_vars(expedite=True)    
+        
+        # Now ramp the erfc to the goal values as usual
+        v_drop,rate,width,idx = self.erf_velocity(_called_in_ramp_bcs=_called_in_ramp_bcs,
+                                polish=polish,
+                                width_factor=width_factor,
+                                return_idx=True) 
+        result = self.ramp_molecular_erfc(v_drop, rate, polish=polish) 
+        if result != 0:
+            return 1            
+
+        #on final polishing run, check if bolometric heating/
+        #cooling should be added back in
+        if polish:
+            self.windsoln.add_user_vars(expedite=True)
+            heat = self.windsoln.soln['heat_ion']
+            cool = self.windsoln.soln['cool_PdV']
+#                 heat,cool = self.quick_calc_heat_cool()
+            if len(np.where(-cool[:20]<heat[:20])[0]) > 3:
+                out_str = f"  NOTE: Photoionization heating dominates down to base of sim ({self.windsoln.Rmin:.3f} Rp).\n       | Molecular layer still turned off. Max error in dM/dt ~ 10%. \n       | See documentation for workaround."
+                print(out_str)
+                return 0
+            
+            if (self.windsoln.bolo_heat_cool == 0) and (bolo_on==True):
+                return self.turn_on_bolo()
+            # if (self.windsoln.molec_adjust <= 0) and (molec_adjust_on == True):
+            #     # print("triggered in molec_on")
+            #     return self.turn_on_molec_adjust(_called_indep=False)
+        else:
+            return 0
+        
+    def ramp_molecular_erfc(self,v_drop,rate,polish=False):
+        '''Ramps the molecular-to-atomic transition complementary error function to the desired radial drop off location and rate. These values can be obtained from sim.erf_velocity().
+
+        Should rarely need to be run by user. Manually changing the erfc parameters is only necessary if sim.converge_mol_atomic_transition() fails to converge the erfc parameters automatically.
+
+        Args:
+            v_drop (float): Velocity at the radial location of the erfc drop in units of cm/s
+            rate (float): Rate of the erfc drop off
+
+        Returns:
+            int: Status code. 0 for success, 1 for failure.
+        '''
+        diffs = np.array([abs(v_drop-self.windsoln.erf_drop[0])/v_drop,
+                         abs(rate-self.windsoln.erf_drop[1])/rate])
+        if any(diffs) > 1e-5:
+            current_erfs =  np.array([self.windsoln.erf_drop[0],self.windsoln.erf_drop[1]])
+            goal_erfs    = np.array([v_drop,rate])
+            try_smoothing = True
+            fail = 0
+            smaller_delta=np.array([0,0])
+            # if (self.windsoln.bolo_heat_cool == 1):
+            if (self.skip == False) or (polish == True):
+                while np.mean(abs(goal_erfs - current_erfs)/goal_erfs) > 1e-5:
+                    self._raster_print(f"   ...Ramping molecular-to-atomic transition erfc: Current {current_erfs[0]:.3e}, {current_erfs[1]:.3e}. Goal {goal_erfs[0]:.3e}, {goal_erfs[1]:.3e}.")
+                    delta = goal_erfs - current_erfs
+                    if fail > 0: #take smaller stepsizes to goal
+                        if abs(sum(delta)) < abs(sum(smaller_delta)):
+                            smaller_delta = delta
+                        self._raster_print(f"   ...Proceeding with smaller stepsizes: Current {current_erfs[0]:.3e}, {current_erfs[1]:.3e}. Trying: {current_erfs[0]+smaller_delta[0]:.3e}, {current_erfs[1]+smaller_delta[1]:.3e}. Goal {goal_erfs[0]:.3e}, {goal_erfs[1]:.3e}.")
+                        self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
+                                                current_erfs+smaller_delta)
+                    else:
+                        self._raster_print(f"   ...Trying: {current_erfs[0]+delta[0]:.3e}, {current_erfs[1]+delta[1]:.3e}. Current {current_erfs[0]:.3e}, {current_erfs[1]:.3e}. Goal {goal_erfs[0]:.3e}, {goal_erfs[1]:.3e}.")
+                        self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
+                                                current_erfs+delta)
+                    
+                    fail = 0
+                    while self.run_wind(expedite=True,calc_postfacto=False) != 0:
+                        fail += 1
+                        limit = 10
+                        if self.windsoln.nspecies > 5:
+                            limit = 4
+                        if fail >= limit:
+                            current_erfs = self.windsoln.erf_drop
+                            self._normal_print(f"  Too many attempts to ramp error function. Skipping subsequent attempts until polishing. Goal: {goal_erfs[0]:.3e}, {goal_erfs[1]:.3e}. Current: {current_erfs[0]:.3e}, {current_erfs[1]:.3e}.")
+                            self.skip = True
+                            return 1
+                        elif (fail <= 2) & (try_smoothing==True): #try smoothing out erf
+                            step_erfs = np.copy(current_erfs)
+                            step_erfs[1] *= 5*fail
+                            self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
+                                                    step_erfs)
+                            self._raster_print(f"  Erfc Fail {fail:d}: Smoothing transition: {step_erfs[1]}")
+                            if fail == 2:
+                                try_smoothing=False #if this doesn't work, don't keep trying
+
+                        elif (fail<limit) : #try taking a smaller step
+                            smaller_delta = delta/(fail+1)
+                            self._raster_print(f"   ..Fail {fail}: Current {current_erfs[0]:.3e}, {current_erfs[1]:.3e}. Trying {current_erfs[0]+smaller_delta[0]:.3e}, {current_erfs[1]+smaller_delta[1]:.3e}. Goal {goal_erfs[0]:.3e}, {goal_erfs[1]:.3e}."+self.clear)
+                            step_erfs = current_erfs+smaller_delta
+                            # self._raster_print(f" Erfc Fail {fail:d}: goal {goal_erfs[0]:.3e} {goal_erfs[1]:.3e}, step {step_erfs[0]:.3e} {step_erfs[1]:.3e}")
+                            self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
+                                                    step_erfs)
+                    current_erfs = self.windsoln.erf_drop
+                # self._raster_print(f"  Successfully ramped molecular-to-atomic transition erfc to {self.windsoln.erf_drop[0]:.3e}, {self.windsoln.erf_drop[1]:.3e}."+self.clear)
+                return 0
+            else:
+                # self._raster_print(f"  Skipping ramping of molecular-to-atomic transition erfc until polishing.")
+                # self.skip = True
+                return 1
+
+        
+    def ramp_base_bcs(self,user_override_press=False, base_press=1,static_bcs=None,
+                      Kappa_opt=4e-3,Kappa_IR=1e-2,molec_adjust=None,
+                      adiabat=False, polish=False,
                       intermediate=False, tolerance=0.1):
         """
         Ramps Rmin, mass density at Rmin (rho_rmin), and temperature at Rmin (T_rmin) to the physical values computed in base_bcs().
@@ -1945,10 +2131,10 @@ class wind_simulation:
         Args:
             base_press (int or float, optional): Desired pressure at base of simulation in microbars. Defaults to 1. Default will be overridden if loaded solution has different base press, unless user_override_press=True.
             user_override_press (bool, optional): To lower or raise pressure of base, set True. Defaults to False.
-            static (bool, optional): If True, does not ramp and keeps existing values. Defaults to False.
+            static_bcs (bool, optional): If True, skips running ramp_base_bcs() and maintains the current boundary conditions. Defaults to None (i.e., the value of self.static_bcs).
             Kappa_opt (float, optional): Optical opacity. Sets bolometric heating/cooling in molecular region below wind. Defaults to 4e-3.
             Kappa_IR (float, optional): IR opacity. Defaults to 1e-2.
-            molec_adjust (float, optional): Dimensionless mean molecular weight. Mu of H2 is 2.3*mH. Defaults to 2.3.
+            molec_adjust (float, optional): Dimensionless mean molecular weight. Mu of H2 is 2.3*mH. Defaults to self.windsoln.molec_adjust if =None. If molec_adjust <= 0, turns off molecular layer.
             adiabat (bool, optional): If True, computes base BCs assuming atmosphere is adiabatic below wind. Defaults to False.
             polish (bool, optional): If True, skips ramping T when self.windsoln.bolo_heat_cool=0 to avoid costly iteration. Defaults to False.
             intermediate (bool, optional): If True, returns early if average difference is below tolerance. Defaults to False.
@@ -1957,21 +2143,31 @@ class wind_simulation:
         Returns:
             int: 0 if successfully ramped base boundary conditions, 1 if failed.
         """
-        if static==True:
+        if static_bcs is None:
+            static_bcs = self.static_bcs
+        else:
+            self.static_bcs = static_bcs
+        if static_bcs==True:
             return
         rho_scale = self.windsoln.scales_dict['rho']
         T_scale = self.windsoln.scales_dict['T']
         #Unless user wants to override the base pressure, take the pressure to be
         #the base pressure saved to solution
         if user_override_press == False:
-            P = self.windsoln.soln['rho'][0]*const.kB*self.windsoln.soln['T'][0]/(self.windsoln.molec_adjust*const.mH)
+            P = self.windsoln.soln['rho'][0]*const.kB*self.windsoln.soln['T'][0]/(self.windsoln.calc_mu()[0])
             rounded_base = np.round(P/10)*10
             if rounded_base < 1:
                 rounded_base = 1
             if rounded_base != base_press:
                 base_press = rounded_base #=P would prob be more accurate in case someone sets it to 2
         
-        goal_bcs = self.base_bcs(self.windsoln.molec_adjust,
+        if molec_adjust is not None:
+            self._raster_print(f"  Setting molec_adjust to {molec_adjust:.2f}")
+            self.ramp_molec_adjust(molec_adjust,_called_indep=False,converge_final=False)
+        else:
+            molec_adjust = self.windsoln.molec_adjust
+
+        goal_bcs = self.base_bcs(None,
                                  Kappa_opt,Kappa_IR,adiabat,base_press,
                                  user_override_press)
         goal_bcs = np.array(goal_bcs)
@@ -1988,36 +2184,35 @@ class wind_simulation:
             self.inputs.write_bcs(*goal_bcs,*self.windsoln.bcs_tuple[4:])
 
             if self.run_wind(expedite=True,calc_postfacto=False) == 1: 
-                self._normal_print(f"  ..Initial jump failed. Ramping variables individually.")
+                self._raster_print(f"\n  ..Initial jump failed. Ramping variables individually."+self.clear)
                 if abs((self.windsoln.Rmin - goal_bcs[0])/goal_bcs[0]) > 4e-3:
-                    self.ramp_Rmin(goal_bcs[0])
-                if abs((self.windsoln.T_rmin  - goal_bcs[3])/goal_bcs[3]) > 1e-2:
-                    if (polish == True) & (self.windsoln.bolo_heat_cool==0):
-                        self._normal_print(f"  Skipping ramping T to avoid costly iterations. Current: {self.windsoln.T_rmin*T_scale:.0f}K. Estimated goal: {goal_bcs[3]*T_scale:.0f}K")
-                    else:
-                        self.ramp_T_rmin(goal_bcs[3])
+                    self.ramp_Rmin(goal_bcs[0],_called_in_polish=True)
+                if abs((self.windsoln.T_rmin  - goal_bcs[3])/goal_bcs[3]) > 9e-2:
+                    # if (polish == True) & (self.windsoln.bolo_heat_cool==0):
+                    #     print(f"   Skipping ramping T to avoid costly iterations. Current: {self.windsoln.T_rmin*T_scale:.0f}K. Estimated goal: {goal_bcs[3]*T_scale:.0f}K")
+                    # else:
+                    self.ramp_T_rmin(goal_bcs[3],_called_in_polish=True)
                 if abs((self.windsoln.rho_rmin -  goal_bcs[2])/goal_bcs[2]) > 1e-4:
-                    self.ramp_rho_rmin(goal_bcs[2])
+                    self.ramp_rho_rmin(goal_bcs[2],_called_in_polish=True)
 
         curr_bcs = np.array(self.windsoln.bcs_tuple[0:4])
-        if sum(abs((goal_bcs - curr_bcs)/goal_bcs)[[0,2,3]]) > 1e-2: 
+        if sum(abs((goal_bcs - curr_bcs)/goal_bcs)[[0,2,3]]) > tolerance*1.01: 
             if (polish == True) & (self.windsoln.bolo_heat_cool==0):
                 # self._normal_print("Successfully ramped base boundary conditions.")    
                 self._raster_print("  Successfully ramped base boundary conditions.")          
                 return 0
             else:
-                self._normal_print("  Failed to ramp bcs. This can occur when attempting to set base at too high or too low of pressure (e.g., for very high or very low gravity planets).")
+                self._raster_print("  Failed to ramp bcs. This can occur when attempting to set base at too high or too low of pressure (e.g., for very high or very low gravity planets).")
                 self._normal_print(f"  Rmin: Current {curr_bcs[0]:.2f}, Goal {goal_bcs[0]:.2f}Rp; Rho: Curr {curr_bcs[2]*rho_scale:.3e}, Goal {goal_bcs[2]*rho_scale:.3e}g/cm3; T: Curr {curr_bcs[3]*T_scale:.0f}, Goal {goal_bcs[3]*T_scale:.0f}K")
                 return 1
         else:
             self._raster_print("  Successfully ramped base boundary conditions.")          
             # self._normal_print("Successfully ramped base boundary conditions.")           
             return 0
-       
+
     
     
-    
-    def base_bcs(self,molec_adjust=2.3,Kappa_opt=4e-3,
+    def base_bcs(self,molec_adjust=None,Kappa_opt=4e-3,
                  Kappa_IR=1e-2,adiabat=False,
                  base_press=1,user_override_press=False): 
         """
@@ -2030,7 +2225,7 @@ class wind_simulation:
         For high metallicity atmospheres, users should increase the molecular adjustment factor (molec_adjust). Likewise, they should change Kappa_opt and Kappa_IR.
 
         Args:
-            molec_adjust (float, optional): Accounts for increased mean weight of molecules. Defaults to 2.3.
+            molec_adjust (float, optional): Dimensionless mean molecular weight. Mu of H2 is 2.3*mH. Defaults to self.windsoln.molec_adjust if None. If molec_adjust == 0, turns off molecular layer.
             Kappa_opt (float, optional): Optical opacity. Defaults to 4e-3.
             Kappa_IR (float, optional): IR opacity. Defaults to 1e-2.
             adiabat (bool, optional): If True, computes IR BCs assuming an adiabat. Defaults to False.
@@ -2052,9 +2247,14 @@ class wind_simulation:
 #         #this is because some high flux planets may need lower lower BC to capture all heating
         rho_scale = self.windsoln.scales_dict['rho']
         T_scale = self.windsoln.scales_dict['T']
-
+        # mu = self.windsoln.calc_mu()[0]
+        if (molec_adjust is None):
+            molec_adjust = self.windsoln.molec_adjust
+            mu = self.windsoln.calc_mu()[0]
+        else:
+            mu = molec_adjust*const.mH
         if user_override_press == False:
-            P = self.windsoln.soln['rho'][0]*const.kB*self.windsoln.soln['T'][0]/(self.windsoln.molec_adjust*const.mH)
+            P = self.windsoln.soln['rho'][0]*const.kB*self.windsoln.soln['T'][0]/mu
             rounded_base = np.round(P/10)*10
             if rounded_base < 1:
                 rounded_base = 1
@@ -2062,19 +2262,17 @@ class wind_simulation:
                 base_press = rounded_base #=P would prob be more accurate in case someone sets it to 2
         
         Rp = self.windsoln.Rp
-        if molec_adjust <= 1:
-            self._normal_print("WARNING: Molecular adjustment factor should be >1 to account for increased",
-                  "mean weight due to molecules, instead of atoms, lower in atmosphere (below the wind).")
+        # if 0 < molec_adjust <= 1:
+        #     self._normal_print("WARNING: Molecular adjustment factor should be >1 to account for increased mean weight due to molecules, instead of atoms, lower in atmosphere (below the wind).")
         F_opt = self.windsoln.Lstar/(4*np.pi*self.windsoln.semimajor**2)
         T_skin = (F_opt*(Kappa_opt+Kappa_IR/4)/(2*const.sig_SB*Kappa_IR))**0.25
         T_eff = (F_opt/(4*const.sig_SB))**0.25
-        mu = molec_adjust*const.mH/np.sum(self.windsoln.atomic_masses[0]*self.windsoln.HX/self.windsoln.atomic_masses) #assuming no ionized
         #rho_Rp derived from optical slant path tau=1 geometry
         rho_Rp = np.sqrt(mu*const.G*self.windsoln.Mp / (8 * Rp**3 *const.kB*T_skin)) / Kappa_opt
         P_Rp = rho_Rp*const.kB*T_skin / mu #in barye = 1e-6 bar
 
-        #take solution base as millibar pressure (=1000 barye), to ease computational burden
-        cs2 = (const.kB*T_skin/(2.3*const.mH))
+        #take solution base as base_press to ease computational burden of going down to Rp
+        cs2 = (const.kB*T_skin/mu)
         R_mbar = (((cs2/(const.G*self.windsoln.Mp))* np.log(base_press/P_Rp) 
                    + 1/self.windsoln.Rp )**(-1))
         rho_mbar = base_press * mu / (const.kB*T_skin)
@@ -2090,7 +2288,10 @@ class wind_simulation:
             Hsc = const.kB*T_eff*(Rp**2) /(mu*const.G*self.windsoln.Mp) #scaleheight at Rp (approximately Hsc at R_IR)
             rho_IR = 1/(Kappa_IR*Hsc)
             # R_IR = rho_Rp*np.exp(-Rp/Hsc)
-            R_IR = Rp**2 /( Hsc * np.log(rho_IR/rho_Rp*np.exp(Rp/Hsc)) )
+            if Rp/Hsc > 690:
+                R_IR = 0
+            else:
+                R_IR = Rp**2 /( Hsc * np.log(rho_IR/rho_Rp*np.exp(Rp/Hsc)) )
         if R_IR > Rp:
             self._normal_print('Using vertical tau=1 for IR photons, R_IR.')
             return R_IR/Rp,self.windsoln.Rmax,rho_IR/rho_scale,T_eff/T_scale
@@ -2346,123 +2547,123 @@ class wind_simulation:
         
         
         
-    def run_isotherm(self,width_factor=0.,return_idx=False,called_in_ramp_bcs=False,polish=False):
-        """
-        Ramps the complementary error function that governs the transition from the molecular to atomic regions in the atmosphere.
+#     def converge_mol_atomic_transition(self,width_factor=0.,return_idx=False,_called_in_ramp_bcs=False,polish=False):
+#         """
+#         Ramps the complementary error function that governs the transition from the molecular to atomic regions in the atmosphere.
 
-        Criterion for transition: when photoionization heating begins to dominate over the PdV cooling and a wind will launch.
-        Below the wind, for an average planet, molecules have not photodissociated so mu should be mean molecular weight instead of mean atomic weight and the erf enforces this. Molecular opacities mean that bolometric heating and cooling dominate the energy budget and create an isotherm in the molecular region below the wind. In the optically thin atomic wind, bolometric heating and cooling are negligible, so the erf also enforces the drop off of bolometric heating and cooling.
+#         Criterion for transition: when photoionization heating begins to dominate over the PdV cooling and a wind will launch.
+#         Below the wind, for an average planet, molecules have not photodissociated so mu should be mean molecular weight instead of mean atomic weight and the erf enforces this. Molecular opacities mean that bolometric heating and cooling dominate the energy budget and create an isotherm in the molecular region below the wind. In the optically thin atomic wind, bolometric heating and cooling are negligible, so the erf also enforces the drop off of bolometric heating and cooling.
 
-        If a user needs to call this function for some reason, width_factor is the only argument they should need to change. For numerical or physical reasons it may be necessary for the transition to occur over more than 1 scaleheight. In this case, increase width_factor.
+#         If a user needs to call this function for some reason, width_factor is the only argument they should need to change. For numerical or physical reasons it may be necessary for the transition to occur over more than 1 scaleheight. In this case, increase width_factor.
 
-        Args:
-            width_factor (float, optional): Factor to adjust the width in scaleheights of the transition region. Defaults to 0.
-            return_idx (bool, optional): If True, returns radial index of transition point. Defaults to False.
-            called_in_ramp_bcs (bool, optional): Set True if called within ramp_base_bcs to avoid recursion issues. Defaults to False.
-            polish (bool, optional): If True, computes full postfacto heat_ion & cool_PdV for more accurate transition point. Defaults to False.
+#         Args:
+#             width_factor (float, optional): Factor to adjust the width in scaleheights of the transition region. Defaults to 0.
+#             return_idx (bool, optional): If True, returns radial index of transition point. Defaults to False.
+#             _called_in_ramp_bcs (bool, optional): Set True if called within ramp_base_bcs to avoid recursion issues. Defaults to False.
+#             polish (bool, optional): If True, computes full postfacto heat_ion & cool_PdV for more accurate transition point. Defaults to False.
 
-        Returns:
-            int or tuple: Index of transition if return_idx is True, otherwise status code.
-        """
-        if (self.windsoln.bolo_heat_cool == 0) and (polish==False):
-            return
-        if (polish==False) and (self.skip==True):
-            return
+#         Returns:
+#             int or tuple: Index of transition if return_idx is True, otherwise status code.
+#         """
+#         if (self.windsoln.bolo_heat_cool == 0) and (polish==False):
+#             return
+#         if (polish==False) and (self.skip==True):
+#             return
         
-        #loading last working solution to do this
-        self.load_planet(self.path+'saves/windsoln.csv',calc_postfacto=False,
-                         print_atmo=False,print_warnings=False)
-        v_drop,rate = self.erf_velocity(called_in_ramp_bcs=called_in_ramp_bcs,
-                                        polish=polish,
-                                        width_factor=width_factor) 
+#         #loading last working solution to do this
+#         self.load_planet(self.path+'saves/windsoln.csv',calc_postfacto=False,
+#                          print_atmo=False,print_warnings=False)
+#         v_drop,rate = self.erf_velocity(_called_in_ramp_bcs=_called_in_ramp_bcs,
+#                                         polish=polish,
+#                                         width_factor=width_factor) 
        
-        diffs = np.array([abs(v_drop-self.windsoln.erf_drop[0])/v_drop,
-                         abs(rate-self.windsoln.erf_drop[1])/rate])
-        if any(diffs) > 1e-5:
-            current_erfs =  np.array([self.windsoln.erf_drop[0],self.windsoln.erf_drop[1]])
-            goal_erfs    = np.array([v_drop,rate])
-            try_smoothing = True
-            fail = 0
-            smaller_delta=np.array([0,0])
-            if (self.windsoln.bolo_heat_cool == 1):
-                if (self.skip == False) or (polish == True):
-                    while np.mean(abs(goal_erfs - current_erfs)/goal_erfs) > 1e-5:
-                        delta = goal_erfs - current_erfs
-                        if fail > 0: #take smaller stepsizes to goal
-                            if abs(sum(delta)) < abs(sum(smaller_delta)):
-                                smaller_delta = delta
-                            self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
-                                                  current_erfs+smaller_delta)
-                        else:
-                            self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
-                                                  current_erfs+delta)
+#         diffs = np.array([abs(v_drop-self.windsoln.erf_drop[0])/v_drop,
+#                          abs(rate-self.windsoln.erf_drop[1])/rate])
+#         if any(diffs) > 1e-5:
+#             current_erfs =  np.array([self.windsoln.erf_drop[0],self.windsoln.erf_drop[1]])
+#             goal_erfs    = np.array([v_drop,rate])
+#             try_smoothing = True
+#             fail = 0
+#             smaller_delta=np.array([0,0])
+#             if (self.windsoln.bolo_heat_cool == 1):
+#                 if (self.skip == False) or (polish == True):
+#                     while np.mean(abs(goal_erfs - current_erfs)/goal_erfs) > 1e-5:
+#                         delta = goal_erfs - current_erfs
+#                         if fail > 0: #take smaller stepsizes to goal
+#                             if abs(sum(delta)) < abs(sum(smaller_delta)):
+#                                 smaller_delta = delta
+#                             self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
+#                                                   current_erfs+smaller_delta)
+#                         else:
+#                             self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
+#                                                   current_erfs+delta)
                         
-                        fail = 0
-                        while self.run_wind(expedite=True,calc_postfacto=False) != 0:
-                            fail += 1
-                            limit = 10
-                            if self.windsoln.nspecies > 5:
-                                limit = 4
-                            if fail >= limit:
-                                current_erfs = self.windsoln.erf_drop
-                                self._normal_print(f"Too many attempts to ramp error function. Skipping subsequent attempts until polishing. Goal: {goal_erfs[0]:.3e}, {goal_erfs[1]:.3e}.",
-                                      f" Current: {current_erfs[0]:.3e}, {current_erfs[1]:.3e}.")
-                                self.skip = True
-                                return 1#self.turn_off_bolo()
-                            elif (fail <= 2) & (try_smoothing==True): #try smoothing out erf
-                                step_erfs = np.copy(current_erfs)
-                                step_erfs[1] *= 5*fail
-                                self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
-                                                      step_erfs)
-                                self._raster_print(f" Erfc Fail {fail:d}: Smoothing transition: {step_erfs[1]}")
-                                if fail == 2:
-                                    try_smoothing=False #if this doesn't work, don't keep trying
+#                         fail = 0
+#                         while self.run_wind(expedite=True,calc_postfacto=False) != 0:
+#                             fail += 1
+#                             limit = 10
+#                             if self.windsoln.nspecies > 5:
+#                                 limit = 4
+#                             if fail >= limit:
+#                                 current_erfs = self.windsoln.erf_drop
+#                                 self._normal_print(f"Too many attempts to ramp error function. Skipping subsequent attempts until polishing. Goal: {goal_erfs[0]:.3e}, {goal_erfs[1]:.3e}.",
+#                                       f" Current: {current_erfs[0]:.3e}, {current_erfs[1]:.3e}.")
+#                                 self.skip = True
+#                                 return 1#self.turn_off_bolo()
+#                             elif (fail <= 2) & (try_smoothing==True): #try smoothing out erf
+#                                 step_erfs = np.copy(current_erfs)
+#                                 step_erfs[1] *= 5*fail
+#                                 self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
+#                                                       step_erfs)
+#                                 self._raster_print(f" Erfc Fail {fail:d}: Smoothing transition: {step_erfs[1]}")
+#                                 if fail == 2:
+#                                     try_smoothing=False #if this doesn't work, don't keep trying
 
-                            elif (fail<limit) : #try taking a smaller step
-                                smaller_delta = delta/(fail+1)
-                                step_erfs = current_erfs+smaller_delta
-                                self._raster_print(f" Erfc Fail {fail:d}: goal {goal_erfs[0]:.3e} {goal_erfs[1]:.3e}, step {step_erfs[0]:.3e} {step_erfs[1]:.3e}")
-                                self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
-                                                      step_erfs)
-                        current_erfs = self.windsoln.erf_drop
-                    return 0
-                else:
-                    return 1
+#                             elif (fail<limit) : #try taking a smaller step
+#                                 smaller_delta = delta/(fail+1)
+#                                 step_erfs = current_erfs+smaller_delta
+#                                 self._raster_print(f" Erfc Fail {fail:d}: goal {goal_erfs[0]:.3e} {goal_erfs[1]:.3e}, step {step_erfs[0]:.3e} {step_erfs[1]:.3e}")
+#                                 self.inputs.write_bcs(*self.windsoln.bcs_tuple[:6],
+#                                                       step_erfs)
+#                         current_erfs = self.windsoln.erf_drop
+#                     return 0
+#                 else:
+#                     return 1
                             
-        #on final polishing run of isotherm, check if bolometric heating/
-        #cooling should be added back in
-        if (self.windsoln.bolo_heat_cool == 0) and (polish==True):
-            self.windsoln.add_user_vars(expedite=True)
-            heat = self.windsoln.soln['heat_ion']
-            cool = self.windsoln.soln['cool_PdV']
-#                 heat,cool = self.quick_calc_heat_cool()
-            if len(np.where(-cool[:20]<heat[:20])[0]) > 3:
-                out_str = f"  NOTE: Photoionization heating dominates down to base of sim ({self.windsoln.Rmin:.3f} Rp).\n       | Bolometric heat/cooling still turned off. Max error in dM/dt ~ 10%. \n       | See documentation for workaround."
-                print(out_str)
-                return 1
-            else: #if appropriate, ramp back in bolometric heating/cooling
-                while self.windsoln.bolo_heat_cool < 1:
-                    flags = self.windsoln.flags_tuple
-                    delta = 1-self.windsoln.bolo_heat_cool
-                    flags[2] += delta
-                    self.inputs.write_flags(*flags)
-                    fail = 0
-                    while self.run_wind(calc_postfacto=False) != 0:
-                        fail+=1
-                        flags[2] = self.windsoln.bolo_heat_cool + 0.1/fail
-                        self._raster_print(f'Ramping back in bolometric heating & cooling. Trying factor of {flags[2]:.2f}')
-                        self.inputs.write_flags(*flags)
-                        if fail>10:
-                            self._normal_print("Warning: Bolometric heating/cooling failed to ramp back in.")
-                            energy_plot(self.windsoln)
-                            return 1
-                self._normal_print("  Bolometric heating/cooling successfully ramped back in.")
-                return 0
-                            
-#             else:
+#         #on final polishing run of isotherm, check if bolometric heating/
+#         #cooling should be added back in
+#         if (self.windsoln.bolo_heat_cool == 0) and (polish==True):
+#             self.windsoln.add_user_vars(expedite=True)
+#             heat = self.windsoln.soln['heat_ion']
+#             cool = self.windsoln.soln['cool_PdV']
+# #                 heat,cool = self.quick_calc_heat_cool()
+#             if len(np.where(-cool[:20]<heat[:20])[0]) > 3:
+#                 out_str = f"  NOTE: Photoionization heating dominates down to base of sim ({self.windsoln.Rmin:.3f} Rp).\n       | Bolometric heat/cooling still turned off. Max error in dM/dt ~ 10%. \n       | See documentation for workaround."
+#                 print(out_str)
 #                 return 1
-        else:
-            return 0
+#             else: #if appropriate, ramp back in bolometric heating/cooling
+#                 while self.windsoln.bolo_heat_cool < 1:
+#                     flags = self.windsoln.flags_tuple
+#                     delta = 1-self.windsoln.bolo_heat_cool
+#                     flags[2] += delta
+#                     self.inputs.write_flags(*flags)
+#                     fail = 0
+#                     while self.run_wind(calc_postfacto=False) != 0:
+#                         fail+=1
+#                         flags[2] = self.windsoln.bolo_heat_cool + 0.1/fail
+#                         self._raster_print(f'Ramping back in bolometric heating & cooling. Trying factor of {flags[2]:.2f}')
+#                         self.inputs.write_flags(*flags)
+#                         if fail>10:
+#                             self._normal_print("Warning: Bolometric heating/cooling failed to ramp back in.")
+#                             energy_plot(self.windsoln)
+#                             return 1
+#                 self._normal_print("  Bolometric heating/cooling successfully ramped back in.")
+#                 return 0
+                            
+# #             else:
+# #                 return 1
+#         else:
+#             return 0
         
         
     def _quick_calc_heat_cool(self):
@@ -2530,7 +2731,7 @@ class wind_simulation:
     
     def turn_off_bolo(self):
         """
-        Turns off bolometric heating and cooling AND the mean molecular weight adjustment in the molecular region. These values are currently coupled by the error function defined in run_isotherm().
+        Turns off bolometric heating and cooling AND the mean molecular weight adjustment in the molecular region. These values are currently coupled by the error function defined in converge_mol_atomic_transition().
 
         Returns:
             int: 0 if successful, 1 if failed to turn off bolometric heating/cooling.
@@ -2564,22 +2765,46 @@ class wind_simulation:
         self._raster_print('  ...Successfully turned off bolometric heating/cooling (and molecular layer)\n')      
         return 0
     
-    
-        
-    def erf_velocity(self,return_idx=False,called_in_ramp_bcs=False, 
-                     polish=False,width_factor=0):
+    def turn_on_bolo(self):
         """
-        Defines the drop-off radius at which the complementary error function governs the drop-off of bolometric heating/cooling and the mean molecular weight in the isothermal part of the wind as photoionization heating begins to dominate and the atmosphere becomes atomic and non-isothermal.
+        Turns on bolometric heating and cooling in the region below the wind.
+
+        Returns:
+            int: 0 if successful, 1 if failed to turn on bolometric heating/cooling.
+        """
+        while self.windsoln.bolo_heat_cool < 1:
+            flags = self.windsoln.flags_tuple
+            delta = 1-self.windsoln.bolo_heat_cool
+            flags[2] += delta
+            self.inputs.write_flags(*flags)
+            fail = 0
+            while self.run_wind(calc_postfacto=False) != 0:
+                fail+=1
+                flags[2] = self.windsoln.bolo_heat_cool + 0.1/fail
+                self._raster_print(f'Ramping back in bolometric heating & cooling. Trying factor of {flags[2]:.2f}')
+                self.inputs.write_flags(*flags)
+                if fail>10:
+                    self._normal_print("Warning: Bolometric heating/cooling failed to ramp back in.")
+                    energy_plot(self.windsoln)
+                    return 1
+        
+        self._normal_print("  Bolometric heating/cooling successfully ramped back in.")
+        return 0   
+        
+    def erf_velocity(self,return_idx=False,_called_in_ramp_bcs=False, 
+                     polish=False,width_factor=0, called_in_mol_layer=False):
+        """
+        Defines the drop-off radius of the complementary error function that governs the drop-off of bolometric heating/cooling and the mean molecular weight in the isothermal part of the wind as photoionization heating begins to dominate and the atmosphere becomes atomic and non-isothermal.
 
         Args:
             return_idx (bool, optional): If True, returns radial index where drop-off occurs. Defaults to False.
-            called_in_ramp_bcs (bool, optional): Avoids recursion of ramping bases if called in ramp_base_bcs. Defaults to False.
-            polish (bool, optional): If True, computes full bolometric heating/cooling and photoionization heating curves. Defaults to False.
+            _called_in_ramp_bcs (bool, optional): Avoids recursion of ramping bases if called in ramp_base_bcs. Defaults to False.
+            polish (bool, optional): If True, computes full bolometric heating/cooling and photoionization heating curves for improved accuracy. Defaults to False.
             width_factor (float, optional): Sets width in radius space over which the erfc drops off as a factor of scaleheight at the transition index (Hsc). If 0, uses current width of transition in Hsc. Defaults to 0.
 
         Returns:
-            float: Velocity of drop-off in units of cm/s.
-            float: Rate of drop-off in units of cm/s.
+            float: Velocity at location of drop-off in units of cm/s.
+            float: Rate of drop-off.
             tuple (optional): If return_idx=True, also returns (width_factor, drop_idx).
         """
                     
@@ -2600,10 +2825,10 @@ class wind_simulation:
             drop_index = 0 
         
         #Drop-off rate / gradient of erf
-        def rate_calc(idx,width):
+        def rate_calc(idx,width_factor):
             #Approximate pressure scaleheight at drop radius in units of Rp
             Hsc =  const.kB*self.windsoln.soln['T'][idx]*self.windsoln.soln['r'][idx]
-            Hsc /= (const.mH*self.windsoln.molec_adjust*const.G*self.windsoln.Mp)
+            Hsc /= (self.windsoln.calc_mu()[0]*const.G*self.windsoln.Mp)
             #approximates mu as molecular value
             #Compute the desired rate of erfc drop-off as 
             if idx >= 10:
@@ -2617,7 +2842,7 @@ class wind_simulation:
         #if user does not specify a width_factor, will use the current approximate value
         current_rate = self.windsoln.erf_drop[1]
         Hsc =  const.kB*self.windsoln.soln['T'][drop_index]*self.windsoln.soln['r'][drop_index]
-        Hsc /= (const.mH*self.windsoln.molec_adjust*const.G*self.windsoln.Mp)
+        Hsc /= (self.windsoln.calc_mu()[drop_index]*const.G*self.windsoln.Mp)
         if drop_index >= 10:
             slope = (v[drop_index+10] - v[drop_index-10])/(r[drop_index+10] - r[drop_index-10])
         else:
@@ -2630,23 +2855,33 @@ class wind_simulation:
             width_factor = 15
         #If this is being called inside of the ramping function, do this 
         #to avoid recursion
-        if (drop_index<=10) and (called_in_ramp_bcs==True):
+        if (drop_index<=10) and (_called_in_ramp_bcs==True):
+            if return_idx==False:
+                return v[0],rate_calc(0,width_factor)
+            else:
+                return v[0],rate_calc(0,width_factor),width_factor,0
+        if (drop_index<=10) and (called_in_mol_layer==True):
             if return_idx==False:
                 return v[0],rate_calc(0,width_factor)
             else:
                 return v[0],rate_calc(0,width_factor),width_factor,0
         elif (drop_index<=10):# and (self.failed_deeper_bcs_ramp==True):
-            self.turn_off_bolo()
-            if return_idx==False:
-                return v[0],rate_calc(0,width_factor)
-            else:
-                return v[0],rate_calc(0,width_factor),width_factor,0
+            if (self.windsoln.molec_adjust > 0) and (self.try_turning_off):
+                # print(self.windsoln.molec_adjust)
+                self._raster_print("\nCurrent simulation Rmin nearly or fully inside of wind. Molecular layer will be turned off.\n")
+                self.turn_off_molecular_layer(_called_indep=False)
+                self.try_turning_off=False
+                if return_idx==False:
+                    return v[0],rate_calc(0,width_factor)
+                else:
+                    return v[0],rate_calc(0,width_factor),width_factor,0
         rate = rate_calc(drop_index,width_factor)
         #If none of the above conditions are triggered, simply return v
         if return_idx == True:
             return v[drop_index],rate,width_factor,drop_index
         else:
             return v[drop_index],rate   
+  
         
         
     def raise_Ncol_sp(self,to_total=0.8,by_factor=0,expedite=False):
@@ -2696,7 +2931,7 @@ class wind_simulation:
         return
 
         
-    def ramp_T_rmin(self, goal_T,integrate_out=False):
+    def ramp_T_rmin(self, goal_T,integrate_out=False,_called_in_polish=False):
         """
         Ramps normalized temperature at Rmin.
 
@@ -2728,8 +2963,8 @@ class wind_simulation:
                     self._normal_print("\nStruggling to substep towards new T_rmin")
                     return 1
         self._raster_print(f"   Successfully converged T_rmin to {self.windsoln.T_rmin*T_scale:.0f}")
-        self.run_isotherm(called_in_ramp_bcs=True) #TEST
-        
+        if _called_in_polish==False:
+            self.converge_mol_atomic_transition(_called_in_ramp_bcs=True)        
         if integrate_out==True:
             self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=True)
             return self.run_wind()
@@ -2738,7 +2973,7 @@ class wind_simulation:
     
     
     
-    def ramp_Rmin(self,goal_Rmin,integrate_out=False):
+    def ramp_Rmin(self,goal_Rmin,integrate_out=False,_called_in_polish=False):
         """
         Ramps normalized Rmin, where Rmin is the base of the simulation and should ideally be a radius "below the wind", i.e., in the molecular region below ~1 microbar.
 
@@ -2772,7 +3007,7 @@ class wind_simulation:
             while result != 0:
                 fail+=1
                 if fail==1:
-                    self.run_isotherm(called_in_ramp_bcs=True) #TEST
+                    self.converge_mol_atomic_transition(_called_in_ramp_bcs=True) #TEST
                 if result == 4:
                     self.inputs.write_flags(*self.windsoln.flags_tuple,
                                             integrate_out=False)
@@ -2790,7 +3025,9 @@ class wind_simulation:
                 result = self.run_wind(expedite=True,calc_postfacto=False)
             current_Rmin = self.windsoln.Rmin
         self._raster_print(f"   Successfully converged Rmin to {self.windsoln.Rmin:.6f} Rp.\n")
-        self.run_isotherm(called_in_ramp_bcs=True) #TEST
+        # self.converge_mol_atomic_transition(_called_in_ramp_bcs=True) #TEST
+        if _called_in_polish==False:
+            self.converge_mol_atomic_transition(_called_in_ramp_bcs=True)
         if integrate_out==True:
             self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=True)
             return self.run_wind()
@@ -2799,7 +3036,7 @@ class wind_simulation:
     
     
     
-    def ramp_rho_rmin(self,goal_rho,integrate_out=False):
+    def ramp_rho_rmin(self,goal_rho,integrate_out=False,_called_in_polish=False):
         """
         Ramps to normalized mass density at Rmin.
 
@@ -2817,10 +3054,12 @@ class wind_simulation:
         failed = 0
         OOM_old = np.copy(np.floor(np.log10(self.windsoln.rho_rmin)))
         while (abs(1.-self.windsoln.rho_rmin/goal_rho) > 1e-10):
-            OOM_current = np.floor(np.log10(self.windsoln.rho_rmin))
+            # OOM_current = np.floor(np.log10(self.windsoln.rho_rmin))
+            OOM_current = np.floor(np.log10(goal_rho)) #new: 11/11/25
             if OOM_old != OOM_current:
-                self._normal_print(f'..Order of mag of rho_rmin has changed, C source code does not update dynamically. If run takes a long time or fails to converge, halt run and restart ramp_rho_rmin() to update rho_rmin convergence scale.')            
-                new_RHOSCALE = 10**np.floor(np.log10(self.windsoln.rho_rmin*0.001))
+                self._normal_print(f'..Order of mag of rho_rmin has changed, C source code does not update dynamically. \nIf run takes a long time or fails to converge, halt run, and restart run to update rho_rmin convergence scale.')            
+                # new_RHOSCALE = 10**np.floor(np.log10(self.windsoln.rho_rmin*0.001))
+                new_RHOSCALE = 10**np.floor(np.log10(goal_rho*0.001))
                 h = (open(self.path+'src/defs.h','r')).readlines()
                 f = open(self.path+'src/defs.h','w')
                 for idx,hline in enumerate(h):
@@ -2834,8 +3073,10 @@ class wind_simulation:
                 f.close() 
                 sub = Popen('make',cwd=self.path, stdout=PIPE, stderr=PIPE) 
                 output, error_output = sub.communicate() #FIX (put output check)
+                print(output,error_output)
 #                 self._normal_print(error_output)
-                OOM_old = np.copy(np.floor(np.log10(self.windsoln.rho_rmin)))
+                OOM_old = np.copy(OOM_current)
+                # OOM_old = np.copy(np.floor(np.log10(self.windsoln.rho_rmin)))
 
             if failed > 2:
                 bcs_tuple = self.windsoln.bcs_tuple
@@ -2863,7 +3104,7 @@ class wind_simulation:
                 while self.run_wind(expedite=True,calc_postfacto=False) != 0:
                     failed += 1
                     if failed == 1:
-                        self.run_isotherm(called_in_ramp_bcs=True) #TEST
+                        self.converge_mol_atomic_transition(_called_in_ramp_bcs=True) #TEST
                     delta_rho = (bcs_tuple[2]-self.windsoln.rho_rmin)/10
                     bcs_tuple[2] = self.windsoln.rho_rmin+delta_rho
                     self.inputs.write_bcs(*bcs_tuple)
@@ -2873,7 +3114,8 @@ class wind_simulation:
                         self._normal_print("\n  Struggling to substep towards new rho_rmin")
                         return 1
         self._raster_print(f"   Successfully converged rho_rmin to {self.windsoln.rho_rmin*rho_scale:.5e} g/cm3")
-        self.run_isotherm(called_in_ramp_bcs=True) #TEST
+        if _called_in_polish==False:
+            self.converge_mol_atomic_transition(_called_in_ramp_bcs=True)
         if integrate_out==True:
             self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=True)
             return self.run_wind()
@@ -3082,8 +3324,7 @@ class wind_simulation:
 
             else:
                 if normalize == True:
-                    self._raster_print('  Ramped spectrum wavelength range, now normalizing spectrum.'+self.clear,
-                                      f'  ..Fnorm = {Fnorm:.0f} ergs/s/cm2. Norm range = [{norm_span[0]:.2f},{norm_span[1]:.2f}]nm') 
+                    self._raster_print('  Ramped spectrum wavelength range, now normalizing spectrum.'+self.clear+f'  ..Fnorm = {Fnorm:.0f} ergs/s/cm2. Norm range = [{norm_span[0]:.2f},{norm_span[1]:.2f}]nm') 
                     ranges = [const.hc/(norm_span[1]*wl_norm)/const.eV,
                             const.hc/(norm_span[0]*wl_norm)/const.eV]
                     result =  self.flux_norm(Fnorm,ranges,
@@ -3275,7 +3516,7 @@ class wind_simulation:
                                 return 1
 
                         self.converge_Ncol_sp(expedite=True,quiet=True)
-                        self.run_isotherm()
+                        self.converge_mol_atomic_transition()
                         self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out=False)
 
                         avg = abs(np.average((wPhi - self.windsoln.sim_spectrum['wPhi'])))
@@ -3300,7 +3541,7 @@ class wind_simulation:
 
         #Ramping to desired spectral range and flux
         self.converge_Ncol_sp(expedite=True,quiet=True)
-        self.run_isotherm()
+        self.converge_mol_atomic_transition()
         self._normal_print(f'\nSuccess ramping to {spectrum_filename} spectrum shape!')
         if plot == True:
             plt.plot(const.hc/old_E/1e-7,old_wPhi,label='Original')
