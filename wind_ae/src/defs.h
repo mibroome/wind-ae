@@ -13,7 +13,7 @@
 #define SQR(x) ((x)*(x))
 
 /* Relaxation code parameters */
-#define NSPECIES 6
+#define NSPECIES 2
 #define NE (4+2*NSPECIES)         /* number of equations */
 #define M 1501            /* number of points */
 #define NB (2+NSPECIES)          /* number of boundary conditions at first point */

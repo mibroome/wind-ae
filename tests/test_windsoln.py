@@ -31,7 +31,7 @@ def test_calc_tau1_radius_error():
         sim.windsoln.calc_tau1_radius(0)[0]
 
 def test_calc_R_exo():
-    assert sim.windsoln.calc_R_exo() is None
+    assert np.round(sim.windsoln.calc_R_exo()[0], 1) == 3.8
 
 def test_calc_Jeans():
     sim.windsoln.calc_R_exo()
