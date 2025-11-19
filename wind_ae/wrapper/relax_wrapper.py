@@ -1958,10 +1958,12 @@ class wind_simulation:
         
     def converge_mol_atomic_transition(self,width_factor=0.,_called_in_ramp_bcs=False,polish=False, bolo_on=True):
         """
+        _Formerly run_isotherm()_
+        
         Ramps the complementary error function that governs the transition from the molecular to atomic regions in the atmosphere. Both the mean molecular weight and bolometric heating/cooling are transitioned using the same error function. 
 
         If the bolometric heating/cooling flag is off (sim.windsoln.bolo_heat_cool=0.0) there will be no bolometric heating/cooling, but the mean molecular weight will still transition from molecular to atomic unless sim.windsoln.molec_adjust = 0.0.
-        To turn off the bolometric heating/cooling run sim.turn_off_bolo(). To turn off the molecular layer mu adjustement, run sim.turn_off_molec_adjust().
+        To turn off the bolometric heating/cooling run sim.turn_off_bolo().
 
         Criterion for transition: when photoionization heating begins to dominate over the PdV cooling and a wind will launch.
         Below the wind, for an average planet, molecules have not photodissociated so mu should be mean molecular weight instead of mean atomic weight and the erf enforces this. Molecular opacities mean that bolometric heating and cooling dominate the energy budget and create an isotherm in the molecular region below the wind. In the optically thin atomic wind, bolometric heating and cooling are negligible, so the erf also enforces the drop off of bolometric heating and cooling.

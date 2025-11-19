@@ -108,7 +108,7 @@ Now you can run **Wind-AE** from anywhere! As seen in the tutorial, the followin
 
 Future features and known problems
 ___________________________________
-- Computation of the complementary error function that governs the drop off of bolometric heating/cooling is not truly self-consistent (``run_isotherm(polish=True,width=)``) and may require visual confirmation via ``energy_plot()`` (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the ``width`` parameter or 
+- Computation of the complementary error function that governs the drop off of bolometric heating/cooling is not truly self-consistent (``converge_mol_atomic_transition(polish=True,width=)``) and may require visual confirmation via ``energy_plot()`` (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the ``width`` parameter 
 
 .. code-block:: python
 
@@ -124,4 +124,4 @@ ___________________________________
 - Knudsen number calculations currently only contain H-H collisions.
 - Converting spectrum ``kind`` from ``'full'`` to ``'mono'`` occasionally has issues.
 
-Check out the `open issues <https://github.com/mabroome/wind-ae/issues>`_.
+Check out the `open issues <https://github.com/mibroome/wind-ae/issues>`_.

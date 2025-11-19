@@ -38,7 +38,7 @@ Polishing (Converging to self-consistent BCs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.polish_bcs
 .. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_base_bcs
-.. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.run_isotherm
+.. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.converge_mol_atomic_transition
 .. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.converge_Ncol_sp
 .. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.converge_Rmax
 .. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.integrate_out

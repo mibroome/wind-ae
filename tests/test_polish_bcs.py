@@ -11,11 +11,11 @@ sim.load_planet(filename)
 def test_polish_bcs():
     assert sim.polish_bcs() == 0
 
-def test_run_isotherm():
-    assert sim.run_isotherm() == 0
+def test_converge_mol_atomic_transition():
+    assert sim.converge_mol_atomic_transition() == 0
     sim.windsoln.bolo_heat_cool = 0
-    assert sim.run_isotherm() is None
-    assert sim.run_isotherm(polish=True) == 0
+    assert sim.converge_mol_atomic_transition() is None
+    assert sim.converge_mol_atomic_transition(polish=True) == 0
     sim.windsoln.bolo_heat_cool = 1
     
 def test_Rmax_convergence():

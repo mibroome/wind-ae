@@ -133,7 +133,7 @@ from wind_ae.wrapper.wrapper_utils.spectrum import spectrum
 
 ## Future features and known problems:
 
-- Computation of the complementary error function that governs the drop-off of bolometric heating/cooling is not truly self-consistent (`run_isotherm(polish=True, width=)`) and may require visual confirmation via `energy_plot()` (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the `width` parameter or:
+- Computation of the complementary error function that governs the drop-off of bolometric heating/cooling is not truly self-consistent (`converge_mol_atomic_transition(polish=True, width=)`) and may require visual confirmation via `energy_plot()` (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the `width` parameter or:
 
 ```python
 sim.load_planet('path/to/planet/file')
