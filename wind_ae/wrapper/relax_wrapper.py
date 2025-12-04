@@ -1552,8 +1552,7 @@ class wind_simulation:
             if len(custom_mfs) != (len(unspaced_current_list)+len(new_species)):
                 sys.exit("ERROR: Mass fraction and species list must be the same length.")
             if np.round(np.sum(custom_mfs),5) != 1:
-                self._normal_print('WARNING: Total Mass Fraction must sum to 1. ',
-                      'sum(ZX) = %.3f' %np.sum(custom_mfs))
+                self._normal_print('WARNING: Total Mass Fraction must sum to 1. sum(ZX) = %.3f' %np.sum(custom_mfs))
             species_mf_dict = dict(zip(unspaced_desired_list,custom_mfs))
 
 
@@ -1708,8 +1707,7 @@ class wind_simulation:
             if len(custom_mfs) != len(self.windsoln.species_list):
                 sys.exit("ERROR: Mass fraction and species list must be the same length.")
             if np.round(np.sum(custom_mfs),5) != 1:
-                self._normal_print('WARNING: Total Mass Fraction must sum to 1. ',
-                      'sum(ZX) = %.3f \n' %np.sum(custom_mfs))
+                self._normal_print('WARNING: Total Mass Fraction must sum to 1. sum(ZX) = %.3f \n' %np.sum(custom_mfs))
             self._normal_print("NOTE: Goal mass fractions will override any goal Z metallicity provided.")
             goal_mass_fracs = custom_mfs
             
@@ -1806,7 +1804,7 @@ class wind_simulation:
                     step_Z = current_Z + delta/(2**fail)
                     self._raster_print(f' Failed {fail}: Attempting to ramp Z from {current_Z:.1f} to {step_Z:.1f}')
                     if fail>5:
-                        self._normal_print('Failed at Z = ',current_Z)
+                        self._normal_print('Failed at Z = %.1f'%current_Z)
                         sys.exit(1)
                         
                     step_mfs = self.metals.metallicity(self.windsoln.species_list,Z=step_Z)
@@ -2497,8 +2495,7 @@ class wind_simulation:
             result = self.run_wind(expedite=expedite,calc_postfacto=False)
             if result == 4:
                 if quiet == False:
-                    self._normal_print('Failure at last Ncol convergence.',
-                          f' Last working solution should be fine for most purposes. Average diff from self-consistent value: {avg:.2e}')
+                    self._normal_print(f'Failure at last Ncol convergence. Last working solution should be fine for most purposes. Average diff from self-consistent value: {avg:.2e}')
                 return 4
             elif result == 1:
                 self._normal_print('Failure at the endgame.')
@@ -3232,9 +3229,7 @@ class wind_simulation:
             if Fnorm == 0.0:
                 if (norm_span[0]<curr_span[0]) or (norm_span[1]>curr_span[1]):
                     self._normal_print('When Fnorm=0.0, flux is normalized to the current value in norm_spec_range.')  
-                    self._normal_print('However, bounds of normalization range exceed the current',
-                          f'bounds of spectrum. (Norm: [{norm_span[0]:.2f},{norm_span[1]:.2f}]nm',
-                          f'Current: [{curr_span[0]:.2f},{curr_span[1]:.2f}]nm.)')
+                    self._normal_print(f'However, bounds of normalization range exceed the current bounds of spectrum. (Norm: [{norm_span[0]:.2f},{norm_span[1]:.2f}]nm. Current: [{curr_span[0]:.2f},{curr_span[1]:.2f}]nm.)')
                     self._normal_print('So, flux will be normalized to total flux in current spectrum range.')
                     norm_span[0] = max(norm_span[0],curr_span[0])
                     norm_span[1] = min(norm_span[1],curr_span[1])
@@ -3651,7 +3646,7 @@ class wind_simulation:
         df.to_csv(g, header=True, index=False)
         g.close()
 
-        self._normal_print('Spectrum saved in Wind-AE readable format at',file)
+        self._normal_print('Spectrum saved in Wind-AE readable format at '+file)
 
         return
     
