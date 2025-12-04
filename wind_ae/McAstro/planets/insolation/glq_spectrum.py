@@ -434,7 +434,7 @@ class glq_spectrum:
             smth_var = 'f_wl_smth'
             
         # Smooth spectrum
-        if len(self.data_norm['wl'].values) > 3000: #RUTH'S HACK
+        if len(self.data_norm['wl'].values) > 5000: #RUTH'S HACK
             if self.print_warning == True:
                 print("High resolution spectrum: Changing savgol_window and turning off d2_crits")
             savgol_window = self.hires_savgol_window 

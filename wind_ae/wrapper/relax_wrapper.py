@@ -3557,7 +3557,7 @@ class wind_simulation:
                 goal_spec_range = self.windsoln.spec_resolved/self.spectrum.wl_norm
                 units = 'nm'
             if updated_F == 0:
-                f = open("McAstro/stars/spectrum/additional_spectra/"+spectrum_filename,"r")
+                f = open(self.path+"McAstro/stars/spectrum/additional_spectra/"+spectrum_filename,"r")
                 updated_F = float(f.readlines()[1])/(self.windsoln.semimajor/const.au)**2
                 norm_spec_range = [12.4,91.1]
                 f.close()
