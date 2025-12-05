@@ -3,5 +3,5 @@ Mp:        1.330000000000e+30   #g;              0.70 MJ
 Ruv:       1.000000000000e+10   #cm;             1.40 RJ
 Mstar:     1.988416000000e+33   #g;              1.00 Msun
 semimajor: 7.480000000000e+11   #cm;             0.05 au
-Ftot:      1.095712977126e+03   #erg/cm^2/s; 2.35e+02 FuvEarth
+Ftot:      6.224484762347e+04   #erg/cm^2/s; 1.33e+04 FuvEarth
 Lstar:     6.807420000000e+33   #erg/s;          1.78 Lstar

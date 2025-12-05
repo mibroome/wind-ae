@@ -72,7 +72,7 @@ class glq_spectrum:
                 print("Reminder, it should contain headers of: 'wl' (cm),'F_wl' (erg/s/cm^3),'unc'(???),'nu'(1/s),'F_nu'.")
             f = open(filed+'/../../stars/spectrum/additional_spectra/'+filename,'r')
             self.hires_savgol_window = int(f.readlines()[2])
-#             print(self.hires_savgol_window)
+            # print("savgol_window",self.hires_savgol_window)
             f.close()
             
             spectrum = pd.read_csv(filed+'/../../stars/spectrum/additional_spectra/'+filename,
@@ -432,9 +432,12 @@ class glq_spectrum:
         else:
             var = 'f_wl'
             smth_var = 'f_wl_smth'
+        
+        if self.hires_savgol_window != 0:
+            savgol_window = self.hires_savgol_window
             
         # Smooth spectrum
-        if len(self.data_norm['wl'].values) > 5000: #RUTH'S HACK
+        if len(self.data_norm['wl'].values) > 4000: #RUTH'S HACK
             if self.print_warning == True:
                 print("High resolution spectrum: Changing savgol_window and turning off d2_crits")
             savgol_window = self.hires_savgol_window 
@@ -446,6 +449,7 @@ class glq_spectrum:
             # Set bin id
             self.data_norm.loc[mk, 'bin'] = n
             # First Savitzky-Golay filter pass
+            # print(len(self.data_norm.loc[mk, var]),savgol_window)
             self.data_norm.loc[mk, smth_var] = (
                 savgol_filter(self.data_norm.loc[mk, var],
                               savgol_window, savgol_degree)

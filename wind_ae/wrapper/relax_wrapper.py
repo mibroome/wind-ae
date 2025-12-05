@@ -3167,7 +3167,7 @@ class wind_simulation:
 
         Args:
             Fnorm (float, optional): Flux in ergs/s/cm2 AT SEMIMAJOR AXIS OF PLANET. If 0.0, flux is normalized to the current value in norm_spec_range. Otherwise, ramps to given Fnorm. Defaults to 0.0.
-            norm_spec_range (list or array, optional): Desired range over which to normalize in units of 'units'. Defaults to [].
+            norm_spec_range (list or array, optional): Desired range over which to normalize the flux in units of 'units'. Defaults to [].
             goal_spec_range (list or array, optional): Custom upper and lower limits of spectrum in units of 'units'. Defaults to [].
             units (str, optional): Units of range values. Options are 'cm', 'nm', 'eV'. Defaults to 'eV'.
             normalize (bool, optional): If True, flux in new range will be normalized to Fnorm in norm_spec_range. Defaults to True.
@@ -3176,6 +3176,10 @@ class wind_simulation:
 
         Returns:
             int: 0 if ramping successful, 1 if ramping with smaller stepsize unsuccessful, 2 if need to provide Ftot or set norm_flux=True.
+
+        Example:
+            >>> ramp_spectrum(1000,norm_spec_range=[13.6,100],goal_spec_range=[13.6,2000],units='eV',normalize=True)
+            Will generate a solution with XUV spectrum over 13.6-2000 eV and total integrated flux over 13.6-2000 eV such that the flux in the norm_spec_range (13.6-100 eV) is 1000 ergs/s/cm^2. 
         """
         self.load_spectrum()
         ons = np.copy(np.array([self.spectrum.norm_span[0], self.spectrum.norm_span[1]]))
@@ -3276,7 +3280,9 @@ class wind_simulation:
             while abs(sum((goal_span-self.windsoln.spec_resolved/self.spectrum.wl_norm)/goal_span)) > 1e-3:
                 avg_diff = abs(sum((goal_span-self.windsoln.spec_resolved/self.spectrum.wl_norm)/goal_span))
                 curr = self.windsoln.spec_resolved/self.spectrum.wl_norm
-                step_span = self.windsoln.spec_resolved/self.spectrum.wl_norm + delta / 2
+                step_span = self.windsoln.spec_resolved/self.spectrum.wl_norm + delta / 5
+                if abs(sum((goal_span-step_span)/goal_span)) > avg_diff:
+                    step_span = goal_span
                 self._raster_print(f'  Fail 1: Current [{curr[0]:.1f},{curr[1]:.1f}]. Attempting [{step_span[0]:.1f},{step_span[1]:.1f}]')
                 spec.set_resolved(*step_span) #
                 spec.set_normalized(*step_span) 
@@ -3295,7 +3301,7 @@ class wind_simulation:
                 fail = 1
                 while self.run_wind(expedite=True,calc_postfacto=False) != 0:
                     fail += 1
-                    factor = 1/(2**fail)
+                    factor = 1/(5*2**(fail-1))
                     if fail > 6:
                         curr = self.windsoln.spec_resolved/self.spectrum.wl_norm
                         eV = const.hc/self.windsoln.spec_resolved / const.eV
@@ -3312,6 +3318,8 @@ class wind_simulation:
                         return 1
                     curr = self.windsoln.spec_resolved/self.spectrum.wl_norm
                     step_span = curr + delta*factor
+                    if abs(sum((goal_span-step_span)/goal_span)) > avg_diff:
+                        step_span = goal_span
                     self._raster_print(f'  Fail {fail}: Current [{curr[0]:.1f},{curr[1]:.1f}]. Attempting {step_span}nm')
                     spec.set_resolved(*step_span) #
                     spec.set_normalized(*step_span) 
@@ -3535,6 +3543,8 @@ class wind_simulation:
             except ValueError:
                 self._normal_print(f"Succeeded in full jump to {spectrum_filename}")
         self._normal_print("*** REMINDER: Goal spectrum (orange) oversmoothed? Lower the hires_savgol_window value. ***")
+        self._normal_print("              (Note: lower values will take longer to run).")
+
 
         #Ramping to desired spectral range and flux
         self.converge_Ncol_sp(expedite=True,quiet=True)
