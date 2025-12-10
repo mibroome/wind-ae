@@ -433,8 +433,11 @@ class glq_spectrum:
             var = 'f_wl'
             smth_var = 'f_wl_smth'
         
-        if self.hires_savgol_window != 0:
-            savgol_window = self.hires_savgol_window
+        try: 
+            if self.hires_savgol_window != 0:
+                savgol_window = self.hires_savgol_window
+        except AttributeError:
+                self.hires_savgol_window = savgol_window
             
         # Smooth spectrum
         if len(self.data_norm['wl'].values) > 4000: #RUTH'S HACK

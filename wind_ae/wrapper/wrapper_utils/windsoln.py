@@ -511,8 +511,12 @@ class wind_solution:
         for s, species in enumerate(self.species):  
             #Initializing matrices of dimension (len(E_wl),len(r)). Looping over species
             n0_matrix = np.tile(self.soln['n_'+species], (self.npts, 1)).T #Column density as a function of radius
-            sig_matrix = np.tile(sigmas.iloc[:, s], (len(background_ioniz_frac), 1)) #Cross section as a function of photon energy (wavelength)           
+            sig_matrix = np.tile(sigmas.iloc[:, s], (len(background_ioniz_frac), 1)) #Cross section as a function of photon energy (wavelength)
+            # if f_denom != 0:  
+            f_denom[f_denom==0] = np.inf        
             f = np.nan_to_num(sig_matrix * n0_matrix / f_denom)  # frac of incident photon flux that will interact with species s
+            # else:
+            #     f = 0
             # print(f)
             
             #E0 = (E - ionization potential of species s) in ergs

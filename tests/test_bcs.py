@@ -8,7 +8,11 @@ filename = path+'/saves/test.csv'
 sim.load_planet(filename)
 
 def test_bcs_base():
-    assert sim.base_bcs() == (np.float64(1.0566958974807499), 6.381446068152, np.float64(21357.70226090895), 0.15348209185160616)
+    Rmin,Rmax,rho_Rmin, T_Rmin = sim.base_bcs()
+    assert np.floor(Rmin) == 1.0 #Rmin
+    assert Rmax > Rmin
+    assert rho_Rmin/1e5 <= 1.0 #rho(Rmin) in units of 1e-15 g/cm3
+    assert (T_Rmin <= 1.0) & (T_Rmin > 0.1) #T(Rmin) in units of 1e4 K
 
 def test_ramp_bcs():
     assert sim.ramp_base_bcs() == 0

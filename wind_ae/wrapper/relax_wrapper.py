@@ -2042,6 +2042,8 @@ class wind_simulation:
             
             if (self.windsoln.bolo_heat_cool == 0) and (bolo_on==True):
                 return self.turn_on_bolo()
+            
+            return 0
             # if (self.windsoln.molec_adjust <= 0) and (molec_adjust_on == True):
             #     # print("triggered in molec_on")
             #     return self.turn_on_molec_adjust(_called_indep=False)
@@ -2465,8 +2467,7 @@ class wind_simulation:
                     self._raster_print(f'  ...Fail {fail:d}: Attempting Ncol_sp = {Ncol_step*scale}.')
 
                     if fail > 10:
-                        self._normal_print(f"\nFailed at Ncol_sp = {Ncol_current} ",
-                              f"& Goal = {Ncol_goal}.") #summed neutral number density
+                        self._normal_print(f"\nFailed at Ncol_sp = {Ncol_current} & Goal = {Ncol_goal}.") #summed neutral number density
                         return 2
                     result = self.run_wind(expedite=expedite,calc_postfacto=False)
                     fail += 1
@@ -2708,7 +2709,9 @@ class wind_simulation:
             Ncol_matrix = np.tile(Ncol_arr.iloc[:,s],(self.windsoln.npts,1)).T
             sig_matrix = np.tile(sigmas.iloc[:,s],(len(background_ioniz_frac),1))
 
-            f = np.nan_to_num(sig_matrix*Ncol_matrix / taus) #frac of incoming photon energy that will interact with species s
+            taus_temp = taus
+            taus_temp[taus==0] = np.inf
+            f = np.nan_to_num(sig_matrix*Ncol_matrix / taus_temp) #frac of incoming photon energy that will interact with species s
             E0_matrix = E_matrix - self.windsoln.ion_pot[s]
 
             heatfrac_matrix = (np.tile(frac_in_heat,(len(self.windsoln.E_wl),1))).T
