@@ -50,6 +50,7 @@ class wind_simulation:
                               sep=r'\s+', names=list(range(45)))  
         self.df = self.df.rename(columns={0:'Z', 1:'Ion', 2:'NS', 3:'I', 4:'Tmin'})
         self.clear = 100*' '+'\n'
+        self.try_turning_off = True
 #         self.width_factor = 1
 
     def _raster_print(self,msg,end='', pad=130):
@@ -2871,7 +2872,7 @@ class wind_simulation:
             if (self.windsoln.molec_adjust > 0) and (self.try_turning_off):
                 # print(self.windsoln.molec_adjust)
                 self._raster_print("\nCurrent simulation Rmin nearly or fully inside of wind. Molecular layer will be turned off.\n")
-                self.turn_off_molecular_layer(_called_indep=False)
+                self.turn_off_bolo()
                 self.try_turning_off=False
                 if return_idx==False:
                     return v[0],rate_calc(0,width_factor)
