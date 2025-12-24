@@ -1377,13 +1377,13 @@ class wind_simulation:
                     self.system.assign('semimajor', var_adist)
                 elif (var_Lstar != end_Lstar) and (var_adist != end_adist):
                     print("\r  Success %s:%.6e & %s:%.6e, M_delta:%.4g"
-                          %('Mstar', temp_Mstar, 'semimajor', temp_adist,
-                            M_flip*(temp_Mstar-var_Mstar)/var_Mstar),
+                          %('Lstar', temp_Lstar, 'semimajor', temp_adist,
+                            L_flip*(temp_Lstar-var_Lstar)/var_Lstar),
                            end="                                           ")
                     self.last_print_rastered = True
-                    var_Mstar = temp_Mstar
+                    var_Lstar = temp_Lstar
                     var_adist = temp_adist
-                    self.system.assign('Mstar', var_Mstar)
+                    self.system.assign('Lstar', var_Lstar)
                     self.system.assign('semimajor', var_adist)
                 elif (var_Lstar != end_Lstar) and (var_Mstar != end_Mstar):
                     print("\r  Success %s:%.6e & %s:%.6e, M_delta:%.4g"
