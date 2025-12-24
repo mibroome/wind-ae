@@ -548,13 +548,13 @@ void get_spQ(double *spQ, I_EQNVARS vars,double k,int printout) {
        smoothing_erf /= erf_norm;
        
         spQ_boloheat = parameters.Lstar/(4*PI*pow(parameters.semimajor,2)) *(kappa_opt*smoothing_erf+0.25*kappa_IR*smoothing_erf); // divided by rho
-        *spQ += spQ_boloheat*(parameters.Rp/pow(CS0, 3)); 
-        // *spQ += parameters.bolo_heat_cool*spQ_boloheat*(parameters.Rp/pow(CS0, 3)); 
+        // *spQ += spQ_boloheat*(parameters.Rp/pow(CS0, 3)); 
+        *spQ += parameters.bolo_heat_cool*spQ_boloheat*(parameters.Rp/pow(CS0, 3)); 
 
         /* Bolometric cooling */
         spQ_bolocool = -2*SIG_SB*pow(vars.T*T0,4)*kappa_IR*smoothing_erf; // divided by rho
-        *spQ += spQ_bolocool*(parameters.Rp/pow(CS0, 3)); 
-        // *spQ += parameters.bolo_heat_cool*spQ_bolocool*(parameters.Rp/pow(CS0, 3)); 
+        // *spQ += spQ_bolocool*(parameters.Rp/pow(CS0, 3)); 
+        *spQ += parameters.bolo_heat_cool*spQ_bolocool*(parameters.Rp/pow(CS0, 3)); 
    }
   
   /* Lyman-alpha cooling */
