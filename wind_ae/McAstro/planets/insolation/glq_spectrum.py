@@ -437,7 +437,7 @@ class glq_spectrum:
             if self.hires_savgol_window != 0:
                 savgol_window = self.hires_savgol_window
         except AttributeError:
-                self.hires_savgol_window = savgol_window
+            self.hires_savgol_window = savgol_window
             
         # Smooth spectrum
         if len(self.data_norm['wl'].values) > 4000: #RUTH'S HACK

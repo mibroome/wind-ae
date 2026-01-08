@@ -3401,7 +3401,7 @@ class wind_simulation:
     def ramp_to_user_spectrum(self,spectrum_filename,species_list=[],
                               updated_F=0.0,norm_spec_range=[],goal_spec_range=[],
                               units='eV',normalize=True,plot=True,ramp_range=True,
-                              hires_savgol_window=501):
+                              hires_savgol_window=None):
         '''Ramping stellar spectrum wavelength/energy range to new wavelength/energy range.
         
         Args:
@@ -3423,16 +3423,17 @@ class wind_simulation:
         '''
         #generating a smoothed and binned version of the user-input code
         wl_norm=1e-7
-        if hires_savgol_window%2==0: #must be odd
-            hires_savgol_window+=1
-            
-        f = open(self.path+'McAstro/stars/spectrum/additional_spectra/'+spectrum_filename,'r')
-        h = f.readlines()
-        h[2] = '%d\n' %hires_savgol_window
-        f.close()
-        g = open(self.path+'McAstro/stars/spectrum/additional_spectra/'+spectrum_filename,'w')
-        g.writelines(h)
-        g.close()
+        if hires_savgol_window is not None:
+            if hires_savgol_window%2==0: #must be odd
+                hires_savgol_window+=1
+                
+            f = open(self.path+'McAstro/stars/spectrum/additional_spectra/'+spectrum_filename,'r')
+            h = f.readlines()
+            h[2] = '%d\n' %hires_savgol_window
+            f.close()
+            g = open(self.path+'McAstro/stars/spectrum/additional_spectra/'+spectrum_filename,'w')
+            g.writelines(h)
+            g.close()
         
         spec = spectrum(lisird=False,spectrum_file=spectrum_filename,
                         wl_norm=wl_norm,print_warning=True)
