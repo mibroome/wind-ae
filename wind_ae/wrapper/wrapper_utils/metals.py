@@ -517,8 +517,9 @@ class metal_class:
         Z_array = []
         for element in el_list:
             Z_array = np.append(Z_array,solar_mass_frac[lodders['name']==element])
-        temp_delta = (1-np.sum(Z_array))
-        Z_array[0] += temp_delta
+        Z_array = Z_array/np.sum(Z_array)
+        # temp_delta = (1-np.sum(Z_array))
+        # Z_array[0] += temp_delta
 
         return Z_array
 
