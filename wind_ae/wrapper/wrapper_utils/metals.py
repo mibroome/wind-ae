@@ -306,6 +306,7 @@ class metal_class:
         remove_species_spaced = McAtom.formatting_species_list(remove_species)
         remove_species_unspaced = [rs.replace(' ','') for rs in remove_species_spaced]
 
+        self.windsoln.species_list = [sp.replace(' ','') for sp in self.windsoln.species_list]  
         # if remove_species_unspaced in self.windsoln.species_list:
         for j in range(len(remove_species)):
             rsu = remove_species_unspaced[j]

@@ -262,7 +262,7 @@ class wind_simulation:
             output, error_output = sub.communicate()
             if error_output:
                 self._normal_print(f'ERROR: Failed loading {csv_file:s} as guess.inp\n')
-                self._normal_print(error_output)
+                print(error_output)
                 return
         # If all is successful update wind_simulation object
         sub = Popen(["cp", 'inputs/guess.inp', 'saves/windsoln.csv'],cwd=self.path, stdout=PIPE, stderr=PIPE)
@@ -270,7 +270,7 @@ class wind_simulation:
         output, error_output = sub.communicate()
         if error_output:
             self._normal_print(f'ERROR: Failed copying {csv_file:s} into saves/windsoln.csv\n')
-            self._normal_print(error_output)
+            print(error_output)
             return
         
         self.guess = planet
@@ -372,7 +372,7 @@ class wind_simulation:
         sub.wait()
         output, error_output = sub.communicate()
         if error_output:
-            self._normal_print(error_output)
+            print(error_output)
         return
     
     
@@ -460,7 +460,7 @@ class wind_simulation:
                         stdout=PIPE, stderr=PIPE)
             output, error_output = sub.communicate()
             if error_output:
-                self._normal_print(error_output)
+                print(error_output)
                 return 2
             #if calc_postfacto==True, takes time to run add_user_vars()
             self.windsoln = wind_solution(calc_postfacto=calc_postfacto, print_warnings=False)
@@ -1659,8 +1659,8 @@ class wind_simulation:
         try:
             self.metals.remove_species_from_guess(remove_species_list)
 #             self.windsoln.nspecies -= len(remove_species_list)
-            self.load_planet(self.path+'inputs/guess.inp',calc_postfacto=False,
-                             print_atmo=False,print_warnings=False)
+            # self.load_planet(self.path+'inputs/guess.inp',calc_postfacto=False,
+            #                  print_atmo=False,print_warnings=False)
         except ValueError:
             self._normal_print('\nOne or more of the species you are attempting to remove is not present in simulation.')
             return 1
