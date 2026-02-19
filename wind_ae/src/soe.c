@@ -16,6 +16,7 @@
 #include "wind.h"
 #include "globals.h"
 #include "prototypes.h"
+#include "ion_pots.h"
 #include "recombo_vars.h"
 #include "line_cooling_coeffs.h"
 
@@ -28,7 +29,7 @@ double rate = 1e2;
 /*----------------------------------------------------------------------------*
  *======================== PRIVATE FUNCTION PROTOTYPES =======================*
  *----------------------------------------------------------------------------*/
-static void get_alpharec(double *alpharec_p, I_EQNVARS kvars);
+static void get_alpharec(double *alpharec_p, I_EQNVARS kvars, int calc_lower_ion_state);
 static void get_mu(double *mu_p, I_EQNVARS kvars);
 static void get_gamma(double *gamma_p);
 static void set_vars(int k, double *x, double **y, I_EQNVARS *kvars,
@@ -421,7 +422,7 @@ void get_dYsdr(double *dYsdr, I_EQNVARS vars, double k, int print_rates) {
   }
 
   /* Calculate derived quantities */
-  get_alpharec(alpharec, vars);
+  get_alpharec(alpharec, vars, 1);
    
   /*Method for direct printout (minimizes duplications in printout)*/
   // if (print_rates==0){
@@ -637,17 +638,54 @@ void get_spQ(double *spQ, I_EQNVARS vars,double k,int printout) {
     }
   }
   /* Collisions with neutral H are relevant when e- density low => CI and OI line cooling matter */
-    
-  /* Recombination cooling */
+
+    /* Recombination cooling */
+  //Updated 1/9/2026 to be per-species
+  //changed 5/4/2023 to be negative
+    //All ionized species taken into account (e.g., HII, OII, and OIII)
+    double alpharec_higher_ion_state[NSPECIES];
+    double alpharec_lower_ion_state[NSPECIES];
+
+    get_alpharec(alpharec_higher_ion_state,vars,1);
+    get_alpharec(alpharec_lower_ion_state,vars,0);
+
+    /*FIX WHEN MULTIPLE IONIZATION STATES PER ELEMENT*/
+    spQ_reccool = 0.0;
     for (j=0; j<NSPECIES; j++){
-        nIONoverrho  += (1.-vars.Ys[j])*parameters.HX[j]/(parameters.atomic_mass[j]); 
-        //TOTAL number density of ionized species
-      }
-    spQ_reccool  = -RECCOOL_COEFF*pow(vars.T, 0.11)*(nIONoverrho)*ne; //changed 5/4/2023 to be negative
+        nIONoverrho = 0.0, n0overrho = 0.0;
+        nIONoverrho  = (1.-vars.Ys[j])*parameters.HX[j]/(parameters.atomic_mass[j]); 
+        n0overrho = vars.Ys[j]*parameters.HX[j]/(parameters.atomic_mass[j]);
+
+        if (parameters.Z[j] == 1){
+          //Case B recombination for HII
+          spQ_reccool += -2.85e-27 * ne * nIONoverrho * sqrt(vars.T) * (5.914 - 0.5 * log(vars.T) + 0.01184 * pow(vars.T, 1.0 / 3.0));
+        }
+        else if (parameters.Z[j] != parameters.N_e[j]){
+          //contribution from species in lower ionization state as long as not neutral (e.g., if lowest state in sim is OII, counts that and OIII)
+          spQ_reccool += - alpharec_lower_ion_state[j] * n0overrho * ne * (1.5 * K * vars.T); 
+        }
+        else{
+          //contribution from species in higher ionization state 
+          spQ_reccool += - alpharec_higher_ion_state[j] * nIONoverrho * ne * (1.5 * K * vars.T); 
+        }
+    }
     spQ_reccool *= (parameters.Rp/pow(CS0, 3));
     *spQ += spQ_reccool;
 
   return;
+}
+
+/*===========================================================================*
+ * Returns the ionization potential from ion_pots array for given Z and N_e.
+ *---------------------------------------------------------------------------*/
+double get_ion_pot(int Z, int N_e, int num_rows) {
+    for (int i = 0; i < num_rows; i++) {
+        if ((int)ion_pots[i][0] == Z && (int)ion_pots[i][1] == N_e) {
+            return ion_pots[i][2];
+        }
+    }
+    // Not found: return 0 or error value
+    return 0.0;
 }
 
 /*============================================================================*
@@ -688,7 +726,7 @@ void get_rad(double *rad, I_EQNVARS vars) {
  *  \brief Calculates the temperature dependence of the recombination         *
  *----------------------------------------------------------------------------*/
 
-static void get_alpharec(double *alpharec_p, I_EQNVARS kvars) {
+static void get_alpharec(double *alpharec_p, I_EQNVARS kvars, int calc_lower_ion_state) {
     int j,i;
     int iz, in;
     double tt,T,r;
@@ -699,6 +737,16 @@ static void get_alpharec(double *alpharec_p, I_EQNVARS kvars) {
     for (j=0; j<NSPECIES; j++){
       iz = parameters.Z[j];
       in = parameters.N_e[j];
+      if (calc_lower_ion_state==0){ //used for recombination cooling calculation
+        if (in<iz){ //as long as the lower state is not neutral
+          in = in + 1; //calculate for the next LOWER ionization state 
+          //(confusingly, MORE electrons attached to atom ==> N_e INCREASES)
+        }
+        else{
+          alpharec_p[j] = 0.0; //because we don't care for recombo cooling if its neutral
+          continue;
+        }
+      }
       //Adapted from the CLOUDY rrfit fortran agorithm
         if(in<3 || in==11 || (iz>5 && iz<9) || iz==10){ 
             for(i=0;i<126;i++){

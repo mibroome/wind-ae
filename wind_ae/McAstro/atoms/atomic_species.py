@@ -83,6 +83,7 @@ class atomic_species:
         """
         self.name = name
         self.Z, self.Ne = spectroscopy_to_atomic_notation(name)
+        # print(self.Z, self.Ne)
         self.verner_data = None
         if self.Ne > 0:
             self.verner_data  = {

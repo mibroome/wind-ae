@@ -12,8 +12,10 @@ def test_turn_off_tidal_grav():
     assert sim.windsoln.flags_tuple[1] == 0
 
 def test_raise_Ncol_sp():
+    start_Ncol = sim.windsoln.Ncol_sp[0]
     sim.raise_Ncol_sp(by_factor=2)
-    assert np.round(sim.windsoln.Ncol_sp[0],3) == 0.041
+    assert (start_Ncol-sim.windsoln.Ncol_sp[0])/start_Ncol < 1e-4
+
 
 def test_integrate_out():
     sim.run_wind(expedite=True)

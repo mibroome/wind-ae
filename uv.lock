@@ -941,7 +941,7 @@ wheels = [
 
 [[package]]
 name = "wind-ae"
-version = "0.5.3"
+version = "0.5.10"
 source = { editable = "." }
 dependencies = [
     { name = "astropy" },

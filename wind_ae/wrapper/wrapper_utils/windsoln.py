@@ -248,8 +248,20 @@ class wind_solution:
             self.sigma_wl,
             self.species,
         ]
+        #reading in table of ionization coefficients for secondary and direct ionizations from Dere et al. (2007) 
         self.dere_df = pd.read_csv(pkg_resources.files("wind_ae").joinpath("wrapper/wrapper_utils/dere_table29.dat"), sep=r'\s+', names=list(range(45)))
         self.dere_df = self.dere_df.rename(columns={0: 'Z', 1: 'Ion', 2: 'NS',3:'I',4:'Tmin'})
+        #reading in table of ionization potentials for all species up to Z=30, N_e=30 from Verner et al. (1996)
+        self.all_ion_pots = pd.read_csv(pkg_resources.files("wind_ae").joinpath("wrapper/wrapper_utils/ion_pots.dat"), sep=r',')
+        #Reading in coefficients for caculating temperature-dependent recombination coefficients (adapted from CLOUDY Fortran rrfit algorithm (Ferland et al. 2013))
+        filepath = pkg_resources.files("wind_ae.wrapper.wrapper_utils").joinpath("recombo_vars.dat")
+        self._fe = np.genfromtxt(filepath, delimiter=",", usecols=(0, 1, 2, 3))[0:10]
+        self._rrec = np.genfromtxt(
+            filepath, delimiter=",", skip_header=10, usecols=(0, 1, 2, 3)
+        )[0:349]
+        self._rnew = np.genfromtxt(
+            filepath, delimiter=",", skip_header=359, usecols=np.arange(6)
+        )
 
         # set surface Rp values (may not be 0 if integrated inwards)
         self.rmin_index = len(self.soln[self.soln_norm["r"] < self.Rmin])
@@ -272,14 +284,7 @@ class wind_solution:
         # Skip unnecessary calculations when users is expediting windsoln
         if calc_postfacto:
             self.add_user_vars()
-
-            # collisionality calculations
-
-    #             self.Kn_hb_crit = self.soln['Kn_hb'][self.crit_index]
-    #             self.Kn_Co_crit = self.soln['Kn_Co'][self.crit_index]
-    #             self.calc_R_exo()
-    #             self.calc_tau_one()
-    #             self.calc_Jeans()
+            
 
     def _rate_coeff_interpolater(self,species):
         '''Generates spline for species that takes E (ergs) and returns rate coefficient R (cm^-3)
@@ -322,9 +327,12 @@ class wind_solution:
         Returns:
             float or array: The current metallicity in units of solar metallicity. If not a function of solar metallicity, returns custom mass fractions.
         """
+        if (self.nspecies == 2) & (self.species[0] == 'HI') & (self.species[1] == 'HeI'):
+            # print("For an atmosphere of H and He only, metallicity Z has no meaning. To alter the mass fractions of H and He, use sim.ramp_metallicity(custom_mfs=[]).")
+            return None
         self.metals = metal_class(self)
-        grid = np.zeros(200)
-        for i in range(200):
+        grid = np.zeros(2000)
+        for i in range(2000):
             grid[i] = abs(self.metals.metallicity(self.species_list,Z=i+1)[0]-
                             self.HX[0])
         if np.mean(abs(min(grid))) > 0.1:
@@ -333,7 +341,7 @@ class wind_solution:
                 print(f"Custom mass fractions: {self.HX}")
             return self.HX
         start_Z = np.where(grid==min(grid))[0][0]+1
-        return start_Z
+        return float(start_Z)
 
     def add_user_vars(self, expedite=False):
         '''Computes postfacto variables for the loaded solution. 
@@ -348,54 +356,12 @@ class wind_solution:
         self.metallicity = self.current_metallicity(quiet=True)
 
         if expedite is False:
-            filepath = pkg_resources.files("wind_ae.wrapper.wrapper_utils").joinpath(
-                "recombo_vars.dat"
-            )
-            fe = np.genfromtxt(filepath, delimiter=",", usecols=(0, 1, 2, 3))[0:10]
-            rrec = np.genfromtxt(
-                filepath, delimiter=",", skip_header=10, usecols=(0, 1, 2, 3)
-            )[0:349]
-            rnew = np.genfromtxt(
-                filepath, delimiter=",", skip_header=359, usecols=np.arange(6)
-            )
-            filepath = pkg_resources.files("wind_ae.McAstro.atoms").joinpath(
-                "Verner.csv"
-            )
+
+            # filepath = pkg_resources.files("wind_ae.McAstro.atoms").joinpath(
+            #     "Verner.csv"
+            # )
             # Verner = pd.read_csv(filepath, comment="#")
 
-            def alpha_rec(species, T):
-                """Adapted from the CLOUDY rrfit fortran agorithm. Computes the temperature-dependent
-                recombination coefficient for a species with Z protons and N_e electrons.
-
-                Parameters:
-                species: str, species name in any format, e.g., 'C II' or 'h1'
-                T: float, temperature of the gas in K
-                """
-                species_name_spaced = McAtom.formatting_species_list([species])[0]
-                ma = McAtom.atomic_species(species_name_spaced)
-                iz = ma.Z
-                iN = ma.Ne
-                T = np.array(T)
-                if iN < 3 or iN == 11 or (iz > 5 and iz < 9) or iz == 10:
-                    idx = np.where((rnew[:, 0] == iz) & (rnew[:, 1] == iN))
-                    tt = np.sqrt(T / rnew[idx, 4])
-                    r = rnew[idx, 2] / (
-                        tt
-                        * np.power(tt + 1.0, 1.0 - rnew[idx, 3])
-                        * np.power(1.0 + np.sqrt(T / rnew[idx, 5]), 1.0 + rnew[idx, 3])
-                    )
-                else:
-                    tt = T * 1.0e-04
-                    if iz == 26 and iN < 13:
-                        idx = np.where(fe[:, 0] == iN)
-                        r = fe[idx, 1] / np.power(
-                            tt, (fe[idx, 2] + fe[idx, 3] * np.log10(tt))
-                        )
-                    else:
-                        idx = np.where((rrec[:, 0] == iz) & (rrec[:, 1] == iN))
-                        r = rrec[idx, 2] / np.power(tt, rrec[idx, 3])
-
-                return r[0]
 
             self.Omega = np.sqrt(const.G * (self.Mp + self.Mstar) / self.semimajor**3)
             self.semimajor_normed = self.semimajor / self.Rp
@@ -417,6 +383,7 @@ class wind_solution:
         n_tot_neutral = np.zeros_like(self.soln["rho"])
         n_tot_ion = np.zeros_like(self.soln["rho"])
         self.soln["n_e"] = np.zeros_like(self.soln["rho"])
+        all_species = []
         for j in range(self.nspecies):
             ma = McAtom.atomic_species(spaced[j])
             element_name = ((spaced[j]).split())[0]
@@ -428,6 +395,8 @@ class wind_solution:
             total = "n_" + element_name
             neutral = "n_" + element_name + lowest_state
             ionized = "n_" + element_name + highest_state
+            all_species = np.append(all_species,element_name+lowest_state)
+            all_species = np.append(all_species, element_name+highest_state)
             self.soln[total] = self.HX[j] * self.soln["rho"] / self.atomic_masses[j]
             self.soln[neutral] = (
                 self.soln["Ys_" + (self.species_list[j]).replace(" ", "")]
@@ -656,11 +625,14 @@ class wind_solution:
             #             self.soln[L_ion_name] = self.soln['v']*self.soln[tau_name] #dist before ionizing
             #             self.soln[Kn_ion_name] = self.soln[L_ion_name]/self.soln['DlnP']
             # Rates
-            for s, species in enumerate(self.species):
-                alpha = alpha_rec(T=self.soln['T'],species=species)
+            for s, sp in enumerate(self.species_list):
+                species_name_spaced = McAtom.formatting_species_list([species])[0]
+                Z,Ne = McAtom.spectroscopy_to_atomic_notation(species_name_spaced)
+                species = sp.replace(" ", "")
+                alpha = self.alpha_rec(Z, Ne, self.soln['T'])
                 rec_coeff[:,s] = alpha
 
-                element_name = spaced[s].split(' ')[0]
+                element_name = species_name_spaced.split(' ')[0]
                 n_tot = self.soln["n_" + element_name]
                 # n+ = n_tot*(1-Ys) = (n_0/Ys)*(1-Ys) <--in this form for ease of coding 'n_'+species
                 self.soln["recomb_" + species] = (
@@ -815,17 +787,26 @@ class wind_solution:
         except IndexError:
             pass
 
-        self.soln["cool_rec"] = (
-            -2.85e-27
-            * (self.soln["n_e"]) ** 2
-            * np.sqrt(self.soln["T"])
-            * (
-                5.914
-                - 0.5 * np.log(self.soln["T"])
-                + 0.01184 * (self.soln["T"]) ** (1.0 / 3.0)
-            )
-        )
-        # n_e squared because num.ionized = num.electrons
+        self.soln["cool_rec"] = np.zeros_like(self.soln["rho"])
+        #looping over ALL ionization states (rewrite with Z and Ne someday)
+        for s, species in enumerate(self.species_list):
+            species_name_spaced = McAtom.formatting_species_list([species])[0]
+            Z,Ne = McAtom.spectroscopy_to_atomic_notation(species_name_spaced)
+            species_name_unspaced = species.replace(" ", "")
+
+            element_name = species_name_spaced.split(' ')[0]
+            nION = self.soln['n_'+element_name]*(1-self.soln['Ys_'+species_name_unspaced]) 
+
+            if Z == 1:
+                self.soln["cool_rec"] += ( -2.85e-27 * (self.soln["n_e"]) * (self.soln["n_HII"]) * np.sqrt(self.soln["T"]) * (5.914 - 0.5 * np.log(self.soln["T"]) + 0.01184 * (self.soln["T"]) ** (1.0 / 3.0)))
+            elif Ne != Z:
+                #Contribution from species in higher ionization state (lower Ne)
+                n0 = self.soln['n_'+element_name]*self.soln['Ys_'+species_name_unspaced]
+                self.soln["cool_rec"] += - self.alpha_rec(Z,Ne-1,self.soln['T']) * self.soln['n_e'] * n0 * (3.0/2.0) * const.kB * self.soln['T']
+            else:
+                #Contribution from species in lower ionization state (higher Ne)
+                self.soln["cool_rec"] += - self.alpha_rec(Z,Ne,self.soln['T']) * self.soln['n_e'] * nION * (3.0/2.0) * const.kB * self.soln['T']
+
 
         ## Bolometric heating and cooling #FIX should be read in from somewhere
         self.soln["boloheat"] = np.zeros_like(self.soln["rho"])
@@ -944,8 +925,19 @@ class wind_solution:
             self.calc_Coriolis()
         #             self.calc_vert_extent()
             if expedite is False:
-                self.calc_ballistic()
+                self.Kn_hb_crit = self.soln['Kn_hb_HI'][self.crit_index]
+                self.Kn_Co_crit = self.soln['Kn_Co_HI'][self.crit_index]
+                if self.integrate_outward:
+                    self.calc_R_exo()
+                    if self.R_exo < self.R_sp:
+                        print(f"Warning: Exobase ({self.R_exo:.2f}Rp) may be below sonic point ({self.R_sp:.2f}Rp). If so, a transonic wind (Wind-AE) solution is not valid.\n   Use sim.windsoln.calc_Jeans() to get Jean's escape mass loss rate instead.")
+                    self.calc_Jeans()
+                    self.calc_roche_lobe()
+                    if self.R_sp > self.R_roche:
+                        print(f"WARNING: Sonic point ({self.R_sp:.2f}Rp) is outside of Roche lobe ({self.R_roche:.2f}Rp). If R_sp >> R_roche, then a transonic wind (Wind-AE) solution is not valid.")
+                    self.calc_ballistic()
         return
+
 
     def calc_mu(self):
         '''Calculates dimensionless mean molecular weight (mu).'''
@@ -1018,31 +1010,41 @@ class wind_solution:
         ) * 0.33
         return
 
-    #     def calc_tau_sp(self):
-    #         int_bounds = self.soln_norm.r >= self.soln_norm['z']+1
-    #         self.act_tau_sp = integrate.simpson(self.soln['nHI'][int_bounds]*
-    #                                           6.304e-18*(13.6/16)**3,
-    #                                           x=self.soln['r'][int_bounds])
-    #         self.last_tau = np.asarray(self.soln['tau'])[-1]
-    #         return
 
-    #     def calc_tau_one(self):
-    #         try:
-    #             index = self.soln_norm[self.soln.tau > 1].index[-1]
-    #         except IndexError:
-    #             self.error += 1
-    #             return
-    #         if (index+1 == len(self.soln['tau'])):
-    #             self.error += 1
-    #             return
-    #         dtaudr = ((self.soln.iloc[index]['tau']-
-    #                    self.soln.iloc[index+1]['tau'])/
-    #                   (self.soln_norm.iloc[index]['r']-
-    #                    self.soln_norm.iloc[index+1]['r']))
-    #         self.r_tau1 = (self.soln_norm.iloc[index]['r']+
-    #                        (1.-self.soln.iloc[index]['tau'])/dtaudr)
-    #         self.tau_index = index
-    #         return
+    def alpha_rec(self, Z, Ne, T):
+        """Adapted from the CLOUDY rrfit fortran agorithm. Computes the temperature-dependent
+        recombination coefficient for a species with Z protons and N_e electrons.
+
+        Parameters:
+        Z: int, number of protons
+        Ne: int, number of electrons (if Ne=Z, then species is neutral)
+        T: float, temperature of the gas in K
+        """
+        # species_name_spaced = McAtom.formatting_species_list([species])[0]
+        # ma = McAtom.atomic_species(species_name_spaced)
+        iz = Z
+        iN = Ne
+        T = np.array(T)
+        if iN < 3 or iN == 11 or (iz > 5 and iz < 9) or iz == 10:
+            idx = np.where((self._rnew[:, 0] == iz) & (self._rnew[:, 1] == iN))
+            tt = np.sqrt(T / self._rnew[idx, 4])
+            r = self._rnew[idx, 2] / (
+                tt
+                * np.power(tt + 1.0, 1.0 - self._rnew[idx, 3])
+                * np.power(1.0 + np.sqrt(T / self._rnew[idx, 5]), 1.0 + self._rnew[idx, 3])
+            )
+        else:
+            tt = T * 1.0e-04
+            if iz == 26 and iN < 13:
+                idx = np.where(self._fe[:, 0] == iN)
+                r = self._fe[idx, 1] / np.power(
+                    tt, (self._fe[idx, 2] + self._fe[idx, 3] * np.log10(tt))
+                )
+            else:
+                idx = np.where((self._rrec[:, 0] == iz) & (self._rrec[:, 1] == iN))
+                r = self._rrec[idx, 2] / np.power(tt, self._rrec[idx, 3])
+
+        return r[0]
 
     def tau_array(self, photon, units="eV"):
         """Returns an array with the optical depth for the provided photon energy (or wavelength) for each radius in the windsoln.
@@ -1078,6 +1080,7 @@ class wind_solution:
             tau += Ncol * sigma
         return tau
 
+
     def calc_tau1_radius(self, photon, units="eV"):
         """Returns radius in Rp and index where tau=1 surface is for the photon of the provided energy (or wavelength).
 
@@ -1092,6 +1095,39 @@ class wind_solution:
         idx = len(taus) - np.searchsorted(np.flip(taus), 1)
         r = self.soln_norm["r"][idx]
         return r, idx
+    
+
+    def calc_roche_lobe(self, tol=1e-12, max_iter=20):
+        q = self.Mp / self.Mstar
+        
+        # Hill radius initial guess
+        x = (q / 3.0)**(1/3)
+        
+        x_lo = 1e-12
+        x_hi = 1.0 - 1e-12
+        
+        for _ in range(max_iter):
+            f = q/x**2 - 1/(1-x)**2 + 1 - (1+q)*x
+            df = -2*q/x**3 - 2/(1-x)**3 - (1+q)
+            
+            x_new = x - f/df
+            
+            if not (x_lo < x_new < x_hi):
+                x_new = 0.5 * (x_lo + x_hi)
+            
+            if f > 0:
+                x_lo = x
+            else:
+                x_hi = x
+            
+            if abs(x_new - x) < tol:
+                self.R_roche = (self.semimajor * x_new) / self.Rp
+                return 
+            
+            x = x_new
+        
+        self.R_roche = (self.semimajor * x)/self.Rp
+        return 
 
 
     def calc_R_exo(self, Kn="Kn_hb_HI"):
@@ -1127,10 +1163,12 @@ class wind_solution:
             self.exo_index = self.crit_index
         return self.R_exo, self.exo_index
 
+
     def calc_Jeans(self):
         """ DEPRECATED. Calculates Jeans length and mass loss rate via Jeans escape.
+        Currently uses R_exo computed only from HI collisionality.
         """
-        self.Jeans = (
+        self.Jeans_param = (
             const.G
             * self.Mp
             * self.soln["mu"]
@@ -1142,9 +1180,9 @@ class wind_solution:
             * np.sqrt(np.pi)
             * self.soln["rho"][self.exo_index]
             * v_mp
-            * (self.Jeans + 1.0)
-            * np.exp(-self.Jeans)
-            * (self.R_exo * self.scales[0]) ** 2
+            * (self.Jeans_param + 1.0)
+            * np.exp(-self.Jeans_param)
+            * (self.R_exo * self.scales_dict['r']) ** 2
         )
         return self.Mdot_Jeans
 
