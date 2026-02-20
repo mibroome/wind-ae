@@ -1,4 +1,4 @@
-# Wind-AE (BETA)
+# Wind-AE
 
 <h1 style="text-align: center;"><a href="https://wind-ae.readthedocs.io/en/latest/">Read the Docs</a></h1>
 
@@ -22,7 +22,7 @@ Is Wind-AE the right tool for me?
 
 >*If you are interested in outflow structure:* Past the Coriolis turning radius (a few planetary radii) 3D physics dominates, so `Wind-AE` does not integrate past that point. `Wind-AE` also makes simplifying assumptions about the region below the region below the wind-launch radius (~10 nanobars). 
 
-Because `Wind-AE` runs on the order of seconds to minutes, it can be (and has been) used to **model planet evolution**.
+Because `Wind-AE` runs on the order of seconds to minutes, it can be (and has been) used to **model planet evolution** [(Tang et al. 2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...995...20T/abstract).
 
 #### `Wind-AE` can model:
 - Multiple atomic species
@@ -35,7 +35,7 @@ Because `Wind-AE` runs on the order of seconds to minutes, it can be (and has be
 - **Diffusion/drag** - the atomic species set by the user are assumed to be entrained in the outflow and in thermal equilibrium. This is an appropriate assumption for species below the [crossover mass](https://ui.adsabs.harvard.edu/abs/1987Icar...69..532H) and a warning will be raised.
 - **Heating & Cooling**: Conduction (warning raised if relevant, **planned**), H3+ line cooling (not planned), Fe & Ca  line cooling (relevant at high Z only, **planned**), free-free cooling (warning raised if relevant, not planned) 
 - Multiple ionization states of the same species (**planned**)
-See Broome et al. (submitted) for more details.
+See [Broome et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...995..198B/abstract) for more details.
 
 - Want a rapid H/He model with power-law approximated XUV spectra? Check out [ATES](https://github.com/AndreaCaldiroli/ATES-Code) ([Caldiroli et al. 2021](https://ui.adsabs.harvard.edu/abs/2021A%26A...655A..30C/abstract))
 - Do you want to set the mass loss rate ($\dot{M}$) yourself or want an EUV isothermal Parker wind outflow model that runs in nanoseconds? Check out [p-winds](https://github.com/ladsantos/p-winds) ([Dos Santos et al. 2022](https://ui.adsabs.harvard.edu/abs/2022A%26A...659A..62D/abstract)).

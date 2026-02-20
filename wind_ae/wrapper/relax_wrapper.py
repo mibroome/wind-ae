@@ -453,7 +453,7 @@ class wind_simulation:
             else:
                 return 1
             if verbose:
-                self._normal_print(error_output)
+                print(error_output)
         else:
             # If successful then update our guess to new solution
             sub = Popen(["cp", 'saves/windsoln.csv', 'inputs/guess.inp'],cwd=self.path,
@@ -3077,7 +3077,7 @@ class wind_simulation:
                 sub = Popen('make',cwd=self.path, stdout=PIPE, stderr=PIPE) 
                 output, error_output = sub.communicate() #FIX (put output check)
                 print(output,error_output)
-#                 self._normal_print(error_output)
+#                 print(error_output)
                 OOM_old = np.copy(OOM_current)
                 # OOM_old = np.copy(np.floor(np.log10(self.windsoln.rho_rmin)))
 

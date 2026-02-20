@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wind_ae"
-version = "0.5.10"
+version = "1.0.0"
 authors = [
     { name = "Madelyn Broome" },
     { name = "John McCann" },
@@ -43,3 +43,8 @@ include-package-data = true
 
 [tool.setuptools.packages]
 find = {}
+
+[tool.sphinx-pyproject]
+html_static_path = ['_static']
+html_logo = "windae_logo_blue.png"
+html_favicon = "windae_logo_blue_favicon_16.png"

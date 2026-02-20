@@ -1,0 +1,238 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; Wind-AE 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/dark_mode_css/general.css?v=c0a7eb24" />
+      <link rel="stylesheet" type="text/css" href="_static/dark_mode_css/dark.css?v=70edf1c7" />
+
+  
+    <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
+      <script src="_static/dark_mode_js/theme_switcher.js?v=358d3910"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quick Start Tutorial" href="Quickstart.html" />
+    <link rel="prev" title="Is Wind-AE the right tool for me?" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Wind-AE
+              <img src="_static/windae_logo_blue.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Wind-AE Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-instructions">Installation Instructions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pip-install">Pip install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#or-compile-from-source-beta">OR Compile from source (BETA)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#confirming-the-import-was-successful">Confirming the import was successful</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#future-features-and-known-problems">Future features and known problems</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="additional_modules.html">Additional Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Wind-AE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
+<p><strong>Wind-AE</strong> requires the following packages and will pip install them automatically by following the Installation guide below.</p>
+<ul class="simple">
+<li><p>python &gt;= 3.13.0</p></li>
+<li><p>numpy</p></li>
+<li><p>scipy</p></li>
+<li><p>astropy</p></li>
+<li><p>pandas &gt;= 2.2.3</p></li>
+<li><p>matplotlib</p></li>
+<li><p>datetime</p></li>
+<li><p>pyarrow</p></li>
+<li><p>fastparquet</p></li>
+<li><p>requests</p></li>
+<li><p>ChiantiPy</p></li>
+</ul>
+</section>
+<section id="installation-instructions">
+<h2>Installation Instructions<a class="headerlink" href="#installation-instructions" title="Link to this heading"></a></h2>
+<p>Until <code class="docutils literal notranslate"><span class="pre">Wind-AE</span></code> is dockerized, it is recommended to use a Python environment to avoid dependency issues. However, if your system meets the above requirements, there is no need to create an environment and you can skip to the compilation step.</p>
+<p>To create an environment use either</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv_name.venv
+<span class="nb">source</span><span class="w"> </span>venv_name.venv/bin/activate
+</pre></div>
+</div>
+<p>or using <code class="docutils literal notranslate"><span class="pre">conda</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>venv_name
+conda<span class="w"> </span>activate<span class="w"> </span>venv_name
+conda<span class="w"> </span>install<span class="w"> </span>pip
+</pre></div>
+</div>
+<section id="pip-install">
+<h3>Pip install<a class="headerlink" href="#pip-install" title="Link to this heading"></a></h3>
+<p>Recommended to upgrade pip first:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+</pre></div>
+</div>
+<p>Then</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>wind_ae
+</pre></div>
+</div>
+</section>
+<section id="or-compile-from-source-beta">
+<h3>OR Compile from source (BETA)<a class="headerlink" href="#or-compile-from-source-beta" title="Link to this heading"></a></h3>
+<p>Clone the repository using</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mibroome/wind-ae/
+</pre></div>
+</div>
+<p>or navigate to <a class="reference external" href="https://github.com/mibroome/wind-ae/">github.com/mibroome/wind-ae/</a> and download and unzip the zip file.</p>
+<p>To compile from the source</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="confirming-the-import-was-successful">
+<h3>Confirming the import was successful<a class="headerlink" href="#confirming-the-import-was-successful" title="Link to this heading"></a></h3>
+<p>Run tests (optional). Estimated time: 4 minutes</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>wind-ae<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pytest
+</pre></div>
+</div>
+<p>Otherwise, you can test the install by running</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import wind_ae&quot;</span>
+</pre></div>
+</div>
+<p>Now you can run <strong>Wind-AE</strong> from anywhere! As seen in the tutorial, the following imports are helpful for most purposes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.relax_wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">wind_simulation</span> <span class="k">as</span> <span class="n">wind_sim</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.wrapper_utils.plots</span><span class="w"> </span><span class="kn">import</span> <span class="n">energy_plot</span><span class="p">,</span> <span class="n">six_panel_plot</span><span class="p">,</span> <span class="n">quick_plot</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.wrapper_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.wrapper_utils.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">system</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.wrapper_utils.spectrum</span><span class="w"> </span><span class="kn">import</span> <span class="n">spectrum</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you ever need to interface directly with the C code, it lives in <code class="docutils literal notranslate"><span class="pre">wind_ae/src/</span></code> and can be executed from
+within the <code class="docutils literal notranslate"><span class="pre">wind_ae/</span></code> folder via <code class="docutils literal notranslate"><span class="pre">./bin/relaxed_ae</span></code>. The solution generated will be for a planet with the
+parameters detailed in the input files in the <code class="docutils literal notranslate"><span class="pre">Inputs/</span></code> folder. There is generally no need to interface with the
+C code and most standard tasks can be accomplished by using the Python wrapper.</p>
+</div>
+</section>
+</section>
+<section id="future-features-and-known-problems">
+<h2>Future features and known problems<a class="headerlink" href="#future-features-and-known-problems" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Computation of the complementary error function that governs the drop off of bolometric heating/cooling is not truly self-consistent (<code class="docutils literal notranslate"><span class="pre">converge_mol_atomic_transition(polish=True,width=)</span></code>) and may require visual confirmation via <code class="docutils literal notranslate"><span class="pre">energy_plot()</span></code> (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the <code class="docutils literal notranslate"><span class="pre">width</span></code> parameter</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;path/to/planet/file&#39;</span><span class="p">)</span>
+<span class="n">bcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">bcs_tuple</span><span class="p">)</span>
+<span class="c1"># erf_loc - normalized velocity value at radius where you want the erf to drop</span>
+<span class="c1"># erf_rate - how quickly the erf drops off in units of Hsc at erf_loc</span>
+<span class="c1"># To get initial estimate, run sim.erf_velocity(polish=True)</span>
+<span class="n">bcs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">erf_loc</span><span class="p">,</span><span class="n">erf_rate</span><span class="p">])</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">write_bcs</span><span class="p">(</span><span class="o">*</span><span class="n">bcs</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run_wind</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Knudsen number calculations currently only contain H-H collisions.</p></li>
+<li><p>Converting spectrum <code class="docutils literal notranslate"><span class="pre">kind</span></code> from <code class="docutils literal notranslate"><span class="pre">'full'</span></code> to <code class="docutils literal notranslate"><span class="pre">'mono'</span></code> occasionally has issues.</p></li>
+</ul>
+<p>Check out the <a class="reference external" href="https://github.com/mibroome/wind-ae/issues">open issues</a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Is Wind-AE the right tool for me?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Quickstart.html" class="btn btn-neutral float-right" title="Quick Start Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Madelyn Broome, John McCann, Ruth Murray-Clay.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
