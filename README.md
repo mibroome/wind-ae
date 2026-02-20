@@ -1,6 +1,7 @@
-# Wind-AE
-
+<img src="docs/windae_logo_blue_light.png" alt="Wind-AE Logo" width="350"/>
+<h1></h1>
 <h1 style="text-align: center;"><a href="https://wind-ae.readthedocs.io/en/latest/">Read the Docs</a></h1>
+<!-- <button type="button">Click Me!</button> -->
 
 `Wind-AE` (pronounced /windy/) stands for "wind atmospheric escape" and is a relatively fast 1D, steady-state, hydrodynamic, non-isothermal, Parker wind relaxation code for modeling atmospheric escape based on [Murray-Clay et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009ApJ...693...23M/abstract). `Wind-AE` is a forward model that solves the energy conservation, momentum conservation, and ionization equilibrium equations at the substellar point using the ["Numerical Recipes in C"](https://ui.adsabs.harvard.edu/abs/1992nrca.book.....P/abstract) relaxation method. This allows `Wind-AE` to quickly compute the atmosphere mass loss rate as well as upper atmosphere (<~100 microbar) velocity, temperature, density, and ionization structure as a function of altitude. 
 
