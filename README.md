@@ -10,7 +10,7 @@
 
 We appreciate your patience while the docs are developed. In the meantime, take advantage of `Notebooks/Quickstart.ipynb` to get a quick orientation to `Wind-AE` and please report any bugs via [Github](https://github.com/mabroome/wind-ae/issues) or via email to mabroome@ucsc.edu.
 
-![Build Status](https://github.com/mibroome/wind-ae/actions/workflows/python-package.yml/badge.svg)
+![Build Status](https://github.com/mibroome/wind-ae/actions/workflows/python-pkg.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/mibroome/wind-ae/badge.svg?branch=main)](https://coveralls.io/github/mibroome/wind-ae?branch=main)
 ![PyPI - Version](https://img.shields.io/pypi/v/wind_ae)
 ![Read the Docs (version)](https://img.shields.io/readthedocs/wind-ae/latest)
