@@ -28,7 +28,12 @@ class metal_class:
         self.df = pd.read_csv(pkg_resources.files('wind_ae.wrapper.wrapper_utils').joinpath('dere_table29.dat'),
                               sep=r'\s+', names=list(range(45)))  
         self.df = self.df.rename(columns={0:'Z', 1:'Ion', 2:'NS', 3:'I', 4:'Tmin'})
-                                    
+        # filepath = pkg_resources.files('wind_ae.McAstro.atoms').joinpath('Lodders.dat')
+        # self._lodders = pd.read_csv(filepath,comment='#',delimiter=' ')
+        
+        # filepath = pkg_resources.files('wind_ae.McAstro.atoms').joinpath('atomic_masses.csv')
+        # self._amu = pd.read_csv(filepath, comment='#')
+        self._Zgrid = pd.read_csv(pkg_resources.files("wind_ae").joinpath("wrapper/wrapper_utils/metallicity_grid.csv"))                                    
 
     def load_spectrum_add_metals(self, generate=False,wl_norm=1e-7):
         """Identical behavior to load_spectrum() function in relax_wrapper.py.
@@ -460,17 +465,21 @@ class metal_class:
             
         if ramping_metals == True:
             factor = self.windsoln.Ncol_sp[-1]/self.windsoln.Ncol_sp[-2]
-            for k in range(len(self.windsoln.soln_norm)):
-                #multiply the guess Ncol column for the last added species by the mass frac to speed solving (hopefully)
-                self.windsoln.soln_norm.iloc[k,-3] = factor*self.windsoln.soln_norm.iloc[k,-4]
-                g.write(','.join('%.17e' %i for i in self.windsoln.soln_norm.iloc[k,:]))
-                g.write('\n')
+            self.windsoln.soln_norm.iloc[:,-3] = factor*self.windsoln.soln_norm.iloc[:,-4]
+            self.windsoln.soln_norm.to_csv(g, header=False, index=False, float_format='%.17e')
+
+            # for k in range(len(self.windsoln.soln_norm)):
+            #     #multiply the guess Ncol column for the last added species by the mass frac to speed solving (hopefully)
+            #     self.windsoln.soln_norm.iloc[k,-3] = factor*self.windsoln.soln_norm.iloc[k,-4]
+            #     g.write(','.join('%.17e' %i for i in self.windsoln.soln_norm.iloc[k,:]))
+            #     g.write('\n')
         #Guess Solution
         if regrid == False:
-            for k in range(len(self.windsoln.soln_norm)):
-                g.write(','.join('%.17e' %i for i in self.windsoln.soln_norm.iloc[k,:]))
-                g.write('\n')
-            g.close()
+            self.windsoln.soln_norm.to_csv(g, header=False, index=False, float_format='%.17e')
+            # for k in range(len(self.windsoln.soln_norm)):
+            #     g.write(','.join('%.17e' %i for i in self.windsoln.soln_norm.iloc[k,:]))
+            #     g.write('\n')
+            # g.close()
         g.close()
 
         return
@@ -485,16 +494,11 @@ class metal_class:
            Args:
                species_list (list of str): The list of species for which to compute metallicity
                                             (e.g., ['O3','c1','Ne II'])
-               Z (float): The metallicity (default is 1 for solar).
+               Z (int): The metallicity (default is 1 for solar).
 
             Returns:
                 numpy.ndarray: An array of mass fractions for the species in species_list.
         '''
-        filepath = pkg_resources.files('wind_ae.McAstro.atoms').joinpath('Lodders.dat')
-        lodders = pd.read_csv(filepath,comment='#',delimiter=' ')
-        
-        filepath = pkg_resources.files('wind_ae.McAstro.atoms').joinpath('atomic_masses.csv')
-        amu = pd.read_csv(filepath, comment='#')
 
         try:
             species_list = McAtom.formatting_species_list(species_list) 
@@ -504,20 +508,23 @@ class metal_class:
                   file=sys.stderr) # Python 3.x
             sys.exit(1)
 
-        N_per_N_H = 10**(lodders['A']-12)
-        mn = np.zeros_like(N_per_N_H)
-        for i,el in enumerate(lodders['name']):
-            mass = (amu['mass'][amu['Symbol'] == el]).iloc[0]
-            if (el != 'H') and (el != 'He'):
-                mn[i] = mass*Z*N_per_N_H[i]
-            else:
-                mn[i] = mass*N_per_N_H[i]
-        solar_mass_frac = mn/np.sum(mn)
         el_list = [species.split()[0] for species in species_list]
-        Z_array = []
-        for element in el_list:
-            Z_array = np.append(Z_array,solar_mass_frac[lodders['name']==element])
-        Z_array = Z_array/np.sum(Z_array)
+        solar_mass_fracs = self._Zgrid[el_list].to_numpy()
+        Z_array = solar_mass_fracs[Z-1,:] / np.sum(solar_mass_fracs[Z-1,:]) #normalizing to sum to 1
+
+        # N_per_N_H = 10**(lodders['A']-12)
+        # mn = np.zeros_like(N_per_N_H)
+        # for i,el in enumerate(lodders['name']):
+        #     mass = (amu['mass'][amu['Symbol'] == el]).iloc[0]
+        #     if (el != 'H') and (el != 'He'):
+        #         mn[i] = mass*Z*N_per_N_H[i]
+        #     else:
+        #         mn[i] = mass*N_per_N_H[i]
+        # solar_mass_frac = mn/np.sum(mn)
+        # Z_array = []
+        # for element in el_list:
+        #     Z_array = np.append(Z_array,solar_mass_frac[lodders['name']==element])
+        # Z_array = Z_array/np.sum(Z_array)
         # temp_delta = (1-np.sum(Z_array))
         # Z_array[0] += temp_delta
 

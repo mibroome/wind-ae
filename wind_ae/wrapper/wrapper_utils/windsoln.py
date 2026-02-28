@@ -151,6 +151,7 @@ class wind_solution:
                     #                     for s in range(self.nspecies):
                     #                         self.species[s] = f'{line[4*(s+1)].split("}")[0]}'
                     self.species = (self.species_list).copy()
+                    self.species_list_spaced = McAtom.formatting_species_list(self.species_list)
                 elif line[0] == "##":
                     spec_data = [float(x) for x in line[1:]]
                     self.E_wl[i_spec] = spec_data[0]
@@ -191,7 +192,7 @@ class wind_solution:
         self.soln = self.soln_norm * self.scales
 
         # Mean molecular weight
-        if self.species_list[0] != "HI":
+        if self.species_list_spaced[0] != "H I":
             if self.print_warnings:
                 print(
                     "WARNING: Calculation of dimensionless mean molecular weight, mu, assumes Hydrogen is the first species listed."
@@ -317,7 +318,7 @@ class wind_solution:
 
         return spline
     
-    def current_metallicity(self,quiet=False):
+    def current_metallicity(self):
         """
         Outputs the current metallicity to the nearest integer IF the mass fractions are a multiple of solar metallicity.
 
@@ -330,18 +331,28 @@ class wind_solution:
         if (self.nspecies == 2) & (self.species[0] == 'HI') & (self.species[1] == 'HeI'):
             # print("For an atmosphere of H and He only, metallicity Z has no meaning. To alter the mass fractions of H and He, use sim.ramp_metallicity(custom_mfs=[]).")
             return None
-        self.metals = metal_class(self)
-        grid = np.zeros(2000)
-        for i in range(2000):
-            grid[i] = abs(self.metals.metallicity(self.species_list,Z=i+1)[0]-
-                            self.HX[0])
-        if np.mean(abs(min(grid))) > 0.1:
-            if quiet==False:
-                print("Current metallicity does not appear to be a multiple of solar metallicity.")
-                print(f"Custom mass fractions: {self.HX}")
-            return self.HX
-        start_Z = np.where(grid==min(grid))[0][0]+1
-        return float(start_Z)
+        grid = pd.read_csv(pkg_resources.files("wind_ae").joinpath("wrapper/wrapper_utils/metallicity_grid.csv"))
+        el_list = [species.split()[0] for species in self.species_list_spaced]
+        
+        Z_array = grid[el_list].to_numpy()
+        solar_mass_fracs = Z_array/np.sum(Z_array,axis=1)[:,None]
+        nearest = np.sum(abs(solar_mass_fracs - self.HX), axis=1)
+        current_Z = np.argmin(nearest)+1
+
+        return current_Z
+        
+        # self.metals = metal_class(self)
+        # grid = np.zeros(2000)
+        # for i in range(2000):
+        #     grid[i] = abs(self.metals.metallicity(self.species_list,Z=i+1)[0]-
+        #                     self.HX[0])
+        # if np.mean(abs(min(grid))) > 0.1:
+        #     if quiet==False:
+        #         print("Current metallicity does not appear to be a multiple of solar metallicity.")
+        #         print(f"Custom mass fractions: {self.HX}")
+        #     return self.HX
+        # start_Z = np.where(grid==min(grid))[0][0]+1
+        # return float(start_Z)
 
     def add_user_vars(self, expedite=False):
         '''Computes postfacto variables for the loaded solution. 
@@ -353,10 +364,10 @@ class wind_solution:
         '''
         self.soln = self.soln.drop(columns=self.soln.columns[6 + 2 * self.nspecies :])
         self.gamma = 5.0 / 3.0  # Read this in from somewhere?
-        self.metallicity = self.current_metallicity(quiet=True)
 
         if expedite is False:
-
+            self.metallicity = self.current_metallicity()
+            
             # filepath = pkg_resources.files("wind_ae.McAstro.atoms").joinpath(
             #     "Verner.csv"
             # )
@@ -377,17 +388,16 @@ class wind_solution:
             self.nu0 = const.c / self.wl0
 
         # number densities
-        species_copy = self.species_list.copy()
-        spaced = McAtom.formatting_species_list(species_copy)
+
         n_tot = np.zeros_like(self.soln["rho"])
         n_tot_neutral = np.zeros_like(self.soln["rho"])
         n_tot_ion = np.zeros_like(self.soln["rho"])
         self.soln["n_e"] = np.zeros_like(self.soln["rho"])
         all_species = []
         for j in range(self.nspecies):
-            ma = McAtom.atomic_species(spaced[j])
-            element_name = ((spaced[j]).split())[0]
-            lowest_state = ((spaced[j]).split())[1]  # will have to adapt for elements with more than 1 ionization state
+            ma = McAtom.atomic_species(self.species_list_spaced[j])
+            element_name = ((self.species_list_spaced[j]).split())[0]
+            lowest_state = ((self.species_list_spaced[j]).split())[1]  # will have to adapt for elements with more than 1 ionization state
             # converting to arabic numbers to make future multiple-ionization-state version of the code easier
             highest_state = McAtom.arabic_to_roman(
                 McAtom.roman_to_arabic(lowest_state) + 1
@@ -626,13 +636,13 @@ class wind_solution:
             #             self.soln[Kn_ion_name] = self.soln[L_ion_name]/self.soln['DlnP']
             # Rates
             for s, sp in enumerate(self.species_list):
-                species_name_spaced = McAtom.formatting_species_list([species])[0]
-                Z,Ne = McAtom.spectroscopy_to_atomic_notation(species_name_spaced)
+                # species_name_spaced = McAtom.formatting_species_list([species])[0]
+                Z,Ne = McAtom.spectroscopy_to_atomic_notation(self.species_list_spaced[s])
                 species = sp.replace(" ", "")
                 alpha = self.alpha_rec(Z, Ne, self.soln['T'])
                 rec_coeff[:,s] = alpha
 
-                element_name = species_name_spaced.split(' ')[0]
+                element_name = self.species_list_spaced[s].split(' ')[0]
                 n_tot = self.soln["n_" + element_name]
                 # n+ = n_tot*(1-Ys) = (n_0/Ys)*(1-Ys) <--in this form for ease of coding 'n_'+species
                 self.soln["recomb_" + species] = (
@@ -790,11 +800,11 @@ class wind_solution:
         self.soln["cool_rec"] = np.zeros_like(self.soln["rho"])
         #looping over ALL ionization states (rewrite with Z and Ne someday)
         for s, species in enumerate(self.species_list):
-            species_name_spaced = McAtom.formatting_species_list([species])[0]
-            Z,Ne = McAtom.spectroscopy_to_atomic_notation(species_name_spaced)
+            # species_name_spaced = McAtom.formatting_species_list([species])[0]
+            Z,Ne = McAtom.spectroscopy_to_atomic_notation(self.species_list_spaced[s])
             species_name_unspaced = species.replace(" ", "")
 
-            element_name = species_name_spaced.split(' ')[0]
+            element_name = self.species_list_spaced[s].split(' ')[0]
             nION = self.soln['n_'+element_name]*(1-self.soln['Ys_'+species_name_unspaced]) 
 
             if Z == 1:
@@ -809,117 +819,151 @@ class wind_solution:
 
 
         ## Bolometric heating and cooling #FIX should be read in from somewhere
-        self.soln["boloheat"] = np.zeros_like(self.soln["rho"])
-        self.soln["bolocool"] = np.zeros_like(self.soln["rho"])
+        rho = self.soln["rho"]
+        v = self.soln["v"]
+        r = self.soln["r"]
+        T = self.soln["T"]
+        P = self.soln["P"]
 
+        boloheat = np.zeros_like(rho)
+        bolocool = np.zeros_like(rho)
         if self.bolo_heat_cool != 0:
             kappa_opt = 4e-3 * self.smoothing_erf
             kappa_IR = (
                 1e-2 * self.smoothing_erf
             )  # need pressure BC (smooth using erf) because kappas are not valid in wind
             F_opt = self.Lstar / (4 * np.pi * self.semimajor**2)
-
-            self.soln["boloheat"] = (
-                F_opt * (kappa_opt + 0.25 * kappa_IR) * self.soln["rho"]
-            )
-            self.soln["bolocool"] = (
-                -2 * const.sig_SB * self.soln["T"] ** 4 * kappa_IR * self.soln["rho"]
-            )
+            boloheat = F_opt * (kappa_opt + 0.25 * kappa_IR) * rho
+            bolocool = -2 * const.sig_SB * T**4 * kappa_IR * rho
 
         #         ## free-free emission
         #         self.soln['cool_free'] = -1.426e-27*1.3*(self.HX[0]/const.mH)**2          #FIX ,. Make sure that ne-ne is actually what doms
         #         self.soln['cool_free'] *= (np.sqrt(self.soln['T'])
         #                                    *(self.soln['rho']*(1.-self.soln['Ys_HI']))**2)
         ## gravitational cooling
-        self.soln["cool_grav"] = -const.G * self.Mp
-        self.soln["cool_grav"] *= (
-            self.soln["v"] * self.soln["rho"] / self.soln["r"] ** 2
-        )
+        cool_grav = -const.G * self.Mp * (v * rho / r**2)
+
         ## advection
-        self.soln["e_therm"] = self.soln["P"] / ((self.gamma - 1.0) * self.soln["rho"])
-        self.soln["heat_advect"] = self.soln["v"] * self.soln["rho"]
-        grad = -np.gradient(self.soln["e_therm"], self.soln["r"])
+        e_therm = P / ((self.gamma - 1.0) * rho)
+        grad = -np.gradient(e_therm, r)
         #         grad[0] = grad[1]
-        self.soln["heat_advect"] *= grad
+        heat_advect = v * rho * grad
+
+        postfacto_cols = {
+            "boloheat": boloheat,
+            "bolocool": bolocool,
+            "cool_grav": cool_grav,
+            "e_therm": e_therm,
+            "heat_advect": heat_advect,
+        }
+
         if expedite:
+            postfacto_df = pd.DataFrame(postfacto_cols, index=self.soln.index)
+            self.soln = pd.concat(
+                [
+                    self.soln.drop(columns=list(postfacto_cols.keys()), errors="ignore"),
+                    postfacto_df,
+                ],
+                axis=1,
+            )
             return
+
         # cumulative differential heating
-        self.soln["cum_heat"] = integrate.cumulative_trapezoid(
-            (self.soln["heat_ion"] + self.soln["cool_lyman"])
-            / (self.soln["rho"] * self.soln["v"]),
-            self.soln["r"],
-            initial=0,
+        cum_heat = pd.Series(
+            integrate.cumulative_trapezoid(
+                (self.soln["heat_ion"] + self.soln["cool_lyman"]) / (rho * v),
+                r,
+                initial=0,
+            ),
+            index=self.soln.index,
         )
+
         # Bernoulli constant
-        self.soln["sp_kinetic"] = 0.5 * self.soln["v"] ** 2
-        self.soln["sp_enthalpy"] = self.soln["P"] / self.soln["rho"]
-        self.soln["sp_enthalpy"] *= self.gamma / (self.gamma - 1.0)
-        self.soln["sp_grav"] = -const.G * self.Mp / self.soln["r"]
-        self.soln["bern_rogue"] = (
-            self.soln["sp_kinetic"] + self.soln["sp_enthalpy"] + self.soln["sp_grav"]
-        )
+        sp_kinetic = 0.5 * v**2
+        sp_enthalpy = (P / rho) * (self.gamma / (self.gamma - 1.0))
+        sp_grav = -const.G * self.Mp / r
+        bern_rogue = sp_kinetic + sp_enthalpy + sp_grav
+
         if self.tidalforce:
-            self.soln["sp_grav"] -= (
+            sp_grav = sp_grav - (
                 const.G
                 * self.Mstar
                 * (
-                    1.0 / (self.semimajor - self.soln["r"])
-                    + 0.5
-                    * (self.semimajor - self.soln["r"]) ** 2.0
-                    / self.semimajor**3.0
+                    1.0 / (self.semimajor - r)
+                    + 0.5 * (self.semimajor - r) ** 2.0 / self.semimajor**3.0
                 )
             )
-        self.soln["bern_isen"] = (
-            self.soln["sp_kinetic"] + self.soln["sp_enthalpy"] + self.soln["sp_grav"]
-        )
-        self.soln["bern"] = self.soln["bern_isen"] - self.soln["cum_heat"]
+
+        bern_isen = sp_kinetic + sp_enthalpy + sp_grav
+        bern = bern_isen - cum_heat
+
         # velocity at infinity for a Rogue planet
         sqrt_term = 2 * (
             -const.G * self.Mp / self.Rp
-            + self.soln["sp_enthalpy"][self.rmin_index]
-            + self.soln["cum_heat"].iloc[-1]
+            + sp_enthalpy[self.rmin_index]
+            + cum_heat.iloc[-1]
         )
         if sqrt_term >= 0:
             self.v_inf = np.sqrt(sqrt_term)
         else:
             self.v_inf = -0.0
+
         # Adiabatic profile
-        self.soln["ad_prof"] = (
-            1.0
-            + (self.soln["sp_grav"][self.rmin_index] - self.soln["sp_grav"])
-            / self.soln["sp_enthalpy"]
-        )
+        ad_prof = 1.0 + (sp_grav[self.rmin_index] - sp_grav) / sp_enthalpy
+
         # static, unionized adiabatic profile
-        self.soln["static_prof"] = (
-            1.0
-            + (self.soln["sp_grav"][self.rmin_index] - self.soln["sp_grav"])
-            / self.soln["sp_enthalpy"][self.rmin_index]
-        )
-        self.soln["static_rho"] = self.soln["rho"][self.rmin_index] * self.soln[
-            "static_prof"
-        ] ** (1.0 / (self.gamma - 1.0))
-        self.soln["static_P"] = self.soln["P"][self.rmin_index] * self.soln[
-            "static_prof"
-        ] ** (self.gamma / (self.gamma - 1.0))
-        self.soln["static_T"] = (
-            self.soln["T"][self.rmin_index] * self.soln["static_prof"]
-        )
+        static_prof = 1.0 + (sp_grav[self.rmin_index] - sp_grav) / sp_enthalpy[self.rmin_index]
+        static_rho = rho[self.rmin_index] * static_prof ** (1.0 / (self.gamma - 1.0))
+        static_P = P[self.rmin_index] * static_prof ** (self.gamma / (self.gamma - 1.0))
+        static_T = T[self.rmin_index] * static_prof
+
         # Adiabatic exponents analysis including ionization
         ## (see Hansen, Kawaler, & Trumble pg. 137 and
         ##  http://astro.phy.vanderbilt.edu/~berlinaa/teaching/
         ##         stellar/AST8030_7_thermodynamics.pdf)
-        I_kT = 13.6 * const.eV / (const.kB * self.soln["T"])
+        I_kT = 13.6 * const.eV / (const.kB * T)
         ## del_ad: adiabatic del used for convection analysis
         nom = 1.0 + self._ion_wgt(1.0 - self.soln["Ys_HI"]) * (1.5 + I_kT)  # FIX?
         dom = 2.5 + self._ion_wgt(1.0 - self.soln["Ys_HI"]) * (3.75 + 5 * I_kT + I_kT**2)
-        self.soln["del_ad"] = nom / dom
+        del_ad = nom / dom
+
         ## Gamma_2: adiabatic exponent for temperature's response to pressure
         ##          changes——re-expression of grad_ad
-        self.soln["Gamma_2"] = 1.0 / (1.0 - self.soln["del_ad"])
+        Gamma_2 = 1.0 / (1.0 - del_ad)
+
         ## Gamma_3: adiabatic exponent for temperature's response to compression
         nom = 2.0 + 2.0 * self._ion_wgt(1.0 - self.soln["Ys_HI"]) * (1.5 + I_kT)
         dom = 3.0 + 2.0 * self._ion_wgt(1.0 - self.soln["Ys_HI"]) * (1.5 + I_kT) ** 2
-        self.soln["Gamma_3"] = 1.0 + nom / dom
+        Gamma_3 = 1.0 + nom / dom
+
+        postfacto_cols.update(
+            {
+                "cum_heat": cum_heat,
+                "sp_kinetic": sp_kinetic,
+                "sp_enthalpy": sp_enthalpy,
+                "sp_grav": sp_grav,
+                "bern_rogue": bern_rogue,
+                "bern_isen": bern_isen,
+                "bern": bern,
+                "ad_prof": ad_prof,
+                "static_prof": static_prof,
+                "static_rho": static_rho,
+                "static_P": static_P,
+                "static_T": static_T,
+                "del_ad": del_ad,
+                "Gamma_2": Gamma_2,
+                "Gamma_3": Gamma_3,
+            }
+        )
+
+        postfacto_df = pd.DataFrame(postfacto_cols, index=self.soln.index)
+        self.soln = pd.concat(
+            [
+                self.soln.drop(columns=list(postfacto_cols.keys()), errors="ignore"),
+                postfacto_df,
+            ],
+            axis=1,
+        )
         if self.integrate_outward:
             self._calc_fits()
             self.calc_Coriolis()
@@ -1073,8 +1117,8 @@ class wind_solution:
             )
 
         tau = np.zeros_like(self.soln["r"])
-        spaced_species = McAtom.formatting_species_list(self.species_list)
-        for sp in spaced_species:
+        # spaced_species = McAtom.formatting_species_list(self.species_list)
+        for sp in self.species_list_spaced:
             sigma = McAtom.atomic_species(sp).cross_section(photon)
             Ncol = self.soln["Ncol_" + sp.replace(" ", "")]
             tau += Ncol * sigma
