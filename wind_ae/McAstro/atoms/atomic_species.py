@@ -99,10 +99,10 @@ class atomic_species:
                 self.A = 2*self.Z
         self.ion_pot = self.verner_data['E_th']*const.eV
         E_arr = np.linspace(self.verner_data['E_th'], self.verner_data['E_max'],
-                            100000)
+                            10000)
         wl_arr = np.linspace(const.hc/(self.verner_data['E_max']*const.eV),
                              const.hc/(self.verner_data['E_th']*const.eV),
-                             100000)
+                             10000)
         self.sigma = Akima1DInterpolator(E_arr, self.cross_section(E_arr ))
         self.sigma_wl = (
             Akima1DInterpolator(wl_arr,
@@ -115,7 +115,7 @@ class atomic_species:
 
     def sigma_find_E(self, sigma):
         E_arr = np.linspace(self.verner_data['E_th'], self.verner_data['E_max'],
-                            100000)
+                            10000)
         return Akima1DInterpolator(E_arr, self.sigma(E_arr)-sigma).roots()
 
 
