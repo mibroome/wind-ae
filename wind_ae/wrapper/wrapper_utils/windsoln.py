@@ -25,7 +25,7 @@ class wind_solution:
 
     __savepath = pkg_resources.files("wind_ae").joinpath("saves/windsoln.csv")
 
-    def __init__(self, file=__savepath, calc_postfacto=False, print_warnings=True):
+    def __init__(self, file=__savepath, calc_postfacto=False,  expedite_postfacto=False,print_warnings=True):
         '''
         Initialize wind_solution object by reading in solution variables from windsoln.csv.
         '''
@@ -286,7 +286,7 @@ class wind_solution:
         self.calc_massloss()
         # Skip unnecessary calculations when users is expediting windsoln
         if calc_postfacto:
-            self.add_user_vars()
+            self.add_user_vars(expedite = expedite_postfacto)
             
 
     def _rate_coeff_interpolater(self,species):
@@ -355,7 +355,7 @@ class wind_solution:
         # start_Z = np.where(grid==min(grid))[0][0]+1
         # return float(start_Z)
 
-    def add_user_vars(self, expedite=False):
+    def add_user_vars(self, expedite=False,print_warnings=True):
         '''Computes postfacto variables for the loaded solution. 
 
         Args:
@@ -432,6 +432,7 @@ class wind_solution:
 
             self.soln[neutral] = neutral_n
             self.soln[ionized] = ionized_n
+        n_e[0] = n_e[1]
         self.soln["n_e"] = n_e
         self.soln["n_tot"] = n_tot
 
@@ -815,23 +816,33 @@ class wind_solution:
         self.soln["cool_rec"] = np.zeros_like(rho)
         #looping over ALL ionization states (rewrite with Z and Ne someday)
         for s, species in enumerate(self.species_list):
-            # species_name_spaced = McAtom.formatting_species_list([species])[0]
             Z,Ne = McAtom.spectroscopy_to_atomic_notation(self.species_list_spaced[s])
-            # species_name_unspaced = species.replace(" ", "")
 
             element_name = self.species_list_spaced[s].split(' ')[0]
-            nION = self.soln['n_'+element_name]*(1-Ys[self.species_list_unspaced[s]]) 
 
             if Z == 1:
-                self.soln["cool_rec"] += ( -2.85e-27 * (n_e) * (self.soln["n_HII"]) * np.sqrt(T) * (5.914 - 0.5 * np.log(T) + 0.01184 * (T) ** (1.0 / 3.0)))
-            elif Ne != Z:
-                #Contribution from species in higher ionization state (lower Ne)
-                n0 = self.soln['n_'+element_name]*Ys[self.species_list_unspaced[s]]
-                self.soln["cool_rec"] += - self.alpha_rec(Z,Ne-1,self.soln['T']) * n_e * n0 * (3.0/2.0) * const.kB * self.soln['T']
+                component = ( -2.85e-27 * (n_e) * (self.soln["n_HII"]) * np.sqrt(T) * (5.914 - 0.5 * np.log(T) + 0.01184 * (T) ** (1.0 / 3.0)))
+                self.soln["cool_rec"] += component
             else:
-                #Contribution from species in lower ionization state (higher Ne)
-                self.soln["cool_rec"] += - self.alpha_rec(Z,Ne,self.soln['T']) * n_e  * nION * (3.0/2.0) * const.kB * self.soln['T']
-
+                if Ne == Z:
+                    nION = self.soln['n_'+element_name]*(1-Ys[self.species_list_unspaced[s]]) 
+                    alpha = self.alpha_rec(Z,Ne,self.soln['T'])
+                    
+                    component = - alpha * n_e * nION * (3.0/2.0) * const.kB * self.soln['T']
+                    self.soln["cool_rec"] += component
+                else:
+                    nION = self.soln['n_'+element_name]*(1-Ys[self.species_list_unspaced[s]]) 
+                    alpha = self.alpha_rec(Z,Ne,self.soln['T'])
+                    component = - alpha * n_e  * nION * (3.0/2.0) * const.kB * self.soln['T']
+                    self.soln["cool_rec"] += component
+                    
+                    #Temporary patch = commenting out b/c postfacto calcs show that high recombo rates at base create lots of CI from CII, 
+                    # thus CII is not as abundnant as sim would have us believe
+                    # nION = self.soln['n_'+element_name]*(Ys[self.species_list_unspaced[s]])  
+                    # #our "neutral" is really an ionized, so need to take into accoutn in calc
+                    # alpha = self.alpha_rec(Z,Ne+1,self.soln['T'])
+                    # component = - alpha * n_e  * nION * (3.0/2.0) * const.kB * self.soln['T']
+                    # self.soln["cool_rec"] += component
 
         ## Bolometric heating and cooling #FIX should be read in from somewhere
         P = self.soln["P"]
@@ -986,11 +997,13 @@ class wind_solution:
                 if self.integrate_outward:
                     self.calc_R_exo()
                     if self.R_exo < self.R_sp:
-                        print(f"Warning: Exobase ({self.R_exo:.2f}Rp) may be below sonic point ({self.R_sp:.2f}Rp). If so, a transonic wind (Wind-AE) solution is not valid.\n   Use sim.windsoln.calc_Jeans() to get Jean's escape mass loss rate instead.")
+                        if self.print_warnings is True:
+                            print(f"Warning: Exobase ({self.R_exo:.2f}Rp) may be below sonic point ({self.R_sp:.2f}Rp). If so, a transonic wind (Wind-AE) solution is not valid.\n   Use sim.windsoln.calc_Jeans() to get Jean's escape mass loss rate instead.")
                     self.calc_Jeans()
                     self.calc_roche_lobe()
                     if self.R_sp > self.R_roche:
-                        print(f"WARNING: Sonic point ({self.R_sp:.2f}Rp) is outside of Roche lobe ({self.R_roche:.2f}Rp). If R_sp >> R_roche, then a transonic wind (Wind-AE) solution is not valid.")
+                        if self.print_warnings is True:
+                            print(f"WARNING: Sonic point ({self.R_sp:.2f}Rp) is outside of Roche lobe ({self.R_roche:.2f}Rp). If R_sp >> R_roche, then a transonic wind (Wind-AE) solution is not valid.")
                     # self.calc_ballistic()
         return
 
@@ -1186,26 +1199,31 @@ class wind_solution:
         return 
 
 
-    def calc_R_exo(self, Kn="Kn_hb_HI"):
+    def calc_R_exo(self, Kn="Kn_mx_HI"):
         '''Calculating exosphere radius in Rp and index. 
         DEPRECATED, requires updated Knudsen number calculations for all species. 
         
         Args:
-            Kn (str): Knudsen hardbody collision number for a given species.
+            Kn (str): Knudsen collision number for a given species. 
+                      Default: "Kn_mx_HI", which is a weighted mix of hardbody and Coulomb Kn for HI.
+                      Where a Kn > 1 indicates that the flow is collisionless for that species and a 
+                      fluid solution is no longer valid.
 
         Returns:
-            float: R_exo: exosphere radius in Rp, if > R_sp, then R_exo = R_sp
+            float: R_exo: exosphere radius in Rp. 
+                If Kn always < 1, then R_exo = NaN (R_exo is outside of the range of the simulation).
+                If R_exo > R_sp, then R_exo = Rmax
             int: exo_index: index of exosphere radius in soln
         '''
         try:
             index = self.soln[self.soln[Kn] > 1].index[0]
         except IndexError:
-            self.R_exo = self.R_sp
-            self.exo_index = self.crit_index
+            self.R_exo = np.nan
+            self.exo_index = len(self.soln)-1
             return
         if index + 1 == len(self.soln[Kn]):
-            self.R_exo = self.R_sp
-            self.exo_index = self.crit_index
+            self.R_exo = self.Rmax
+            self.exo_index = len(self.soln)-1
             return
         dKndr = (self.soln.iloc[index][Kn] - self.soln.iloc[index + 1][Kn]) / (
             self.soln_norm.iloc[index]["r"] - self.soln_norm.iloc[index + 1]["r"]
@@ -1214,15 +1232,16 @@ class wind_solution:
             self.soln_norm.iloc[index]["r"] + (1.0 - self.soln.iloc[index][Kn]) / dKndr
         )
         self.exo_index = index
-        if self.R_exo > self.R_sp:
-            self.R_exo = self.R_sp
-            self.exo_index = self.crit_index
+        # if self.R_exo > self.R_sp:
+        #     self.R_exo = self.R_sp
+        #     self.exo_index = self.crit_index
         return self.R_exo, self.exo_index
 
 
     def calc_Jeans(self):
-        """ DEPRECATED. Calculates Jeans length and mass loss rate via Jeans escape.
-        Currently uses R_exo computed only from HI collisionality.
+        """ DEPRECATED. Calculates Jeans length and mass loss rate via Jeans escape. 
+        If R_exo is outside of the bounds of the simulation, R_exo is NaN, so result will be NaN.
+        Currently uses R_exo computed only from HI collisionality. 
         """
         self.Jeans_param = (
             const.G

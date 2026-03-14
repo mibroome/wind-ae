@@ -660,13 +660,19 @@ void get_spQ(double *spQ, I_EQNVARS vars,double k,int printout) {
           //Case B recombination for HII
           spQ_reccool += -2.85e-27 * ne * nIONoverrho * sqrt(vars.T) * (5.914 - 0.5 * log(vars.T) + 0.01184 * pow(vars.T, 1.0 / 3.0));
         }
-        else if (parameters.Z[j] != parameters.N_e[j]){
-          //contribution from species in lower ionization state as long as not neutral (e.g., if lowest state in sim is OII, counts that and OIII)
-          spQ_reccool += - alpharec_lower_ion_state[j] * n0overrho * ne * (1.5 * K * vars.T); 
-        }
-        else{
-          //contribution from species in higher ionization state 
-          spQ_reccool += - alpharec_higher_ion_state[j] * nIONoverrho * ne * (1.5 * K * vars.T); 
+        else{ 
+          if (parameters.Z[j] == parameters.N_e[j]){
+            //contribution from species in lower ionization state as long as not neutral (e.g., if starting state in sim is OII, counts that and OIII)
+            spQ_reccool += - alpharec_higher_ion_state[j] * nIONoverrho * ne * (1.5 * K * vars.T); //If OII is lowest state in sim, this is OII + e- --> OI
+          }
+          else{
+            spQ_reccool += - alpharec_higher_ion_state[j] * nIONoverrho * ne * (1.5 * K * vars.T); //If OII is lowest state in sim, this is OII + e- --> OI
+
+            // //Temporarily commenting out b/c should technically recombine lots of, e.g., CII into CI when CII is the most neutral state
+            // nIONoverrho = n0overrho; //because now we want the recombination cooling from the next LOWER ionization state, which is the same as the number density of "neutrals" for that species
+            // spQ_reccool += - alpharec_lower_ion_state[j] * nIONoverrho * ne * (1.5 * K * vars.T); //OIII + e- --> OII
+
+          }
         }
     }
     spQ_reccool *= (parameters.Rp/pow(CS0, 3));
@@ -740,10 +746,10 @@ static void get_alpharec(double *alpharec_p, I_EQNVARS kvars, int calc_lower_ion
       if (calc_lower_ion_state==0){ //used for recombination cooling calculation
         if (in<iz){ //as long as the lower state is not neutral
           in = in + 1; //calculate for the next LOWER ionization state 
-          //(confusingly, MORE electrons attached to atom ==> N_e INCREASES)
+          //(confusingly, LOWER ion state = MORE electrons attached to atom ==> N_e INCREASES)
         }
         else{
-          alpharec_p[j] = 0.0; //because we don't care for recombo cooling if its neutral
+          alpharec_p[j] = 0.0; //because we don't care about recombo cooling if its neutral
           continue;
         }
       }

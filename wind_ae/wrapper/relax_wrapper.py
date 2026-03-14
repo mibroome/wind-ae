@@ -72,12 +72,13 @@ class wind_simulation:
     #     return
 
 
-    def load_uservars(self, csv_file=None):
+    def load_uservars(self, csv_file=None, expedite=False):
         """
         Loads all user variables for plotting and analysis. Does not rewrite input parameter files, so can be run concurrently with simulations.
 
         Args:
             csv_file (str, optional): Path to the csv file containing the planet solution. Defaults to None.
+            expedite (bool, optional): If True, will not calculate expensive post-facto variables (e.g., photoionization heating, etc.) to save time. Defaults to False.
 
         Returns:
             None
@@ -85,7 +86,7 @@ class wind_simulation:
         """
         if csv_file is None:
             csv_file = self.last_load
-        self.windsoln = wind_solution(file=csv_file, calc_postfacto=True)
+        self.windsoln = wind_solution(file=csv_file, calc_postfacto=True,expedite_postfacto=expedite)
         return
     
 
@@ -155,7 +156,7 @@ class wind_simulation:
         f.close()
         return
     
-    def load_planet(self, csv_file, calc_postfacto=True, name='Loaded Planet',
+    def load_planet(self, csv_file, calc_postfacto=True, expedite_postfacto=False, name='Loaded Planet',
                     print_atmo=True, print_warnings=True):
         """
         Loads a planet solution file into inputs/guess.inp as a new guess and updates input parameter folders.
@@ -174,7 +175,7 @@ class wind_simulation:
         # load header and data
 #         self.failed_deeper_bcs_ramp = False
         planet = wind_solution(file=csv_file, 
-                               calc_postfacto=calc_postfacto,print_warnings=print_warnings)
+                               calc_postfacto=calc_postfacto,print_warnings=print_warnings, expedite_postfacto=expedite_postfacto)
         for j in range(planet.nspecies): #had a problem with adding spaces to e.g., 'He I'
             planet.species_list[j] = (planet.species_list[j]).replace(' ','')
             
