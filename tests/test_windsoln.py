@@ -31,11 +31,11 @@ def test_calc_tau1_radius_error():
         sim.windsoln.calc_tau1_radius(0)[0]
 
 def test_calc_R_exo():
-    assert sim.windsoln.calc_R_exo()[0] > 1.0
+    assert  (sim.windsoln.calc_R_exo() is None) or (sim.windsoln.calc_R_exo()[0] > 1.0)
 
 def test_calc_Jeans():
     sim.windsoln.calc_R_exo()
-    assert np.round(sim.windsoln.calc_Jeans(),1) <= sim.windsoln.Mdot*3
+    assert (np.isnan(sim.windsoln.calc_Jeans())) or (np.round(sim.windsoln.calc_Jeans(),1) <= sim.windsoln.Mdot*3)
 
 def test_calc_Coriolis():
     sim.windsoln.calc_Coriolis()

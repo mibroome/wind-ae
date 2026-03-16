@@ -1243,6 +1243,10 @@ class wind_solution:
         If R_exo is outside of the bounds of the simulation, R_exo is NaN, so result will be NaN.
         Currently uses R_exo computed only from HI collisionality. 
         """
+        if self.R_exo is None:
+            if self.print_warnings is True:
+                print("Exobase is outside of the bounds of the simulation, so Jeans escape mass loss rate will not be calculated.")
+            return None
         self.Jeans_param = (
             const.G
             * self.Mp
