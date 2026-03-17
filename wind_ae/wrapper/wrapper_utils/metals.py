@@ -508,6 +508,7 @@ class metal_class:
                   file=sys.stderr) # Python 3.x
             sys.exit(1)
 
+        Z = int(Z)
         el_list = [species.split()[0] for species in species_list]
         solar_mass_fracs = self._Zgrid[el_list].to_numpy()
         Z_array = solar_mass_fracs[Z-1,:] / np.sum(solar_mass_fracs[Z-1,:]) #normalizing to sum to 1
