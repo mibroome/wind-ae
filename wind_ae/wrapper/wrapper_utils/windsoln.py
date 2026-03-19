@@ -330,7 +330,10 @@ class wind_solution:
         Returns:
             float or array: The current metallicity in units of solar metallicity. If not a function of solar metallicity, returns custom mass fractions.
         """
-        if (self.nspecies == 2) & (self.species[0] == 'HI') & (self.species[1] == 'HeI'):
+        if (self.nspecies == 1) & (self.species[0].replace(" ", "") == 'HI'):
+            # print("For an atmosphere of H only, metallicity Z has no meaning. To alter the mass fraction of H, use sim.ramp_metallicity(custom_mfs=[]).")
+            return None
+        if (self.nspecies == 2) & (self.species[0].replace(" ", "") == 'HI') & (self.species[1].replace(" ", "") == 'HeI'):
             # print("For an atmosphere of H and He only, metallicity Z has no meaning. To alter the mass fractions of H and He, use sim.ramp_metallicity(custom_mfs=[]).")
             return None
         grid = pd.read_csv(pkg_resources.files("wind_ae").joinpath("wrapper/wrapper_utils/metallicity_grid.csv"))
