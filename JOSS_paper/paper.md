@@ -86,8 +86,8 @@ This is a high-to-average usage rate for comparable open-source atmospheric esca
 - [Sunbather](https://github.com/antonpannekoek/sunbather) wraps `p-winds` and Cloudy (a spectral synthesis code [@cloudy:2017]) to create transit models that include metals [@sunbather:2024].
 - [TPCI](https://cdsarc.u-strasbg.fr/viz-bin/qcat?J/A+A/576/A21) leverages Cloudy and the hydrodynamic code PLUTO ([@pluto:2012] ) for more thorough X-ray and EUV-irradiated simulations, but slightly more expensive calculations ([@salz:2015]).
 - [pyTPCI](https://ascl.net/2506.012) is a Python wrapper for TPCI [@pytpci:2025].
-- [AIOLIS](https://github.com/Schulik/aiolos) models diffusion (a physical process whose impact on atmospheric escape is still being investigated) and the lower atmosphere in more detail and in a time-dependent manner, so it takes of order 100 times longer [schulik:2022].
-- CETIMB includes more detailed lower atmosphere physics and is therefore about 500 times slower [@koskinen:2022,@taylor:2025].
+- [AIOLOS](https://github.com/Schulik/aiolos) models diffusion (a physical process whose impact on atmospheric escape is still being investigated) and the lower atmosphere in more detail and in a time-dependent manner, so it takes of order 100 times longer [@schulik:2023].
+- CETIMB includes more detailed lower atmosphere physics and, therefore, takes of order 500 times longer [@koskinen:2022,@taylor:2025].
 - CHAIN integrates CLOUDY and [@kubyshkina:2018]. Like TPCI, via Cloudy, CHAIN has slightly more nuanced heating and cooling calculations and does model X-rays (though the published grid is EUV only [@grid:2021]), so is also more expensive.
 
 # Software Design
