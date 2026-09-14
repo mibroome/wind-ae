@@ -101,27 +101,53 @@ Now you can run **Wind-AE** from anywhere! As seen in the tutorial, the followin
 
 .. note::
 
-    If you ever need to interface directly with the C code, it lives in ``wind_ae/src/`` and can be executed from 
-    within the ``wind_ae/`` folder via ``./bin/relaxed_ae``. The solution generated will be for a planet with the 
-    parameters detailed in the input files in the ``Inputs/`` folder. There is generally no need to interface with the 
-    C code and most standard tasks can be accomplished by using the Python wrapper.
+    If you ever need to interface directly with the C code, it lives in ``wind_ae/src/`` and is compiled to
+    ``wind_ae/bin/relaxed_ae``. The solution generated will be for a planet with the parameters detailed in the
+    input files in the ``inputs/`` folder that ``relaxed_ae`` is run from. There is generally no need to interface
+    with the C code and most standard tasks can be accomplished by using the Python wrapper.
+
+    .. versionchanged:: 2.0
+        Each ``sim = wind_sim()`` instance now writes its input files to its own isolated temporary working
+        directory (``sim.workdir``, see :ref:`relax_wind`) instead of the installed ``wind_ae/`` folder, so that
+        multiple simulations can run simultaneously without overwriting one another's inputs/outputs. To run
+        ``relaxed_ae`` directly against a given instance's inputs, ``cd`` to *that instance's* workdir first:
+
+        .. code-block:: bash
+
+            cd sim.workdir       # e.g. print(sim.workdir) from Python first
+            /Users/your/path/to/wind-ae/wind_ae/bin/relaxed_ae
 
 Future features and known problems
 ___________________________________
-- Computation of the complementary error function that governs the drop off of bolometric heating/cooling is not truly self-consistent (``converge_mol_atomic_transition(polish=True,width=)``) and may require visual confirmation via ``energy_plot()`` (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the ``width`` parameter 
+- Computation of the complementary error function that governs the drop off of bolometric heating/cooling is not truly self-consistent (``converge_mol_atomic_transition(polish=True, width_factor=)``) and may require visual confirmation via ``energy_plot()`` (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the ``width_factor`` parameter:
 
 .. code-block:: python
 
 	sim.load_planet('path/to/planet/file')
-	bcs = np.copy(sim.windsoln.bcs_tuple)
-	# erf_loc - normalized velocity value at radius where you want the erf to drop
+	# width_factor widens the transition region (in scaleheights); start at 0 and
+	# increase if energy_plot() shows the transition impeding too far into the
+	# photoionization-heated region.
+	sim.converge_mol_atomic_transition(polish=True, width_factor=0)
+
+For full manual control over the erfc drop-off location/rate (rarely necessary), use
+:meth:`~wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molecular_erfc`:
+
+.. code-block:: python
+
+	sim.load_planet('path/to/planet/file')
+	# erf_loc  - normalized velocity value at radius where you want the erf to drop
 	# erf_rate - how quickly the erf drops off in units of Hsc at erf_loc
-	# To get initial estimate, run sim.erf_velocity(polish=True)
-	bcs[-1] = np.array([erf_loc,erf_rate])
-	sim.inputs.write_bcs(*bcs)
-	sim.run_wind()
+	# The estimator that converge_mol_atomic_transition() uses internally is available
+	# as sim._erf_velocity(polish=True) if you need a starting estimate, but as an
+	# underscore-prefixed method it is not a stable, supported part of the public API.
+	sim.ramp_molecular_erfc(v_drop=erf_loc, rate=erf_rate)
 
 - Knudsen number calculations currently only contain H-H collisions.
-- Converting spectrum ``kind`` from ``'full'`` to ``'mono'`` occasionally has issues.
+- Converting spectrum ``kind`` from ``'mono'`` to ``'full'`` occasionally has issues. Converting ``'full'`` to ``'mono'`` has no issues.
+- **[v2.0]** Turning on conduction (``sim.turn_on_conduction()``) introduces numerically
+  stiff ODEs; only do so after all other ramping is complete, and expect longer runtimes.
+  Ramping to high metallicity with recombination and/or free-free cooling on can also be
+  numerically unstable --- if a ramp fails, try turning those flags off during ramping and
+  back on afterwards.
 
 Check out the `open issues <https://github.com/mibroome/wind-ae/issues>`_.

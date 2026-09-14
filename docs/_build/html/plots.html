@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plotting &mdash; Wind-AE 0.2.0 documentation</title>
+  <title>Plotting &mdash; Wind-AE 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -17,7 +17,7 @@
     <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Wind-AE Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="additional_modules.html">Additional Modules</a><ul class="current">
@@ -149,7 +149,7 @@ also accessible via the functions in <a class="reference internal" href="relax_w
 
 <dl class="py function">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.quick_plot">
-<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">quick_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mdot_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1.3,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_plotted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.quick_plot" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">quick_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mdot_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1.3,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.quick_plot" title="Link to this definition"></a></dt>
 <dd><p>Plots density (g/cm³), temperature (K), velocity (10 km/s), and ionization fraction as a function of r (Rp).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -161,12 +161,11 @@ also accessible via the functions in <a class="reference internal" href="relax_w
 <li><p><strong>label</strong> (<em>str</em><em>, </em><em>optional</em>) – Label for the plot. Defaults to ‘’.</p></li>
 <li><p><strong>label_dim</strong> (<em>list</em><em>, </em><em>optional</em>) – Location of label and ncols [x, y, ncols]. Defaults to [0, 1.3, 2].</p></li>
 <li><p><strong>ion_label</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, show ionization legend. Defaults to True.</p></li>
-<li><p><strong>first_plotted</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if this is the first of many plots on the same axes. Defaults to True.</p></li>
-<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – Axes object to plot on. Defaults to 0.</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – Axes object to plot on. Defaults to None. If None, a new figure will be created.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Axes object (if first_plotted=True).
+<dd class="field-even"><p>Axes object (if ax=None).
 str: Title string summarizing species and mass fractions.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -177,7 +176,7 @@ str: Title string summarizing species and mass fractions.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.six_panel_plot">
-<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">six_panel_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mdot_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1.3,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_plotted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.six_panel_plot" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">six_panel_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mdot_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1.3,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.six_panel_plot" title="Link to this definition"></a></dt>
 <dd><p>Plots density (g/cm3), temperature (K), velocity (10 km/s), ionization fraction, column density (g/cm2), and number density (1/cm2), as a function of r (Rp).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -194,24 +193,23 @@ str: Title string summarizing species and mass fractions.</p>
 <li><p><strong>[</strong><strong>x</strong> (<em>2</em><em>]</em><em>. Location</em><em> of </em><em>label and ncols</em>)</p></li>
 <li><p><strong>y</strong></p></li>
 <li><p><strong>ncols</strong><strong>]</strong><strong>.</strong></p></li>
-<li><p><strong>SixPlot</strong> (<em>first_plotted - Bool; True if this the first</em><em> of </em><em>many OR the ONLY</em>) – to be plotted on the same axes.</p></li>
-<li><p><strong>first_plotted=False</strong> (<em>ax - matplotlib axis obj; if</em>) – will be be plotted on desired figure with other simulations for comparison</p></li>
-<li><p><strong>this</strong> (<em>provide axis object so</em>) – will be be plotted on desired figure with other simulations for comparison</p></li>
+<li><p><strong>None</strong> (<em>ax - matplotlib axis obj; default is None. If</em>)</p></li>
+<li><p><strong>created.</strong> (<em>a new figure will be</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>ax - axes object (if first_plotted=True)</p>
+<dd class="field-even"><p>ax - axes object (if ax=None)</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p>ax1 = SixPlot(sim1.windsoln, first_plotted=True)
+<p>ax1 = SixPlot(sim1.windsoln)
 SixPlot(sim2.windsoln, ax=ax1)
 SixPlot(sim3.windsoln, ax=ax1)</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.plots.energy_plot">
-<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">energy_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CIII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OIII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_sonic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.energy_plot" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.plots.</span></span><span class="sig-name descname"><span class="pre">energy_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_dom_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_top_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.plots.energy_plot" title="Link to this definition"></a></dt>
 <dd><p>Plots energy balance terms used in the energy equation (Broome et al. 2025)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -220,13 +218,9 @@ SixPlot(sim3.windsoln, ax=ax1)</p>
 <li><p><strong>ax</strong> – The axis to plot on (default is 0, which creates a new figure)</p></li>
 <li><p><strong>alpha</strong> – Transparency level for the plot lines (default is 0.8).
 Useful when overplotting multiple on same axes</p></li>
-<li><p><strong>all_terms</strong> – If True, plot terms not included in Wind-AE, e.g., free-free cooling, (default is False)</p></li>
-<li><p><strong>CII_line_cool</strong> – If True, include CII line cooling terms (default is False)</p></li>
-<li><p><strong>CIII_line_cool</strong> – If True, include CIII line cooling terms (default is False)</p></li>
-<li><p><strong>OII_line_cool</strong> – If True, include OII line cooling terms (default is False)</p></li>
-<li><p><strong>OIII_line_cool</strong> – If True, include OIII line cooling terms (default is False)</p></li>
+<li><p><strong>plot_dom_lines</strong> – If True, plots the N_top_lines dominant cooling lines at each of 10 sample radii (default is True)</p></li>
+<li><p><strong>N_top_lines</strong> – (default 2) plots the top two lines at each of the 10 sample radii</p></li>
 <li><p><strong>legend</strong> – If True, display the legend (default is True)</p></li>
-<li><p><strong>sub_sonic</strong> – If True, sets x-axis upper limit at sonic point radius</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

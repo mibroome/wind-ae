@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wind-AE Overview &mdash; Wind-AE 0.2.0 documentation</title>
+  <title>Wind-AE Overview &mdash; Wind-AE 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -17,7 +17,7 @@
     <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Wind-AE Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="additional_modules.html">Additional Modules</a></li>
@@ -90,6 +90,7 @@
              
   <section id="wind-ae-overview">
 <h1>Wind-AE Overview<a class="headerlink" href="#wind-ae-overview" title="Link to this heading"></a></h1>
+<p>&lt;button type=”button” class=”btn btn-primary btn-lg” onclick=”window.location.href=’<a class="reference external" href="https://github.com/mibroome/wind-ae">https://github.com/mibroome/wind-ae</a>’;”&gt;Wind-AE Github&lt;/button&gt;</p>
 <p><strong>Wind-AE</strong> (pronounced /windy/) stands for “wind atmospheric escape” and is a relatively fast 1D, steady-state,
 hydrodynamic, non-isothermal, Parker wind relaxation code for modeling atmospheric escape based on
 <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2009ApJ...693...23M/abstract">Murray-Clay et al. (2009)</a> .
@@ -103,15 +104,19 @@ As a relaxation code, <strong>Wind-AE</strong> runs quickly, but the relaxation 
 the solution in order to numerically converge to the final solution.</p>
 <p>With that in mind, we provide a number of starting points for simulations in the <code class="docutils literal notranslate"><span class="pre">saves/</span></code> folder and include
 a python wrapper (<a class="reference internal" href="relax_wind.html#relax-wind"><span class="std std-ref">Relaxation Module</span></a>) which handles ramping from the initial guess to the goal solution.</p>
-<p>If you use <strong>Wind-AE</strong>, please consider citing <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2025ApJ...995..198B/abstract">Broome et al. (2025)</a>.</p>
+<p>If you use <strong>Wind-AE</strong>, please cite <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2025ApJ...995..198B/abstract">Broome et al. (2025)</a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This project is under active development. Please report any bugs
-via <a class="reference external" href="https://github.com/mabroome/wind-ae/issues">Github</a> or via email to <a class="reference external" href="mailto:mabroome&#37;&#52;&#48;ucsc&#46;edu">mabroome<span>&#64;</span>ucsc<span>&#46;</span>edu</a>
+via <a class="reference external" href="https://github.com/mibroome/wind-ae/issues">Github</a> or via email to <a class="reference external" href="mailto:broome&#46;astro&#37;&#52;&#48;gmail&#46;com">broome<span>&#46;</span>astro<span>&#64;</span>gmail<span>&#46;</span>com</a>
 and we appreciate your patience as we roll out changes.</p>
 </div>
 <p>Check out the <a class="reference internal" href="usage.html"><span class="doc">Is Wind-AE the right tool for me?</span></a> section for further information, including
 instructions on <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a> of the project.</p>
+</section>
+<section id="ai-use-statement">
+<h1>AI Use Statement<a class="headerlink" href="#ai-use-statement" title="Link to this heading"></a></h1>
+<p>We used Claude web (primarily model Sonnet 5.0) in <strong>Wind-AE</strong>’s v2.0 development to assist with refactoring <strong>Wind-AE</strong> for runtime improvements, with the implementation of the conductive cooling scheme in the code, and updating the docs for v2.0 release. All scientific content, methodology, and interpretations are the authors’ own. The authors have reviewed and verified all code, outputs, and text, and take full responsibility for the integrity and accuracy of the work.</p>
 <section id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">
@@ -130,17 +135,26 @@ instructions on <a class="reference internal" href="installation.html#installati
 <li class="toctree-l2"><a class="reference internal" href="installation.html#future-features-and-known-problems">Future features and known problems</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#1.-Ramping-to-a-new-planet">1. Ramping to a new planet</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#2.-Ramping-Stellar-Spectrum">2. Ramping Stellar Spectrum</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#3.-Metals">3. Metals</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#4.-Saving-in-an-easy-output-format">4. Saving in an easy output format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#(Each-numbered-section-can-be-run-independently)">(Each numbered section can be run independently)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#Load-Initial-Guess">Load Initial Guess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#Ramping-to-%22new-planet%22">Ramping to “new planet”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#Solution-outputs-(windsoln-object)">Solution outputs (windsoln object)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#Get-Mass-Loss-Rate">Get Mass Loss Rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#Plots----Top">Plots  - Top</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#Save-Planet">Save Planet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#Changing-spectrum-range">Changing spectrum range</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#Ramping-to-custom-spectrum">Ramping to custom spectrum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#Adding-Metals">Adding Metals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Quickstart.html#Ramping-Metallicity">Ramping Metallicity</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="relax_wind.html#working-directories-running-simultaneous-simulations">Working directories &amp; running simultaneous simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="relax_wind.html#loading-and-interacting-with-wind-solutions">Loading and interacting with wind solutions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="relax_wind.html#ramping-functions">Ramping functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="relax_wind.html#metals-functions">Metals functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="relax_wind.html#heating-and-cooling-flags">Heating and Cooling Flags</a></li>
 <li class="toctree-l2"><a class="reference internal" href="relax_wind.html#boundary-conditions">Boundary Conditions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="relax_wind.html#ramping-spectrum">Ramping spectrum</a></li>
 <li class="toctree-l2"><a class="reference internal" href="relax_wind.html#plotting-aliases">Plotting Aliases</a></li>

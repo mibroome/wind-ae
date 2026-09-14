@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Is Wind-AE the right tool for me? &mdash; Wind-AE 0.2.0 documentation</title>
+  <title>Is Wind-AE the right tool for me? &mdash; Wind-AE 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -17,7 +17,7 @@
     <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -64,7 +64,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="additional_modules.html">Additional Modules</a></li>
@@ -99,7 +99,7 @@
 <p><strong>Wind-AE</strong> is well-suited for users interested in <strong>quickly estimating mass loss rates</strong> or outflow structure.
 Outflow structure includes bulk temperature and per-species ionization fractions as a function of radius, so can be
 easily translated into approximating and <strong>predicting observables and transits</strong>, including metastable helium
-(He 10830:math:<cite>AA</cite>) transits, though a He transit module is not yet included. Precise modeling of lower atmosphere
+(He 10830Å) transits, though a He transit module is not yet included. Precise modeling of lower atmosphere
 (<span class="math notranslate nohighlight">\(\lesssim 100\)</span> microbar) is considered necessary for highly accurate transit models, but Wind-AE can be easily
 coupled to lower atmosphere photochemistry models whose outputs (e.g., radius, temperature, abundances, ionization fractions,
 etc. at 1 microbar) can be fed into Wind-AE as inputs.</p>
@@ -114,10 +114,20 @@ the region below the wind-launch radius (~10 nanobars).</p>
 <h2><strong>Wind-AE</strong> can model:<a class="headerlink" href="#wind-ae-can-model" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Multiple atomic species</p></li>
+<li><p>Multiple ionization states of the same species (e.g., simultaneously tracking C I and C II as a linked ionization chain) <strong>[NEW in v2.0]</strong></p></li>
 <li><p>X-ray physics (secondary ionizations and K-shell ionization cross-sections for relevant metals)</p></li>
 <li><p>Both low and high stellar XUV flux</p></li>
-<li><p><strong>Heating &amp; Cooling</strong>: Ionization heating, bolometric heating &amp; cooling (negligible in wind), PdV cooling (work done due to expansion of gas), radiative / atomic line cooling (Lyman-alpha, OI, OII, OIII, CI, CII), recombination cooling</p></li>
+<li><p><strong>Heating &amp; Cooling</strong>: Ionization heating, bolometric heating &amp; cooling (negligible in wind), PdV cooling (work done due to expansion of gas), radiative / atomic line cooling (Lyman-<span class="math notranslate nohighlight">\(\alpha\)</span>; O, C, Fe, Mg, Ca, and Ne lines), recombination cooling, free-free (bremsstrahlung) cooling, and, optionally, self-consistent conductive cooling (see note below).</p></li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As of v2.0, conductive, recombination, and free-free cooling are each independently
+toggleable via flags (see <a class="reference internal" href="windsoln.html#windsoln"><span class="std std-ref">Analysis Module</span></a>). Turning on conduction
+(<code class="docutils literal notranslate"><span class="pre">sim.turn_on_conduction()</span></code>) introduces numerically stiff ODEs and should only be
+done after all other ramping is complete. The temperature dependence of free-free and
+recombination cooling can make ramping to higher metallicities numerically unstable;
+if so, try ramping with them off and turning them back on afterwards.</p>
+</div>
 </section>
 <section id="wind-ae-does-not-currently-include">
 <h2><strong>Wind-AE</strong> does not (currently) include:<a class="headerlink" href="#wind-ae-does-not-currently-include" title="Link to this heading"></a></h2>
@@ -127,17 +137,13 @@ the region below the wind-launch radius (~10 nanobars).</p>
 <li><p><strong>Diffusion/drag</strong> - the atomic species set by the user are assumed to be entrained in the outflow and in thermal equilibrium. This is an appropriate assumption for species below the <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/1987Icar...69..532H">crossover mass</a> and a warning will be raised.</p></li>
 <li><dl class="simple">
 <dt><strong>Heating &amp; Cooling</strong>:</dt><dd><ul>
-<li><p>Conduction (warning raised if relevant, <strong>planned</strong>)</p></li>
 <li><p>H3+ line cooling (not planned)</p></li>
-<li><p>Fe &amp; Ca line cooling (relevant at high Z only, <strong>planned</strong>)</p></li>
-<li><p>Free-free cooling (warning raised if relevant, not planned)</p></li>
 </ul>
 </dd>
 </dl>
 </li>
-<li><p>Multiple ionization states of the same species (<strong>planned</strong>)</p></li>
 </ul>
-<p>See Broome et al. (submitted) for more details.</p>
+<p>See <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2025ApJ...995..198B/abstract">Broome et al. (2025)</a> for more details.</p>
 </section>
 <section id="other-tools-and-models">
 <h2>Other tools and models:<a class="headerlink" href="#other-tools-and-models" title="Link to this heading"></a></h2>
@@ -146,15 +152,15 @@ the region below the wind-launch radius (~10 nanobars).</p>
 <li><p>Do you want to set the mass loss rate (<span class="math notranslate nohighlight">\(\dot{M}\)</span>) yourself or want an EUV isothermal Parker wind outflow model that runs in nanoseconds? Check out <a class="reference external" href="https://github.com/ladsantos/p-winds">p-winds</a> (<a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2022A%26A...659A..62D/abstract">Dos Santos et al. 2022</a>)</p></li>
 <li><p>Do you want to use p-winds and get transit models for metals via Cloudy? Check out <a class="reference external" href="https://github.com/antonpannekoek/sunbather">Sunbather</a> (<a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2024A%26A...688A..43L/abstract">Linssen et al. 2024</a>)</p></li>
 <li><p>Want to leverage Cloudy and the hydrodynamic code PLUTO for more thorough XUV-irradiated, but slightly more expensive calculations? Check out <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2015A%26A...576A..21S/abstract">TPCI</a> (<cite>Salz et al. 2015</cite>)</p></li>
-<li><p>That sound great, but you prefer to code in Python over C/C++? Check out <a class="reference external" href="https://ascl.net/2506.012">pyTPCI</a> (<cite>Riley, Zhang, &amp; Bean 2025 &lt;https://ui.adsabs.harvard.edu/abs/2025ApJ…980…34R/abstract&gt;</cite>)</p></li>
-<li><p>Do you care about diffusion throughout the wind? Check out <a class="reference external" href="https://github.com/Schulik/aiolos">AIOLIS</a> (<cite>Schulik &amp; Booth, 2022 &lt;https://ui.adsabs.harvard.edu/abs/2023MNRAS.523..286S/abstract&gt;</cite>)</p></li>
-<li><p>Want to model the lower atmosphere in more detail? Check out CETIMB (Koskinen et al. 2022)</p></li>
+<li><p>That sound great, but you prefer to code in Python over C/C++? Check out <a class="reference external" href="https://ascl.net/2506.012">pyTPCI</a> (<a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2025ApJ...980...34R/abstract">Riley, Zhang, &amp; Bean 2025</a>)</p></li>
+<li><p>Do you care about diffusion throughout the wind? Check out <a class="reference external" href="https://github.com/Schulik/aiolos">AIOLIS</a> (<a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2023MNRAS.523..286S/abstract">Schulik &amp; Booth, 2022</a>)</p></li>
+<li><p>Want to model the lower atmosphere in more detail? Check out CETIMB (Koskinen et al. 2022, closed source)</p></li>
 <li><p>Just want a grid of mass loss rates for pure-Hydrogen, low-flux-EUV-irradiated planets? See <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2021RNAAS...5...74K/abstract">Kubyshkina &amp; Fossati</a></p></li>
 <li><p>Want a grid of mass loss rates for pure-Hydrogen, high-flux-XUV-irradiated planets? See <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2012MNRAS.425.2931O/abstract">Owen &amp; Jackson (2012)</a></p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Want your model added to this list or to update the short bio? Email <a class="reference external" href="mailto:mabroome&#37;&#52;&#48;ucsc&#46;edu">mabroome<span>&#64;</span>ucsc<span>&#46;</span>edu</a></p>
+<p>Want your model added to this list or to update the short bio? Email <a class="reference external" href="mailto:broome&#46;astro&#37;&#52;&#48;gmail&#46;com">broome<span>&#46;</span>astro<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
 </div>
 </section>
 </section>

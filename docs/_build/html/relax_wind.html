@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Relaxation Module &mdash; Wind-AE 0.2.0 documentation</title>
+  <title>Relaxation Module &mdash; Wind-AE 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -17,7 +17,7 @@
     <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Analysis Module" href="windsoln.html" />
-    <link rel="prev" title="Quick Start Tutorial" href="Quickstart.html" /> 
+    <link rel="prev" title="Wind-AE Quick Start Tutorial" href="Quickstart.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -57,11 +57,17 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Wind-AE Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Relaxation Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#working-directories-running-simultaneous-simulations">Working directories &amp; running simultaneous simulations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.where"><code class="docutils literal notranslate"><span class="pre">wind_simulation.where()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.cleanup"><code class="docutils literal notranslate"><span class="pre">wind_simulation.cleanup()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#loading-and-interacting-with-wind-solutions">Loading and interacting with wind solutions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.load_planet"><code class="docutils literal notranslate"><span class="pre">wind_simulation.load_planet()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.run_wind"><code class="docutils literal notranslate"><span class="pre">wind_simulation.run_wind()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.direct_solve"><code class="docutils literal notranslate"><span class="pre">wind_simulation.direct_solve()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.load_uservars"><code class="docutils literal notranslate"><span class="pre">wind_simulation.load_uservars()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.generate_rate_coeffs"><code class="docutils literal notranslate"><span class="pre">wind_simulation.generate_rate_coeffs()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.load_spectrum"><code class="docutils literal notranslate"><span class="pre">wind_simulation.load_spectrum()</span></code></a></li>
@@ -84,21 +90,29 @@
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_metallicity"><code class="docutils literal notranslate"><span class="pre">wind_simulation.ramp_metallicity()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#heating-and-cooling-flags">Heating and Cooling Flags</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_on_conduction"><code class="docutils literal notranslate"><span class="pre">wind_simulation.turn_on_conduction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_conduction"><code class="docutils literal notranslate"><span class="pre">wind_simulation.turn_off_conduction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_line_cool"><code class="docutils literal notranslate"><span class="pre">wind_simulation.turn_off_line_cool()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_on_molecular_layer"><code class="docutils literal notranslate"><span class="pre">wind_simulation.turn_on_molecular_layer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_molecular_layer"><code class="docutils literal notranslate"><span class="pre">wind_simulation.turn_off_molecular_layer()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#boundary-conditions">Boundary Conditions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#polishing-converging-to-self-consistent-bcs">Polishing (Converging to self-consistent BCs)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.polish_bcs"><code class="docutils literal notranslate"><span class="pre">wind_simulation.polish_bcs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_base_bcs"><code class="docutils literal notranslate"><span class="pre">wind_simulation.ramp_base_bcs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.converge_mol_atomic_transition"><code class="docutils literal notranslate"><span class="pre">wind_simulation.converge_mol_atomic_transition()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molecular_erfc"><code class="docutils literal notranslate"><span class="pre">wind_simulation.ramp_molecular_erfc()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.converge_Ncol_sp"><code class="docutils literal notranslate"><span class="pre">wind_simulation.converge_Ncol_sp()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.converge_Rmax"><code class="docutils literal notranslate"><span class="pre">wind_simulation.converge_Rmax()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.integrate_out"><code class="docutils literal notranslate"><span class="pre">wind_simulation.integrate_out()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#computing-self-consistent-boundary-conditions">Computing self consistent boundary conditions</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.base_bcs"><code class="docutils literal notranslate"><span class="pre">wind_simulation.base_bcs()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.self_consistent_Ncol"><code class="docutils literal notranslate"><span class="pre">wind_simulation.self_consistent_Ncol()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_bolo"><code class="docutils literal notranslate"><span class="pre">wind_simulation.turn_off_bolo()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.erf_velocity"><code class="docutils literal notranslate"><span class="pre">wind_simulation.erf_velocity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.find_base_bcs"><code class="docutils literal notranslate"><span class="pre">wind_simulation.find_base_bcs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.find_self_consistent_Ncol"><code class="docutils literal notranslate"><span class="pre">wind_simulation.find_self_consistent_Ncol()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molec_adjust"><code class="docutils literal notranslate"><span class="pre">wind_simulation.ramp_molec_adjust()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.raise_Ncol_sp"><code class="docutils literal notranslate"><span class="pre">wind_simulation.raise_Ncol_sp()</span></code></a></li>
 </ul>
 </li>
@@ -163,11 +177,69 @@ The goal is find the solution of interest to the end-user and automate the choic
 Handling of the solution is done by the other major class wind_solution found in wind_ae/wrapper/wrapper_utils/windsoln.py.</p>
 </dd>
 </dl>
+<section id="working-directories-running-simultaneous-simulations">
+<h2>Working directories &amp; running simultaneous simulations<a class="headerlink" href="#working-directories-running-simultaneous-simulations" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 2.0.</span></p>
+</div>
+<p>Every instantiation of <code class="docutils literal notranslate"><span class="pre">sim</span> <span class="pre">=</span> <span class="pre">wind_sim()</span></code> creates its own isolated temporary working
+directory (in your machine’s <code class="docutils literal notranslate"><span class="pre">tmp</span></code> folder) containing its own <code class="docutils literal notranslate"><span class="pre">inputs/</span></code>, <code class="docutils literal notranslate"><span class="pre">saves/</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">outputs/</span></code> subfolders. This means multiple <code class="docutils literal notranslate"><span class="pre">wind_simulation</span></code> instances — in
+separate notebook cells, threads, or processes — can be run <strong>simultaneously</strong> without
+overwriting one another’s input/output files, which was not possible in Wind-AE 1.x.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">wind_ae.wrapper.relax_wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">wind_simulation</span> <span class="k">as</span> <span class="n">wind_sim</span>
+
+<span class="n">sim1</span> <span class="o">=</span> <span class="n">wind_sim</span><span class="p">()</span>
+<span class="n">sim2</span> <span class="o">=</span> <span class="n">wind_sim</span><span class="p">()</span>  <span class="c1"># independent workdir; safe to run alongside sim1</span>
+
+<span class="n">sim1</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;saves/planet_a.csv&#39;</span><span class="p">)</span>
+<span class="n">sim2</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;saves/planet_b.csv&#39;</span><span class="p">)</span>
+<span class="c1"># sim1.run_wind() and sim2.run_wind() can now be called concurrently</span>
+<span class="c1"># (e.g. from separate threads/processes/Jupyter notebooks) without input/output collisions.</span>
+</pre></div>
+</div>
+<p>The path to an instance’s working directory is available via <code class="docutils literal notranslate"><span class="pre">sim.workdir</span></code> (see
+<a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.where" title="wind_ae.wrapper.relax_wrapper.wind_simulation.where"><code class="xref py py-meth docutils literal notranslate"><span class="pre">where()</span></code></a>). To execute the compiled C
+relaxation code directly on a given instance’s inputs, <code class="docutils literal notranslate"><span class="pre">cd</span></code> into that workdir and run
+<code class="docutils literal notranslate"><span class="pre">/Users/your/path/to/wind-ae/wind_ae/bin/relaxed_ae</span></code> from <em>within</em> it, e.g.:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span><span class="k">$(</span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from wind_ae.wrapper.relax_wrapper import wind_simulation as wind_sim; print(wind_sim().workdir)&quot;</span><span class="k">)</span>
+/Users/your/path/to/wind-ae/wind_ae/bin/relaxed_ae
+</pre></div>
+</div>
+<p>Temporary workdirs are cleaned up automatically when your machine restarts, or on demand
+via <a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.cleanup" title="wind_ae.wrapper.relax_wrapper.wind_simulation.cleanup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cleanup()</span></code></a>. <code class="docutils literal notranslate"><span class="pre">wind_simulation</span></code>
+also supports the context-manager protocol, which calls <code class="docutils literal notranslate"><span class="pre">cleanup()</span></code> for you on exit:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">wind_sim</span><span class="p">()</span> <span class="k">as</span> <span class="n">sim</span><span class="p">:</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;saves/seed.csv&#39;</span><span class="p">)</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">run_wind</span><span class="p">()</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">save_planet</span><span class="p">(</span><span class="s1">&#39;saves/output.csv&#39;</span><span class="p">)</span>
+<span class="c1"># sim.workdir has now been removed</span>
+</pre></div>
+</div>
+<p>If you pass an explicit <code class="docutils literal notranslate"><span class="pre">workdir=</span></code> to <code class="docutils literal notranslate"><span class="pre">wind_sim()</span></code>, Wind-AE will use that directory
+instead of creating a temporary one, and will <strong>not</strong> delete it on <code class="docutils literal notranslate"><span class="pre">cleanup()</span></code> — you
+are responsible for its lifetime in that case.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.where">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">where</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.where" title="Link to this definition"></a></dt>
+<dd><p>Print the working directory for this instance.
+Useful for debugging: ls -a sim.workdir to inspect inputs/ manually.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.cleanup">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">cleanup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.cleanup" title="Link to this definition"></a></dt>
+<dd><p>Remove the workdir (inputs/ + saves/) owned by this instance.
+Only acts when the workdir was auto-created (workdir=None at init).
+Safe to call multiple times.</p>
+</dd></dl>
+
+</section>
 <section id="loading-and-interacting-with-wind-solutions">
 <h2>Loading and interacting with wind solutions<a class="headerlink" href="#loading-and-interacting-with-wind-solutions" title="Link to this heading"></a></h2>
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.load_planet">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">load_planet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_postfacto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Loaded</span> <span class="pre">Planet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_atmo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.load_planet" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">load_planet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_postfacto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expedite_postfacto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Loaded</span> <span class="pre">Planet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_atmo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.load_planet" title="Link to this definition"></a></dt>
 <dd><p>Loads a planet solution file into inputs/guess.inp as a new guess and updates input parameter folders.
 Ramping to a new planet with ramp_to() will rewrite parameter folders for the desired new planet, but the guess will remain the same.</p>
 <dl class="field-list simple">
@@ -195,7 +267,7 @@ Ramping to a new planet with ramp_to() will rewrite parameter folders for the de
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>expedite</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, will also run outward integration. Will return 4 if relaxation code has solved, but outward integration fails (does not affect profile or mass loss accuracy). Defaults to False.</p></li>
 <li><p><strong>calc_postfacto</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, performs post-facto calculations (e.g., heating/cooling, number density, etc.). Defaults to True.</p></li>
-<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints verbose output. Defaults to False.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints the full C code output. Useful for debugging (note: will not report segfaults). Defaults to False.</p></li>
 <li><p><strong>retry</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, retries on analysis errors. Defaults to False.</p></li>
 </ul>
 </dd>
@@ -217,12 +289,46 @@ Ramping to a new planet with ramp_to() will rewrite parameter folders for the de
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.direct_solve">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">direct_solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expedite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_postfacto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.direct_solve" title="Link to this definition"></a></dt>
+<dd><p>Writes input files directly from a system object and runs the relaxation code without any intermediate ramping steps.  Useful when the loaded guess is already close to the target system (e.g. re-solving after a small parameter change, or when providing a hand-crafted initial guess). Rarely works due to sensitivity of relaxation method.</p>
+<p>All physics, boundary conditions, flags, technical parameters, spectrum, and additional parameters are taken from the current self.windsoln; only the six planetary system parameters (Mp, Rp, Mstar, semimajor, Ftot, Lstar) are overwritten from the supplied system object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="system.html#wind_ae.wrapper.wrapper_utils.system.system" title="wind_ae.wrapper.wrapper_utils.system.system"><em>system</em></a>) – Target planetary system in cgs units.Must be a system object with attributes Mp, Rp, Mstar, semimajor, Ftot, and Lstar.</p></li>
+<li><p><strong>expedite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Passed directly to run_wind().  If True, skips outward integration and returns immediately after the relaxation solve.  Defaults to False.</p></li>
+<li><p><strong>calc_postfacto</strong> (<em>bool</em><em>, </em><em>optional</em>) – Passed directly to run_wind().  If True, runs add_user_vars() after a successful solve.  Defaults to True.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Passed directly to run_wind().  If True, prints the C binary’s stdout/stderr.  Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Status code from run_wind().</dt><dd><p>0  - Relaxation (and outward integration if expedite=False) succeeded.
+1  - Relaxation failed.
+2  - Failed to copy saves/windsoln.csv to inputs/guess.inp.
+3  - Analysis error when loading wind_solution after a successful solve.
+4  - Relaxation succeeded but outward integration failed. Solution is still saved and valid.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.load_uservars">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">load_uservars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.load_uservars" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">load_uservars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expedite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.load_uservars" title="Link to this definition"></a></dt>
 <dd><p>Loads all user variables for plotting and analysis. Does not rewrite input parameter files, so can be run concurrently with simulations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>csv_file</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to the csv file containing the planet solution. Defaults to None.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>csv_file</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to the csv file containing the planet solution. Defaults to None.</p></li>
+<li><p><strong>expedite</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, will not calculate expensive post-facto variables (e.g., photoionization heating, etc.) to save time. Defaults to False.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
@@ -233,8 +339,9 @@ Ramping to a new planet with ramp_to() will rewrite parameter folders for the de
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.generate_rate_coeffs">
 <span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">generate_rate_coeffs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.generate_rate_coeffs" title="Link to this definition"></a></dt>
-<dd><p>Generates rate coefficients for secondary ionization and populates array in src/rate_coeffs.h.
-Rate coefficients are generated from interpolation over the Dere (2007) table.</p>
+<dd><p>Generates rate coefficients for secondary ionization and populates an input array in inputs/rate_coeffs.inp.
+Rate coefficients are generated from interpolation over the Dere (2007) table.
+Should ALWAYS be run when changing spectrum (mostly done automatically when running Wind-AE’s native spectrum functions).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
@@ -246,7 +353,12 @@ Rate coefficients are generated from interpolation over the Dere (2007) table.</
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.load_spectrum">
 <span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">load_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">generate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wl_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.load_spectrum" title="Link to this definition"></a></dt>
 <dd><p>Loads a high resolution spectrum and, if generate=True, smooths it, keeping the flux at ionization edges for the species in the current windsoln accurate, and conserving flux locally in the vicinity of spectral peaks. The spectrum specified in the windsoln is the one loaded and smoothed.
-One can change the spectrum using ramp_to_user_spectrum() to ramp to a user-input spectrum or change the wavelength range and integrated flux via ramp_spectrum(). To change the total flux but maintain spectrum shape and range, use ramp_flux().</p>
+One can change the spectrum using ramp_to_user_spectrum() to ramp to a user-input spectrum or change the wavelength range and integrated flux via ramp_spectrum(). To change the total flux but maintain spectrum shape and range, use ramp_Ftot().</p>
+<p>Note: internal wind_ae code (ramp_spectrum(), ramp_to_user_spectrum()) no
+longer calls this function itself; it builds any glq_spectrum objects it
+needs directly, scoped to genuinely multifrequency (non-degenerate) spans.
+This function remains available for interactively inspecting/plotting the
+high resolution source spectrum behind the current windsoln.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -437,7 +549,7 @@ Note: R_cori will still need to be computed by running converge_Rmax().</p></li>
 <dd class="field-even"><p><dl class="simple">
 <dt>Status code.</dt><dd><p>0 - Successfully ramped (and integrated out and/or converged BCs)
 101 - Failed to ramp to desired Mstar, Lstar, semimajor
-1 - Successfully ramped to Mstar, Lstar, semimajor then encountered trouble solving. Last working solution should be sufficient (self.path+’saves/windsoln.csv’).
+1 - Successfully ramped to Mstar, Lstar, semimajor then encountered trouble solving. Last working solution should be sufficient (self.wpath+’saves/windsoln.csv’).
 4 - Successfully ramped to Mstar, Lstar, semimajor but unable to integrate out. Try running converge_Rmax() or integrate_out().
 5 - Successfully ramped to Mstar, Lstar, semimajor but unable to polish all BCs. See printout for more details.</p>
 </dd>
@@ -540,13 +652,100 @@ Mass fractions must sum to 1, so the difference from 1 is added to the hydrogen 
 </dd></dl>
 
 </section>
+<section id="heating-and-cooling-flags">
+<h2>Heating and Cooling Flags<a class="headerlink" href="#heating-and-cooling-flags" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 2.0: </span>Conductive cooling, recombination cooling, and free-free (bremsstrahlung) cooling are
+now independently toggleable, alongside line cooling and the molecular/bolometric
+layer. See <code class="docutils literal notranslate"><span class="pre">sim.windsoln.flags_tuple</span></code> and <a class="reference internal" href="windsoln.html#windsoln"><span class="std std-ref">Analysis Module</span></a> for the full flag list.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Turning on conduction makes the ODEs very stiff. Only turn it on <strong>after</strong> all other
+ramping is complete (<a class="reference internal" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_on_conduction" title="wind_ae.wrapper.relax_wrapper.wind_simulation.turn_on_conduction"><code class="xref py py-meth docutils literal notranslate"><span class="pre">turn_on_conduction()</span></code></a>).
+The temperature dependence of free-free and recombination cooling can make Wind-AE
+numerically unstable, and ramping to higher metallicities with these on may fail — if
+so, try turning them off during ramping and back on afterwards.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.turn_on_conduction">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">turn_on_conduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_on_conduction" title="Link to this definition"></a></dt>
+<dd><p>Turns on conduction. Note: not recommended to ramp to other solutions with conduction on, as it can cause stiffness and long runtimes. If ramping is stuck, try turning on conduction after ramping is complete.”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_conduction">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">turn_off_conduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_conduction" title="Link to this definition"></a></dt>
+<dd><p>Turns off conduction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_line_cool">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">turn_off_line_cool</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_line_cool" title="Link to this definition"></a></dt>
+<dd><p>Turns off metal line cooling, including Lyman-alpha cooling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.turn_on_molecular_layer">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">turn_on_molecular_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_on_molecular_layer" title="Link to this definition"></a></dt>
+<dd><p>Turns on the molecular layer below R_XUV (sets bolo_heat_cool and/or molec_layer flags to 1). Appropriate when R_XUV &gt; R_min.
+Reminder: To change the mean molecular weight adjustment (molec_adjust), run ramp_base_bcs(molec_adjust). To change the IR and visible opacities that govern the bolometric heating and cooling, run ramp_base_bcs(Kappa_IR, Kappa_opt).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kind</strong> (<em>str</em><em>, </em><em>optional</em>) – ‘bolo_only’ to turn on only bolometric heating/cooling, ‘molec_only’ to turn on only mean molecular weight adjustment, ‘both’ to turn on both. Defaults to ‘both’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 if successful, 1 if failed to turn on molecular layer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_molecular_layer">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">turn_off_molecular_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_molecular_layer" title="Link to this definition"></a></dt>
+<dd><p>Turns off the molecular layer below R_XUV (sets bolo_heat_cool and/or molec_layer flags to 0). Appropriate when R_XUV ~ R_min.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kind</strong> (<em>str</em><em>, </em><em>optional</em>) – ‘bolo_only’ to turn off only bolometric heating/cooling, ‘molec_only’ to turn off only mean molecular weight adjustment, ‘both’ to turn off both. Defaults to ‘both’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 if successful, 1 if failed to turn off.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="boundary-conditions">
 <h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Link to this heading"></a></h2>
 <section id="polishing-converging-to-self-consistent-bcs">
 <h3>Polishing (Converging to self-consistent BCs)<a class="headerlink" href="#polishing-converging-to-self-consistent-bcs" title="Link to this heading"></a></h3>
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.polish_bcs">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">polish_bcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">converge_Rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_bcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_override_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bolo_on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.polish_bcs" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">polish_bcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">converge_Rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_bcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_override_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bolo_on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_conduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.polish_bcs" title="Link to this definition"></a></dt>
 <dd><p>Polishes upper and lower boundary conditions to self-consistency.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -555,6 +754,7 @@ Mass fractions must sum to 1, so the difference from 1 is added to the hydrogen 
 <li><p><strong>static_bcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, skips running ramp_base_bcs() and maintains the current boundary conditions. Defaults to None (i.e., the value of self.static_bcs).</p></li>
 <li><p><strong>user_override_press</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, allows user to override pressure boundary conditions. Defaults to False.</p></li>
 <li><p><strong>base_press</strong> (<em>float</em><em>, </em><em>optional</em>) – Base pressure in microbars (barye) to use for boundary conditions. Defaults to 1.</p></li>
+<li><p><strong>add_conduction</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, adds conduction to the model if it is relevant (&gt;0.7*heat_ion). Defaults to False as can be expensive.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -568,18 +768,21 @@ Mass fractions must sum to 1, so the difference from 1 is added to the hydrogen 
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_base_bcs">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">ramp_base_bcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_override_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_bcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kappa_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.004</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kappa_IR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molec_adjust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adiabat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_base_bcs" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">ramp_base_bcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_Rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_rho_Rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_T_rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_override_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_bcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kappa_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kappa_IR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molec_adjust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adiabat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_base_bcs" title="Link to this definition"></a></dt>
 <dd><p>Ramps Rmin, mass density at Rmin (rho_rmin), and temperature at Rmin (T_rmin) to the physical values computed in base_bcs().
 Default is the values at base_press = 1 microbar. If the loaded solution base BC is at higher pressure, base_press will stay that value in subsequent iterations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>user_Rmin</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If user wants to directly specify Rmin (Rp), rho_Rmin (g/cm^3), or T_rmin (K), set these to the desired values. Defaults to None, in which case these values will be computed by find_base_bcs(base_press) and ramped to.</p></li>
+<li><p><strong>user_rho_Rmin</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If user wants to directly specify Rmin (Rp), rho_Rmin (g/cm^3), or T_rmin (K), set these to the desired values. Defaults to None, in which case these values will be computed by find_base_bcs(base_press) and ramped to.</p></li>
+<li><p><strong>user_T_rmin</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If user wants to directly specify Rmin (Rp), rho_Rmin (g/cm^3), or T_rmin (K), set these to the desired values. Defaults to None, in which case these values will be computed by find_base_bcs(base_press) and ramped to.</p></li>
 <li><p><strong>base_press</strong> (<em>int</em><em> or </em><em>float</em><em>, </em><em>optional</em>) – Desired pressure at base of simulation in microbars. Defaults to 1. Default will be overridden if loaded solution has different base press, unless user_override_press=True.</p></li>
 <li><p><strong>user_override_press</strong> (<em>bool</em><em>, </em><em>optional</em>) – To lower or raise pressure of base, set True. Defaults to False.</p></li>
 <li><p><strong>static_bcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, skips running ramp_base_bcs() and maintains the current boundary conditions. Defaults to None (i.e., the value of self.static_bcs).</p></li>
-<li><p><strong>Kappa_opt</strong> (<em>float</em><em>, </em><em>optional</em>) – Optical opacity. Sets bolometric heating/cooling in molecular region below wind. Defaults to 4e-3.</p></li>
-<li><p><strong>Kappa_IR</strong> (<em>float</em><em>, </em><em>optional</em>) – IR opacity. Defaults to 1e-2.</p></li>
-<li><p><strong>molec_adjust</strong> (<em>float</em><em>, </em><em>optional</em>) – Dimensionless mean molecular weight. Mu of H2 is 2.3*mH. Defaults to self.windsoln.molec_adjust if =None. If molec_adjust &lt;= 0, turns off molecular layer.</p></li>
+<li><p><strong>Kappa_opt</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Optical opacity in the molecular layer below wind. Defaults to self.windsoln.kappa_opt if None (typically, 4e-3).</p></li>
+<li><p><strong>Kappa_IR</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – IR opacity in the molecular layer below wind. Defaults to self.windsoln.kappa_IR if None (typically, 1e-2).</p></li>
+<li><p><strong>molec_adjust</strong> (<em>float</em><em>, </em><em>optional</em>) – Dimensionless mean molecular weight. Mu of H2 is 2.3*mH. Defaults to current self.windsoln.molec_adjust if None. If self.windsoln.molec_layer = 0, molec_adjust has no effect.</p></li>
 <li><p><strong>adiabat</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, computes base BCs assuming atmosphere is adiabatic below wind. Defaults to False.</p></li>
 <li><p><strong>polish</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, skips ramping T when self.windsoln.bolo_heat_cool=0 to avoid costly iteration. Defaults to False.</p></li>
 <li><p><strong>intermediate</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, returns early if average difference is below tolerance. Defaults to False.</p></li>
@@ -599,9 +802,8 @@ Default is the values at base_press = 1 microbar. If the loaded solution base BC
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.converge_mol_atomic_transition">
 <span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">converge_mol_atomic_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_called_in_ramp_bcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bolo_on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.converge_mol_atomic_transition" title="Link to this definition"></a></dt>
 <dd><p>_Formerly run_isotherm()_</p>
-<p>Ramps the complementary error function that governs the transition from the molecular to atomic regions in the atmosphere. Both the mean molecular weight and bolometric heating/cooling are transitioned using the same error function.</p>
-<p>If the bolometric heating/cooling flag is off (sim.windsoln.bolo_heat_cool=0.0) there will be no bolometric heating/cooling, but the mean molecular weight will still transition from molecular to atomic unless sim.windsoln.molec_adjust = 0.0.
-To turn off the bolometric heating/cooling run sim.turn_off_bolo().</p>
+<p>Ramps the complementary error function that governs the transition from the molecular to atomic regions in the atmosphere. The mean molecular weight transition is controlled by sim.windsoln.molec_layer; bolometric heating/cooling uses the same erfc location but is scaled by sim.windsoln.bolo_heat_cool independently.</p>
+<p>If both bolometric heating/cooling (bolo_heat_cool) and the molecular weight transition (molec_layer) are off (== 0.0), this function returns immediately. Setting molec_layer=0 turns off the mu erfc while leaving bolo_heat_cool unaffected, and vice versa.</p>
 <p>Criterion for transition: when photoionization heating begins to dominate over the PdV cooling and a wind will launch.
 Below the wind, for an average planet, molecules have not photodissociated so mu should be mean molecular weight instead of mean atomic weight and the erf enforces this. Molecular opacities mean that bolometric heating and cooling dominate the energy budget and create an isotherm in the molecular region below the wind. In the optically thin atomic wind, bolometric heating and cooling are negligible, so the erf also enforces the drop off of bolometric heating and cooling.</p>
 <p>If a user needs to call this function for some reason, width_factor is the only argument they should need to change. For numerical or physical reasons it may be necessary for the transition to occur over more than 1 scaleheight. In this case, increase width_factor.</p>
@@ -619,6 +821,27 @@ Below the wind, for an average planet, molecules have not photodissociated so mu
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int or tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molecular_erfc">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">ramp_molecular_erfc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_drop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molecular_erfc" title="Link to this definition"></a></dt>
+<dd><p>Ramps the molecular-to-atomic transition complementary error function to the desired radial drop off location and rate. These values can be obtained from sim._erf_velocity().</p>
+<p>Should rarely need to be run by user. Manually changing the erfc parameters is only necessary if sim.converge_mol_atomic_transition() fails to converge the erfc parameters automatically.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v_drop</strong> (<em>float</em>) – Velocity at the radial location of the erfc drop in units of cm/s</p></li>
+<li><p><strong>rate</strong> (<em>float</em>) – Rate of the erfc drop off</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Status code. 0 for success, 1 for failure.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -686,8 +909,8 @@ sim.run_wind()</p>
 <section id="computing-self-consistent-boundary-conditions">
 <h3>Computing self consistent boundary conditions<a class="headerlink" href="#computing-self-consistent-boundary-conditions" title="Link to this heading"></a></h3>
 <dl class="py method">
-<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.base_bcs">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">base_bcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molec_adjust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kappa_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.004</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kappa_IR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adiabat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_override_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.base_bcs" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.find_base_bcs">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">find_base_bcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molec_adjust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kappa_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kappa_IR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adiabat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_override_press</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.find_base_bcs" title="Link to this definition"></a></dt>
 <dd><p>Sets base of simulation below XUV tau=1 surface and assumes bolometric heating &amp; cooling of molecules dominates there.</p>
 <p>Computes the density and temperature at either R_ubar (microbar pressure radius) or R_IR (vertical tau=1 surface to IR radiation). Between this radius and the nanobar radius where wind is launched, the temperature profile is an isotherm at the skin temperature. If R_IR is below Rp, it takes R_mbar to be the base of the simulation.</p>
 <p>Assumes that Rp is the slant path optical tau = 1 surface. Computes skin temperature by balancing bolometric heating and cooling. Computes effective temperature from stellar bolometric luminosity. For highly irradiated planets (most planets for which atmospheric escape is significant), it is an isotherm at T_eff=L_star/(16*pi*sigma_sb*a^2) between R_IR and Rp or an isotherm at T_skin between R_mbar and Rp. If adiabat=True, computes the R_IR assuming an adiabat between T_eff and T_skin.</p>
@@ -696,8 +919,8 @@ sim.run_wind()</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>molec_adjust</strong> (<em>float</em><em>, </em><em>optional</em>) – Dimensionless mean molecular weight. Mu of H2 is 2.3*mH. Defaults to self.windsoln.molec_adjust if None. If molec_adjust == 0, turns off molecular layer.</p></li>
-<li><p><strong>Kappa_opt</strong> (<em>float</em><em>, </em><em>optional</em>) – Optical opacity. Defaults to 4e-3.</p></li>
-<li><p><strong>Kappa_IR</strong> (<em>float</em><em>, </em><em>optional</em>) – IR opacity. Defaults to 1e-2.</p></li>
+<li><p><strong>Kappa_opt</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Optical opacity. Defaults to self.windsoln.kappa_opt if None (4e-3).</p></li>
+<li><p><strong>Kappa_IR</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – IR opacity. Defaults to self.windsoln.kappa_IR if None (1e-2).</p></li>
 <li><p><strong>adiabat</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, computes IR BCs assuming an adiabat. Defaults to False.</p></li>
 <li><p><strong>base_press</strong> (<em>int</em><em> or </em><em>float</em><em>, </em><em>optional</em>) – Pressure at base of simulation in microbars. Defaults to 1.</p></li>
 <li><p><strong>user_override_press</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, overrides base pressure. Defaults to False.</p></li>
@@ -726,8 +949,8 @@ T (float): Effective temperature in units of T0 (1e4 K)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.self_consistent_Ncol">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">self_consistent_Ncol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.self_consistent_Ncol" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.find_self_consistent_Ncol">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">find_self_consistent_Ncol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.find_self_consistent_Ncol" title="Link to this definition"></a></dt>
 <dd><p>Computes the self-consistent column density sonic point boundary condition from the neutral number density of a given species.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -751,39 +974,18 @@ goals (np.ndarray): Array of self-consistent Ncol_sp values.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_bolo">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">turn_off_bolo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_bolo" title="Link to this definition"></a></dt>
-<dd><p>Turns off bolometric heating and cooling AND the mean molecular weight adjustment in the molecular region. These values are currently coupled by the error function defined in converge_mol_atomic_transition().</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>0 if successful, 1 if failed to turn off bolometric heating/cooling.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.erf_velocity">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">erf_velocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">return_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_called_in_ramp_bcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">called_in_mol_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.erf_velocity" title="Link to this definition"></a></dt>
-<dd><p>Defines the drop-off radius of the complementary error function that governs the drop-off of bolometric heating/cooling and the mean molecular weight in the isothermal part of the wind as photoionization heating begins to dominate and the atmosphere becomes atomic and non-isothermal.</p>
+<dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molec_adjust">
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">ramp_molec_adjust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molec_adjust" title="Link to this definition"></a></dt>
+<dd><p>Ramps the mean molecular weight adjustment factor (molec_adjust) to a goal value (e.g., 2.3 for an H2 atmosphere, 16 for an H20, etc.).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>return_idx</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, returns radial index where drop-off occurs. Defaults to False.</p></li>
-<li><p><strong>_called_in_ramp_bcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Avoids recursion of ramping bases if called in ramp_base_bcs. Defaults to False.</p></li>
-<li><p><strong>polish</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, computes full bolometric heating/cooling and photoionization heating curves for improved accuracy. Defaults to False.</p></li>
-<li><p><strong>width_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – Sets width in radius space over which the erfc drops off as a factor of scaleheight at the transition index (Hsc). If 0, uses current width of transition in Hsc. Defaults to 0.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>goal</strong> (<em>float</em>) – The target value for molec_adjust.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Velocity at location of drop-off in units of cm/s.
-float: Rate of drop-off.
-tuple (optional): If return_idx=True, also returns (width_factor, drop_idx).</p>
+<dd class="field-even"><p>0 if successful, 1 if failed to ramp.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
+<dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -914,8 +1116,8 @@ float: goal_total_flux if ramp=False (does not ramp).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_spectrum">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">ramp_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Fnorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_spec_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal_spec_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_spectrum" title="Link to this definition"></a></dt>
-<dd><p>Ramps stellar spectrum wavelength/energy range to new wavelength/energy range.</p>
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">ramp_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Fnorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_spec_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal_spec_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_spectrum" title="Link to this definition"></a></dt>
+<dd><p>Ramps stellar spectrum wavelength/energy range to new wavelength/energy range. To change to a monofrequncy spectrum, e.g., at 20 eV, set goal_spec_range=[20] or [20,20] and kind=’mono’. (Note: for numerical reason, a <a href="#id1"><span class="problematic" id="id2">`</span></a>monofrequency’ spectrum is actually two wavelength bins with the same wavelength and the appropriately normalized wPhi_wl/Ftot.)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -924,7 +1126,6 @@ float: goal_total_flux if ramp=False (does not ramp).</p>
 <li><p><strong>goal_spec_range</strong> (<em>list</em><em> or </em><em>array</em><em>, </em><em>optional</em>) – Custom upper and lower limits of spectrum in units of ‘units’. Defaults to [].</p></li>
 <li><p><strong>units</strong> (<em>str</em><em>, </em><em>optional</em>) – Units of range values. Options are ‘cm’, ‘nm’, ‘eV’. Defaults to ‘eV’.</p></li>
 <li><p><strong>normalize</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, flux in new range will be normalized to Fnorm in norm_spec_range. Defaults to True.</p></li>
-<li><p><strong>kind</strong> (<em>str</em><em>, </em><em>optional</em>) – ‘full’ or ‘mono’ - spectrum frequency type. Defaults to ‘full’.</p></li>
 <li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plots ramping progress. Defaults to False.</p></li>
 </ul>
 </dd>
@@ -944,23 +1145,22 @@ float: goal_total_flux if ramp=False (does not ramp).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_to_user_spectrum">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">ramp_to_user_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectrum_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">updated_F</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_spec_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal_spec_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ramp_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hires_savgol_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_to_user_spectrum" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">ramp_to_user_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectrum_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">updated_Ftot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_spec_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal_spec_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ramp_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hires_savgol_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_to_user_spectrum" title="Link to this definition"></a></dt>
 <dd><p>Ramping stellar spectrum wavelength/energy range to new wavelength/energy range.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>spectrum_filename</strong> (<em>str</em>) – Name of the formatted spectrum file saved in McAstro/stars/additional_spectra/.</p></li>
+<li><p><strong>spectrum_filename</strong> (<em>str</em>) – Name of the formatted spectrum file saved in wind_ae/spectra/.</p></li>
 <li><p><strong>species_list</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Species list for spectrum binning. Defaults to [].</p></li>
-<li><p><strong>updated_F</strong> (<em>float</em><em>, </em><em>optional</em>) – Summed flux over norm_spec_range in ergs/s/cm² at planet’s semimajor axis. Defaults to 0.0.</p></li>
+<li><p><strong>updated_Ftot</strong> (<em>float</em><em>, </em><em>optional</em>) – Summed flux over norm_spec_range in ergs/s/cm² at planet’s semimajor axis. Defaults to 0.0.</p></li>
 <li><p><strong>norm_spec_range</strong> (<em>list</em><em> or </em><em>array</em><em>, </em><em>optional</em>) – Desired range over which to normalize, in units of ‘units’. Defaults to [].</p></li>
 <li><p><strong>goal_spec_range</strong> (<em>list</em><em> or </em><em>array</em><em>, </em><em>optional</em>) – Custom upper and lower limits of spectrum, in units of ‘units’. Defaults to [].</p></li>
 <li><p><strong>units</strong> (<em>str</em><em>, </em><em>optional</em>) – Units for range values (‘eV’, ‘cm’, ‘nm’). Defaults to ‘eV’.</p></li>
 <li><p><strong>normalize</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, flux in new range will be normalized to Fnorm in norm_spec_range. Defaults to True.</p></li>
-<li><p><strong>kind</strong> (<em>str</em><em>, </em><em>optional</em>) – Spectrum frequency type (‘full’ or ‘mono’).</p></li>
 <li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plot the spectrum. Defaults to False.</p></li>
 <li><p><strong>ramp_range</strong> (<em>bool</em><em>, </em><em>optional</em>) – If False, will not ramp spec range or flux. Defaults to True.</p></li>
-<li><p><strong>hires_savgol_window</strong> (<em>int</em><em>, </em><em>optional</em>) – Window length for Savitzky–Golay smoothing if user spectrum has &gt;10,000 bins. Must be odd. Defaults to 501 (Higher = more smoothing).
-Once you have identified an appropriate value, it will be automatically saved to the McAstro/stars/additional_spectra/spectrum_filename for future loads of that spectrum.</p></li>
+<li><p><strong>hires_savgol_window</strong> (<em>int</em><em>, </em><em>optional</em>) – Window length for Savitzky-Golay smoothing if user spectrum has &gt;10,000 bins. Must be odd. Defaults to 501 (Higher = more smoothing).
+Once you have identified an appropriate value, it will be automatically saved to the wind_ae/spectra/spectrum_filename for future loads of that spectrum.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -995,7 +1195,7 @@ Once you have identified an appropriate value, it will be automatically saved to
 <h2>Plotting Aliases<a class="headerlink" href="#plotting-aliases" title="Link to this heading"></a></h2>
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.energy_plot">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">energy_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CIII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OIII_line_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_sonic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.energy_plot" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">energy_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_dom_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_top_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.energy_plot" title="Link to this definition"></a></dt>
 <dd><p>Plots energy balance terms used in the energy equation (Broome et al. 2025)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1004,13 +1204,9 @@ Once you have identified an appropriate value, it will be automatically saved to
 <li><p><strong>ax</strong> – The axis to plot on (default is 0, which creates a new figure)</p></li>
 <li><p><strong>alpha</strong> – Transparency level for the plot lines (default is 0.8).
 Useful when overplotting multiple on same axes</p></li>
-<li><p><strong>all_terms</strong> – If True, plot terms not included in Wind-AE, e.g., free-free cooling, conduction (default is False)</p></li>
-<li><p><strong>CII_line_cool</strong> – If True, include CII line cooling terms (default is False)</p></li>
-<li><p><strong>CIII_line_cool</strong> – If True, include CIII line cooling terms (default is False)</p></li>
-<li><p><strong>OII_line_cool</strong> – If True, include OII line cooling terms (default is False)</p></li>
-<li><p><strong>OIII_line_cool</strong> – If True, include OIII line cooling terms (default is False)</p></li>
+<li><p><strong>plot_dom_lines</strong> – If True, plots the N_top_lines dominant cooling lines at each of 10 sample radii (default is True)</p></li>
+<li><p><strong>N_top_lines</strong> – (default 2) plots the top two lines at each of the 10 sample radii</p></li>
 <li><p><strong>legend</strong> – If True, display the legend (default is True)</p></li>
-<li><p><strong>sub_sonic</strong> – If True, sets x-axis upper limit at sonic point radius</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1021,13 +1217,12 @@ Useful when overplotting multiple on same axes</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.six_panel_plot">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">six_panel_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Mdot_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1.3,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_plotted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.six_panel_plot" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">six_panel_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Mdot_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1.3,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.six_panel_plot" title="Link to this definition"></a></dt>
 <dd><p>Plots density (g/cm3), temperature (K), velocity (10 km/s), ionization fraction, column density (g/cm2), and number density (1/cm2), as a function of r (Rp).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>object</strong> (<em>soln - windsoln</em>)</p></li>
-<li><p><strong>True</strong> (<em>Mdot_legend - Bool; if</em>)</p></li>
+<li><p><strong>True</strong> (<em>ion_label - Bool; if</em>)</p></li>
 <li><p><strong>Else</strong> (<em>put Mdot in legend</em><em> of </em><em>plot.</em>)</p></li>
 <li><p><strong>prints.</strong> (<em>just</em>)</p></li>
 <li><p><strong>color</strong> (<em>c - str; line</em>)</p></li>
@@ -1038,13 +1233,14 @@ Useful when overplotting multiple on same axes</p></li>
 <li><p><strong>[</strong><strong>x</strong> (<em>2</em><em>]</em><em>. Location</em><em> of </em><em>label and ncols</em>)</p></li>
 <li><p><strong>y</strong></p></li>
 <li><p><strong>ncols</strong><strong>]</strong><strong>.</strong></p></li>
-<li><p><strong>SixPlot</strong> (<em>first_plotted - Bool; True if this the first</em><em> of </em><em>many OR the ONLY</em>) – to be plotted on the same axes.</p></li>
-<li><p><strong>first_plotted=False</strong> (<em>ax - matplotlib axis obj; if</em>) – will be be plotted on desired figure with other simulations for comparison</p></li>
-<li><p><strong>this</strong> (<em>provide axis object so</em>) – will be be plotted on desired figure with other simulations for comparison</p></li>
+<li><p><strong>True</strong></p></li>
+<li><p><strong>plot</strong> (<em>include ionization fraction in the</em>)</p></li>
+<li><p><strong>None</strong> (<em>ax - matplotlib axis obj; default is None. If</em>)</p></li>
+<li><p><strong>created.</strong> (<em>a new figure will be</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>ax - axes object (if first_plotted=True)</p>
+<dd class="field-even"><p>ax - axes object (if ax=None)</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
@@ -1055,7 +1251,7 @@ SixPlot(sim3.windsoln, ax=ax1)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.quick_plot">
-<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">quick_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Mdot_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1.3,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_plotted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.quick_plot" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">quick_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Mdot_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1.3,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.quick_plot" title="Link to this definition"></a></dt>
 <dd><p>Produces a velocity, density, temperature, and neutral fraction plot from intermediate solutions while ramping. For a more aesthetic four-panel plot use <cite>quickplot()</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1086,7 +1282,7 @@ SixPlot(sim3.windsoln, ax=ax1)</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Quickstart.html" class="btn btn-neutral float-left" title="Quick Start Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Quickstart.html" class="btn btn-neutral float-left" title="Wind-AE Quick Start Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="windsoln.html" class="btn btn-neutral float-right" title="Analysis Module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

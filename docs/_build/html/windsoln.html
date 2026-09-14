@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Analysis Module &mdash; Wind-AE 0.2.0 documentation</title>
+  <title>Analysis Module &mdash; Wind-AE 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -17,7 +17,7 @@
     <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,20 +59,24 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Wind-AE Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Analysis Module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#perform-postfacto-calculations">Perform postfacto calculations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#assorted-useful-functions">Assorted Useful Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.add_user_vars"><code class="docutils literal notranslate"><span class="pre">wind_solution.add_user_vars()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_mu"><code class="docutils literal notranslate"><span class="pre">wind_solution.calc_mu()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_massloss"><code class="docutils literal notranslate"><span class="pre">wind_solution.calc_massloss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.current_metallicity"><code class="docutils literal notranslate"><span class="pre">wind_solution.current_metallicity()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.tau_array"><code class="docutils literal notranslate"><span class="pre">wind_solution.tau_array()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_tau1_radius"><code class="docutils literal notranslate"><span class="pre">wind_solution.calc_tau1_radius()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.alpha_rec"><code class="docutils literal notranslate"><span class="pre">wind_solution.alpha_rec()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#rarely-useful-and-somewhat-deprecated">Rarely useful and somewhat deprecated</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_R_exo"><code class="docutils literal notranslate"><span class="pre">wind_solution.calc_R_exo()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_Jeans"><code class="docutils literal notranslate"><span class="pre">wind_solution.calc_Jeans()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_Coriolis"><code class="docutils literal notranslate"><span class="pre">wind_solution.calc_Coriolis()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_ballistic"><code class="docutils literal notranslate"><span class="pre">wind_solution.calc_ballistic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_roche_lobe"><code class="docutils literal notranslate"><span class="pre">wind_solution.calc_roche_lobe()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.regrid"><code class="docutils literal notranslate"><span class="pre">wind_solution.regrid()</span></code></a></li>
 </ul>
 </li>
@@ -153,13 +157,10 @@ Generates windsoln object which contains the solution data (including postfacto 
 <li><dl class="simple">
 <dt>Heating and Cooling Rates (per unit volume):</dt><dd><ul>
 <li><dl class="simple">
-<dt>Currently Included in <strong>Wind-AE</strong>:</dt><dd><ul>
-<li><p>Photoionization rate - ‘heat_ion’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>)</p></li>
-<li><p>Recombination cooling - ‘cool_rec’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>)</p></li>
-<li><p>Advective Heating/Cooling - ‘heat_advect’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>)</p></li>
-<li><p>Bolometric Heating/Cooling - ‘boloheat’, ‘bolocool’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>)</p></li>
+<dt>Included in the energy equation when their corresponding flag is on (see <a class="reference internal" href="relax_wind.html#relax-wind"><span class="std std-ref">Relaxation Module</span></a>’s <span class="xref std std-ref">Heating and Cooling Flags</span> and the <code class="docutils literal notranslate"><span class="pre">Flags</span></code> variables below):</dt><dd><ul>
+<li><p>Photoionization heating - ‘heat_ion’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>) (always on)</p></li>
 <li><dl class="simple">
-<dt>Line cooling:</dt><dd><ul>
+<dt>Line cooling (governed by <code class="docutils literal notranslate"><span class="pre">linecool</span></code> flag, formerly <code class="docutils literal notranslate"><span class="pre">lyacool</span></code>):</dt><dd><ul>
 <li><p>Lyman-alpha cooling - ‘cool_lyman’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>)</p></li>
 <li><p>Carbon line cooling - “cool_CII_1570000A” (15700000 <span class="math notranslate nohighlight">\(\AA\)</span> line), “cool_CII_2326A”,”cool_CII_1334A”, “cool_CIII_1910A”, “cool_CIII_977A”</p></li>
 <li><p>Oxygen line cooling - “cool_OII_834A” (834 <span class="math notranslate nohighlight">\(\AA\)</span> line), “cool_OII_2741A”, “cool_OII_3727A”, “cool_OII_7320A”, “cool_OIII_520000A”, “cool_OIII_5000A”, “cool_OIII_166A”, “cool_OIII_84A”</p></li>
@@ -167,14 +168,18 @@ Generates windsoln object which contains the solution data (including postfacto 
 </dd>
 </dl>
 </li>
+<li><p>Recombination cooling - ‘cool_rec’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>) (governed by <code class="docutils literal notranslate"><span class="pre">recombo_cool</span></code> flag; on by default)</p></li>
+<li><p>Free-free (bremsstrahlung) cooling - ‘cool_free’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>) (governed by <code class="docutils literal notranslate"><span class="pre">free_free_cool</span></code> flag; on by default) <strong>[NEW in v2.0]</strong></p></li>
+<li><p>Conductive cooling - ‘cool_cond’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>) (governed by <code class="docutils literal notranslate"><span class="pre">conduction</span></code> flag; <strong>off</strong> by default — see warning below) <strong>[NEW in v2.0]</strong>. The associated total (electron + neutral) thermal conductivity coefficient is stored in ‘cond_coeff’ (erg <span class="math notranslate nohighlight">\(s^{-1} cm^{-1} K^{-1}\)</span>).</p></li>
+<li><p>Advective Heating/Cooling - ‘heat_advect’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>)</p></li>
+<li><p>Bolometric Heating/Cooling - ‘boloheat’/’heat_bolo’ (heating), ‘bolocool’/’cool_bolo’ (cooling) (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>) (governed by the <code class="docutils literal notranslate"><span class="pre">bolo_heat_cool</span></code> scaling flag; the ‘heat_bolo’/’cool_bolo’ names are aliases added in v2.0 for readability, identical values to ‘boloheat’/’bolocool’)</p></li>
 <li><p>PdV cooling (work done by expanding gas) - ‘cool_PdV’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>)</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>Not included in <strong>Wind-AE</strong>:</dt><dd><ul>
-<li><p>Conductive cooling - ‘cool_cond’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>) <strong>[PLANNED]</strong></p></li>
+<dt>Diagnostic only (always computed, but never included self-consistently in the energy equation):</dt><dd><ul>
 <li><p>Gravitational heating/cooling - ‘cool_grav’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>)</p></li>
 </ul>
 </dd>
@@ -191,13 +196,23 @@ Generates windsoln object which contains the solution data (including postfacto 
 </dd>
 </dl>
 </li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>As of v2.0, conductive, recombination, and free-free cooling can each be toggled
+independently via flags (see below). Turning on conduction (<code class="docutils literal notranslate"><span class="pre">sim.turn_on_conduction()</span></code>)
+makes the ODEs very stiff — only do so after all other ramping is complete. The
+temperature dependence of free-free and recombination cooling can make Wind-AE
+numerically unstable, and ramping to higher metallicities with them on may fail.</p>
+</div>
+<ul class="simple">
 <li><dl class="simple">
 <dt>A selection of helpful <code class="docutils literal notranslate"><span class="pre">sim.windsoln</span></code> variables:</dt><dd><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">soln</span></code> - DataFrame containing all solution variables that vary as a function of radius.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">soln_norm</span></code> - DataFrame containing all solution variables normalized by their scales (then <code class="docutils literal notranslate"><span class="pre">sim.windsoln.soln['rho']</span> <span class="pre">=</span> <span class="pre">sim.windsoln.soln_norm['rho']</span> <span class="pre">*</span> <span class="pre">sim.windsoln.scales_dict['rho']</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">scales_dict</span></code> - Dictionary containing the scale factors for temperature, density, radius, etc.</p></li>
 <li><p>Planet parameters: <code class="docutils literal notranslate"><span class="pre">Mp</span></code> (g), <code class="docutils literal notranslate"><span class="pre">Rp</span></code> (cm), <code class="docutils literal notranslate"><span class="pre">semimajor</span></code> (cm), <code class="docutils literal notranslate"><span class="pre">Mstar</span></code> (g), bolometric luminosity <code class="docutils literal notranslate"><span class="pre">Lstar</span></code> (ergs/s), flux at semimajor axis <code class="docutils literal notranslate"><span class="pre">Ftot</span></code> (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-2}\)</span>)</p></li>
-<li><p>Physics parameters:  <code class="docutils literal notranslate"><span class="pre">nspecies</span></code> (number of unique elements), <code class="docutils literal notranslate"><span class="pre">HX</span></code> (mass fraction array of elements), <code class="docutils literal notranslate"><span class="pre">species_list</span></code>, <code class="docutils literal notranslate"><span class="pre">atomic_masses</span></code> (g), <code class="docutils literal notranslate"><span class="pre">molec_adjust</span></code> (<span class="math notranslate nohighlight">\(m_H\)</span>, average mean molecular weight of region of the atmosphere below the wind)</p></li>
+<li><p>Physics parameters:  <code class="docutils literal notranslate"><span class="pre">nspecies</span></code> (number of unique elements), <code class="docutils literal notranslate"><span class="pre">HX</span></code> (mass fraction array of elements), <code class="docutils literal notranslate"><span class="pre">species_list</span></code>, <code class="docutils literal notranslate"><span class="pre">atomic_masses</span></code> (g), <code class="docutils literal notranslate"><span class="pre">molec_adjust</span></code> (<span class="math notranslate nohighlight">\(m_H\)</span>, average mean molecular weight of region of the atmosphere below the wind), <code class="docutils literal notranslate"><span class="pre">kappa_opt</span></code> (optical opacity used in the molecular/bolometric layer, default 4e-3), <code class="docutils literal notranslate"><span class="pre">kappa_IR</span></code> (IR opacity used in the molecular/bolometric layer, default 1e-2), <code class="docutils literal notranslate"><span class="pre">gamma</span></code> (adiabatic index, default 5/3) <strong>[kappa_opt, kappa_IR, and gamma are now per-planet, user-settable/rampable attributes as of v2.0; previously fixed]</strong>, <code class="docutils literal notranslate"><span class="pre">chain_parent</span></code> (list, length <code class="docutils literal notranslate"><span class="pre">nspecies</span></code>; <code class="docutils literal notranslate"><span class="pre">chain_parent[j]</span></code> gives the index of the parent species if species <code class="docutils literal notranslate"><span class="pre">j</span></code> is one ionization state above another species in <code class="docutils literal notranslate"><span class="pre">species_list</span></code>, or -1 if independent — see <a class="reference internal" href="metals.html#metals"><span class="std std-ref">Metals Module</span></a>) <strong>[NEW in v2.0]</strong></p></li>
 <li><dl class="simple">
 <dt>Spectrum parameters:</dt><dd><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">npts</span></code> - number of wavelength points in smoothed spectrum</p></li>
@@ -218,22 +233,29 @@ Generates windsoln object which contains the solution data (including postfacto 
 </dl>
 </li>
 <li><dl class="simple">
-<dt>Flags:</dt><dd><ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">lyacool</span></code> - Line cooling on/off.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tidalforce</span></code> - Tidal force from star on/off.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">bolo_heat_cool</span></code> - Complementary error function that governs the transition from layer below wind where molecules may be present and bolometric heating / cooling dominate the energy budget on/off.</p></li>
+<dt>Flags (<code class="docutils literal notranslate"><span class="pre">flags_tuple</span></code>, in order):</dt><dd><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">integrate_outward</span></code> - Integrate outward from the lower boundary to the Coriolis radius (<code class="docutils literal notranslate"><span class="pre">Rmax</span> <span class="pre">=</span> <span class="pre">R_cori</span></code>) on/off.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tidalforce</span></code> - Tidal force from star on/off.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">linecool</span></code> - Line cooling (Lyman-alpha and, if present, metal line cooling) on/off. <strong>Renamed from</strong> <code class="docutils literal notranslate"><span class="pre">lyacool</span></code> <strong>in v2.0.</strong></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bolo_heat_cool</span></code> - Turns on (1.0) and off (0.0) and ramps (value between 0.0 and 1.0) in the complementary error function that governs the transition from layer below wind where molecules may be present and bolometric heating / cooling dominate the energy budget on/off.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">conduction</span></code> - Self-consistent conductive heat flux on/off. <strong>[NEW in v2.0]</strong> Off by default; introduces numerically stiff ODEs, so should only be turned on after all other ramping is complete (<code class="docutils literal notranslate"><span class="pre">sim.turn_on_conduction()</span></code> / <code class="docutils literal notranslate"><span class="pre">sim.turn_off_conduction()</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">recombo_cool</span></code> - Recombination cooling on/off. <strong>[NEW in v2.0]</strong> Off by default.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">free_free_cool</span></code> - Free-free (bremsstrahlung) cooling on/off. <strong>[NEW in v2.0]</strong> Off by default. May cause numerical instability at high metallicity.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">molec_layer</span></code> - Turns on (1.0) and off (0.0) and ramps (value between 0.0 and 1.0) in the complementary error function that governs the mean-molecular-weight (mu) molecular-to-atomic transition, independent of <code class="docutils literal notranslate"><span class="pre">bolo_heat_cool</span></code>. <strong>[NEW in v2.0]</strong> (<code class="docutils literal notranslate"><span class="pre">sim.turn_on_molecular_layer()</span></code> / <code class="docutils literal notranslate"><span class="pre">sim.turn_off_molecular_layer()</span></code>). Defaults to the value of <code class="docutils literal notranslate"><span class="pre">bolo_heat_cool</span></code> when loading older solution files that predate this flag.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>Useful Radii:</dt><dd><ul>
-<li><p>Sonic point radius - <code class="docutils literal notranslate"><span class="pre">R_sp</span></code> (Rp)</p></li>
-<li><p>XUV radius / wind launch radius / photoionization front - <code class="docutils literal notranslate"><span class="pre">R_XUV</span></code> (Rp), lowest radial extent of substantial photoionization energy deposition (i.e., where wind “launches”)</p></li>
-<li><p>Coriolis radius - <code class="docutils literal notranslate"><span class="pre">R_cori</span></code> (Rp)</p></li>
+<li><p>Sonic point radius - <code class="docutils literal notranslate"><span class="pre">R_sp</span></code> (Rp), found inherently as a part of the relaxation method (i.e., C source code).</p></li>
+<li><p>Wind launch radius - <code class="docutils literal notranslate"><span class="pre">R_launch</span></code> (Rp), computed as radius where photoionization heating dominates over other heating/cooling processes, which corresponds to where wind begins to accelerate.</p></li>
+<li><p>Photoionization front / absorption radius - <code class="docutils literal notranslate"><span class="pre">R_absorb</span></code> (Rp), flux-per-wavlength-bin weighted mean <span class="math notranslate nohighlight">\(\tau(\lambda)=1\)</span> surface.</p></li>
+<li><p>XUV radius - <code class="docutils literal notranslate"><span class="pre">R_XUV``=``R_launch</span></code> (Rp), legacy.</p></li>
+<li><p>Coriolis radius - <code class="docutils literal notranslate"><span class="pre">R_cori</span></code> (Rp), radius at which Coriolis force deflects wind 1 radian.</p></li>
 <li><p>Hill sphere - <code class="docutils literal notranslate"><span class="pre">R_hill</span></code> (Rp)</p></li>
-<li><p>Exosphere - <code class="docutils literal notranslate"><span class="pre">R_exo</span></code> (Rp)</p></li>
+<li><p>Exosphere - <code class="docutils literal notranslate"><span class="pre">R_exo</span></code> (Rp), currently computed from H-H Knudsen number.</p></li>
+<li><p>Roche lobe (L1 point) - <code class="docutils literal notranslate"><span class="pre">R_roche</span></code> (Rp), set after calling <a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_roche_lobe" title="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_roche_lobe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_roche_lobe()</span></code></a> (computed automatically as part of <code class="docutils literal notranslate"><span class="pre">add_user_vars()</span></code> whenever <code class="docutils literal notranslate"><span class="pre">integrate_outward=True</span></code>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -248,9 +270,30 @@ Generates windsoln object which contains the solution data (including postfacto 
 <section id="assorted-useful-functions">
 <h2>Assorted Useful Functions<a class="headerlink" href="#assorted-useful-functions" title="Link to this heading"></a></h2>
 <dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.add_user_vars">
+<span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">add_user_vars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expedite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.add_user_vars" title="Link to this definition"></a></dt>
+<dd><p>Computes postfacto variables for the loaded solution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>expedite</strong> (<em>bool</em>) – If True, saves time by skipping certain calculations (ram pressure, Mach number, scaleheight, recombo coefficients, heating and cooling, enthalpy, etc.).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_mu">
 <span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">calc_mu</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_mu" title="Link to this definition"></a></dt>
-<dd><p>Calculates dimensionless mean molecular weight (mu).</p>
+<dd><p>Calculates mean molecular weight (mu in physical units, grams).</p>
+<dl class="simple">
+<dt>1/mu = sum_roots[mr_root * HX_root]  (one atom per atom, roots only)</dt><dd><ul class="simple">
+<li><p>n_e * m_H / rho             (one entry per free electron)</p></li>
+</ul>
+</dd>
+</dl>
+<p>Mirrors the refactored get_mu() in soe.c exactly.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -261,18 +304,43 @@ NOTE: Multiplied by a factor of 0.33 which encodes adjustments for spherical geo
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.current_metallicity">
+<span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">current_metallicity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.current_metallicity" title="Link to this definition"></a></dt>
+<dd><p>Outputs the current metallicity to the nearest integer IF the mass fractions are a multiple of solar metallicity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The current metallicity in units of solar metallicity. If not a function of solar metallicity, returns custom mass fractions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.tau_array">
 <span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">tau_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">photon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.tau_array" title="Link to this definition"></a></dt>
-<dd><p>Returns an array with the optical depth for the provided photon energy (or wavelength) for each radius in the windsoln.</p>
+<dd><p>Returns the optical depth for the provided photon energy (or
+wavelength), for each radius in the windsoln. Vectorized: photon may
+be a scalar or an array of photon energies/wavelengths, in which case
+the optical depth is computed for every (radius, photon) pair at once.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>photon</strong> (<em>float</em>) – energy or wavelength of photon of units units</p></li>
+<li><p><strong>photon</strong> (<em>float</em><em> or </em><em>array-like</em>) – energy or wavelength(s) of photon(s), in units units</p></li>
 <li><p><strong>units</strong> (<em>str</em>) – cm, nm, or eV</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>optical depth array of size len(r)</p>
+<dd class="field-even"><p><dl class="simple">
+<dt>optical depth array.</dt><dd><p>If photon is scalar: shape (len(r),).
+If photon is array-like of length n: shape (len(r), n).</p>
+</dd>
+</dl>
+</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tau (array)</p>
@@ -283,16 +351,24 @@ NOTE: Multiplied by a factor of 0.33 which encodes adjustments for spherical geo
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_tau1_radius">
 <span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">calc_tau1_radius</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">photon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_tau1_radius" title="Link to this definition"></a></dt>
-<dd><p>Returns radius in Rp and index where tau=1 surface is for the photon of the provided energy (or wavelength).</p>
+<dd><p>Returns radius in Rp and index where tau=1 surface is for the
+photon of the provided energy (or wavelength). Vectorized: photon may
+be a scalar or an array of photon energies/wavelengths.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>photon</strong> (<em>float</em>) – energy or wavelength of photon of units units</p></li>
+<li><p><strong>photon</strong> (<em>float</em><em> or </em><em>array-like</em>) – energy or wavelength(s) of photon(s), in units units</p></li>
 <li><p><strong>units</strong> (<em>str</em>) – cm, nm, or eV</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(r, idx) where r is the radius in Rp and idx is the index where tau=1 surface is located.</p>
+<dd class="field-even"><p><dl class="simple">
+<dt>(r, idx).</dt><dd><p>If photon is scalar: r (float) and idx (int).
+If photon is array-like of length n: r (array of shape (n,))
+and idx (array of shape (n,)).</p>
+</dd>
+</dl>
+</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple</p>
@@ -300,20 +376,39 @@ NOTE: Multiplied by a factor of 0.33 which encodes adjustments for spherical geo
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.alpha_rec">
+<span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">alpha_rec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ne</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.alpha_rec" title="Link to this definition"></a></dt>
+<dd><p>Adapted from the CLOUDY rrfit fortran agorithm. Computes the temperature-dependent
+recombination coefficient for a species with Z protons and N_e electrons.</p>
+<p>Parameters:
+Z: int, number of protons
+Ne: int, number of electrons (if Ne=Z, then species is neutral)
+T: float, temperature of the gas in K</p>
+</dd></dl>
+
 <section id="rarely-useful-and-somewhat-deprecated">
 <h3>Rarely useful and somewhat deprecated<a class="headerlink" href="#rarely-useful-and-somewhat-deprecated" title="Link to this heading"></a></h3>
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_R_exo">
-<span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">calc_R_exo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Kn_hb_HI'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_R_exo" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">calc_R_exo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Kn_mx_HI'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_R_exo" title="Link to this definition"></a></dt>
 <dd><p>Calculating exosphere radius in Rp and index.
 DEPRECATED, requires updated Knudsen number calculations for all species.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Kn</strong> (<em>str</em>) – Knudsen hardbody collision number for a given species.</p>
+<dd class="field-odd"><p><strong>Kn</strong> (<em>str</em>) – Knudsen collision number for a given species.
+Default: “Kn_mx_HI”, which is a weighted mix of hardbody and Coulomb Kn for HI.
+Where a Kn &gt; 1 indicates that the flow is collisionless for that species and a
+fluid solution is no longer valid.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>R_exo: exosphere radius in Rp, if &gt; R_sp, then R_exo = R_sp
-int: exo_index: index of exosphere radius in soln</p>
+<dd class="field-even"><p><dl class="simple">
+<dt>R_exo: exosphere radius in Rp.</dt><dd><p>If Kn always &lt; 1, then R_exo = NaN (R_exo is outside of the range of the simulation).
+If R_exo &gt; R_sp, then R_exo = Rmax</p>
+</dd>
+</dl>
+<p>int: exo_index: index of exosphere radius in soln</p>
+</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
@@ -325,6 +420,7 @@ int: exo_index: index of exosphere radius in soln</p>
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_Jeans">
 <span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">calc_Jeans</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_Jeans" title="Link to this definition"></a></dt>
 <dd><p>DEPRECATED. Calculates Jeans length and mass loss rate via Jeans escape.
+If R_exo is outside of the bounds of the simulation, R_exo is NaN, so result will be NaN.
 Currently uses R_exo computed only from HI collisionality.</p>
 </dd></dl>
 
@@ -341,11 +437,17 @@ Computes self.cori_pos, the x and y coordinates of the streamline.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_roche_lobe">
+<span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">calc_roche_lobe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_roche_lobe" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.regrid">
-<span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">regrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_arr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simple</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.regrid" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">regrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.008</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_to_guess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_arr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simple</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.regrid" title="Link to this definition"></a></dt>
 <dd><p>Regrid the solution onto a new set of q values, where q is a radius-like parameter that ranges from 0 to 1 (Murray-Clay et al. 2009).
 Where radius, r = R_min + q*z and z is a dependent variable because R_sp is not know apriori (z := R_sp - R_min)</p>
-<p>Basically never necessary.</p>
+<p>Smaller dq gives finer resolution.</p>
+<p>Rarely necessary.</p>
 </dd></dl>
 
 </section>

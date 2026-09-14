@@ -84,7 +84,7 @@ Metals functions
 .. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.remove_metals
 .. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_metallicity
 
-Heating & Cooling Flags
+Heating and Cooling Flags
 -------------------------------
 .. versionadded:: 2.0
    Conductive cooling, recombination cooling, and free-free (bremsstrahlung) cooling are

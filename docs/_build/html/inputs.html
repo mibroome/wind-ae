@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inputs.py &mdash; Wind-AE 0.2.0 documentation</title>
+  <title>Inputs.py &mdash; Wind-AE 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -17,7 +17,7 @@
     <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Wind-AE Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="additional_modules.html">Additional Modules</a><ul class="current">
@@ -70,6 +70,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_planet_params"><code class="docutils literal notranslate"><span class="pre">input_handler.write_planet_params()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_additional_params"><code class="docutils literal notranslate"><span class="pre">input_handler.write_additional_params()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_physics_params"><code class="docutils literal notranslate"><span class="pre">input_handler.write_physics_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_solver_params"><code class="docutils literal notranslate"><span class="pre">input_handler.write_solver_params()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_spectrum"><code class="docutils literal notranslate"><span class="pre">input_handler.write_spectrum()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_bcs"><code class="docutils literal notranslate"><span class="pre">input_handler.write_bcs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_tech"><code class="docutils literal notranslate"><span class="pre">input_handler.write_tech()</span></code></a></li>
@@ -113,9 +114,11 @@
 <span id="inputs-py"></span><span id="inputs"></span><h1>Inputs.py<a class="headerlink" href="#module-wind_ae.wrapper.wrapper_utils.inputs" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.inputs.input_handler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.inputs.</span></span><span class="sig-name descname"><span class="pre">input_handler</span></span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.inputs.</span></span><span class="sig-name descname"><span class="pre">input_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Class for handling input files (in self.path+’inputs/’) for relaxation code</p>
+<p>Class for handling input files (in self.wpath+’inputs/’) for relaxation code.
+Pass workdir=&lt;path&gt; to redirect all file I/O to an isolated directory,
+which is required when running multiple wind_simulation instances in parallel.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.inputs.input_handler.path">
 <span class="sig-name descname"><span class="pre">path</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/Users/m/Research/wind-ae/wind_ae/'</span></em><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.path" title="Link to this definition"></a></dt>
@@ -158,7 +161,7 @@ having to modify the C source code as heavily.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_physics_params">
-<span class="sig-name descname"><span class="pre">write_physics_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mass_fraction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molec_adjust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atomic_masses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phys_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/Users/m/Research/wind-ae/wind_ae/inputs/phys_params.inp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_physics_params" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">write_physics_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mass_fraction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molec_adjust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atomic_masses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kappa_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.004</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kappa_IR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.6666666666666667</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phys_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_physics_params" title="Link to this definition"></a></dt>
 <dd><p>Writes physics parameters to wind_ae/inputs/phys_params.inp input file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -167,7 +170,27 @@ having to modify the C source code as heavily.</p>
 <li><p><strong>species_list</strong> (<em>list</em><em> of </em><em>str</em>) – List of species names (e.g., ‘Fe III’, ‘fe4’, etc.)</p></li>
 <li><p><strong>molec_adjust</strong> (<em>float</em>) – Molecular adjustment factor (default = 2.3 for molec. hydrogen)</p></li>
 <li><p><strong>atomic_masses</strong> (<em>np.array</em>) – Atomic masses of each species in g</p></li>
-<li><p><strong>phys_file</strong> (<em>str</em>) – Path to the physics parameters input file</p></li>
+<li><p><strong>kappa_opt</strong> (<em>float</em>) – Optical opacity for bolometric heating/cooling. Default 4e-3.</p></li>
+<li><p><strong>kappa_IR</strong> (<em>float</em>) – IR opacity for bolometric heating/cooling. Default 1e-2.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em>) – Adiabatic index. Default 5.0/3.0.</p></li>
+<li><p><strong>phys_file</strong> (<em>str</em>) – Path to the physics parameters input file. Defaults to
+self.wpath/inputs/phys_params.inp (honours workdir).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_solver_params">
+<span class="sig-name descname"><span class="pre">write_solver_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhoscale</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_solver_params" title="Link to this definition"></a></dt>
+<dd><p>Append solver parameters (M, ITMAX, RHOSCALE) to tech_params.inp.
+Call immediately after write_tech() whenever the loaded solution changes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>M</strong> (<em>int</em>) – Number of grid points in relaxation region.</p></li>
+<li><p><strong>itmax</strong> (<em>int</em>) – Max relaxation iterations (use ~10000 for conduction).</p></li>
+<li><p><strong>rhoscale</strong> (<em>float</em>) – Density convergence scale (~0.01 * rho_rmin).</p></li>
 </ul>
 </dd>
 </dl>
@@ -237,18 +260,23 @@ Ignored if bolo_heat_cool flag = 0 in inputs/flags.inp.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_flags">
-<span class="sig-name descname"><span class="pre">write_flags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lyacool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tidalforce</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bolo_heat_cool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrate_outward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrate_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_flags" title="Link to this definition"></a></dt>
-<dd><p>Write flags to the wind_ae/inputs/term_ind.inp file.</p>
+<span class="sig-name descname"><span class="pre">write_flags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrate_outward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tidalforce</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linecool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bolo_heat_cool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conduction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recombo_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">free_free_cool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molec_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrate_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_flags" title="Link to this definition"></a></dt>
+<dd><p>Write flags to the wind_ae/inputs/flags.inp file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lyacool</strong> (<em>int</em>) – Flag for Lya and atomic line cooling (0 or 1)</p></li>
+<li><p><strong>integrate_outward</strong> (<em>int</em>) – If 1, integrates out from sonic point to coriolis radius (0 or 1)</p></li>
 <li><p><strong>tidalforce</strong> (<em>float</em>) – Tidal force scaling factor (1.0 = on, 0 = off)</p></li>
+<li><p><strong>linecool</strong> (<em>int</em>) – Flag for Lya and atomic line cooling (0 or 1)</p></li>
 <li><p><strong>bolo_heat_cool</strong> (<em>float</em>) – Bolometric heating/cooling scaling factor (1.0 = on, 0 = off).
 If 0, complementary error function is not used and there is no
-bolometric heating/cooling included in the simulation and there is no
-molecular layer below wind (mu is purely atomic).</p></li>
-<li><p><strong>integrate_outward</strong> (<em>int</em>) – If 1, integrates out from sonic point to coriolis radius (0 or 1)</p></li>
+bolometric heating/cooling included in the simulation.</p></li>
+<li><p><strong>conduction</strong> (<em>int</em>) – Self-consistent conductive heat flux (1 = on, 0 = off)</p></li>
+<li><p><strong>recombo_cool</strong> (<em>int</em>) – Recombination cooling (1 = on, 0 = off). Defaults to 1 (on).</p></li>
+<li><p><strong>free_free_cool</strong> (<em>int</em>) – Free-free (bremsstrahlung) cooling (1 = on, 0 = off). Defaults to 1 (on).</p></li>
+<li><p><strong>molec_layer</strong> (<em>float</em><em> or </em><em>None</em>) – Separate erfc multiplier for the mu molecular-to-atomic
+transition (1.0 = on, 0 = off).  If None, defaults to
+bolo_heat_cool (preserving pre-v2 behaviour).</p></li>
 <li><p><strong>integrate_out</strong> (<em>bool</em>) – Whether to integrate outward (default: True)
 (implemented to avoid issues with integrate_outward flag being overwritten elsewhere)</p></li>
 </ul>

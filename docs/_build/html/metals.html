@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Metals Module &mdash; Wind-AE 0.2.0 documentation</title>
+  <title>Metals Module &mdash; Wind-AE 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -17,7 +17,7 @@
     <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Wind-AE Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="additional_modules.html">Additional Modules</a><ul class="current">
@@ -108,13 +108,26 @@
              
   <section id="metals-module">
 <span id="metals"></span><h1>Metals Module<a class="headerlink" href="#metals-module" title="Link to this heading"></a></h1>
-<p>Typically called via the functions in <a class="reference internal" href="relax_wind.html#relax-wind"><span class="std std-ref">Relaxation Module</span></a> (<cite>sim.add_metals</cite>,`sim.metallicity`, etc.)</p>
+<p>Typically called via the functions in <a class="reference internal" href="relax_wind.html#relax-wind"><span class="std std-ref">Relaxation Module</span></a> (<cite>sim.add_metals</cite>, <cite>sim.calc_metallicity</cite>, etc.)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 2.0: </span>Multiple ionization states of the same element can now be modeled simultaneously
+as a linked ionization chain (e.g. <code class="docutils literal notranslate"><span class="pre">sim.add_metals(['CI','CII'])</span></code> tracks C I and
+C II together, with C II’s population drawn self-consistently from C I’s neutral
+fraction). Chain linkage is detected automatically from <code class="docutils literal notranslate"><span class="pre">species_list</span></code> — any two
+species of the same element where one has exactly one fewer electron than the other
+are treated as parent/child. When a chain is present, the parent and child must be
+given the <strong>same</strong> mass fraction in <code class="docutils literal notranslate"><span class="pre">phys_params.inp</span></code> (handled automatically when
+going through <code class="docutils literal notranslate"><span class="pre">add_metals()</span></code>).</p>
+</div>
+</div>
 <p id="module-wind_ae.wrapper.wrapper_utils.metals">metals.py:
 Contains the class for ramping in new species to existing solutions,
 as well as computing mass fractions of species for a given metallicity.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.metals.metal_class">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.metals.</span></span><span class="sig-name descname"><span class="pre">metal_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wind_ae.wrapper.wrapper_utils.metals.</span></span><span class="sig-name descname"><span class="pre">metal_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windsoln_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.metals.metal_class" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.metals.metal_class.load_spectrum_add_metals">
@@ -186,7 +199,9 @@ Relative abundances from Lodders (2009).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>species_list</strong> (<em>list</em><em> of </em><em>str</em>) – The list of species for which to compute metallicity
 (e.g., [‘O3’,’c1’,’Ne II’])</p></li>
-<li><p><strong>Z</strong> – The metallicity (default is 1 for solar).</p></li>
+<li><p><strong>Z</strong> – The metallicity (default is 1 for solar).
+Non-integer values are linearly interpolated
+between adjacent grid rows.</p></li>
 </ul>
 </dd>
 </dl>

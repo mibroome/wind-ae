@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; Wind-AE 0.2.0 documentation</title>
+  <title>Index &mdash; Wind-AE 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -16,7 +16,7 @@
     <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Wind-AE Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Is <strong>Wind-AE</strong> the right tool for me?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="additional_modules.html">Additional Modules</a></li>
@@ -113,9 +113,13 @@
 </li>
       <li><a href="spectrum.html#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.add_species">add_species() (wind_ae.wrapper.wrapper_utils.spectrum.spectrum method)</a>
 </li>
+      <li><a href="metals.html#wind_ae.wrapper.wrapper_utils.metals.metal_class.add_species_to_guess">add_species_to_guess() (wind_ae.wrapper.wrapper_utils.metals.metal_class method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="metals.html#wind_ae.wrapper.wrapper_utils.metals.metal_class.add_species_to_guess">add_species_to_guess() (wind_ae.wrapper.wrapper_utils.metals.metal_class method)</a>
+      <li><a href="windsoln.html#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.add_user_vars">add_user_vars() (wind_ae.wrapper.wrapper_utils.windsoln.wind_solution method)</a>
+</li>
+      <li><a href="windsoln.html#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.alpha_rec">alpha_rec() (wind_ae.wrapper.wrapper_utils.windsoln.wind_solution method)</a>
 </li>
       <li><a href="physics.html#wind_ae.wrapper.wrapper_utils.physics.physics.assign">assign() (wind_ae.wrapper.wrapper_utils.physics.physics method)</a>
 
@@ -133,8 +137,6 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.base_bcs">base_bcs() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
-</li>
       <li><a href="spectrum.html#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.binning_plot">binning_plot() (wind_ae.wrapper.wrapper_utils.spectrum.spectrum method)</a>
 </li>
   </ul></td>
@@ -157,11 +159,15 @@
 </li>
       <li><a href="windsoln.html#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_R_exo">calc_R_exo() (wind_ae.wrapper.wrapper_utils.windsoln.wind_solution method)</a>
 </li>
+      <li><a href="windsoln.html#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_roche_lobe">calc_roche_lobe() (wind_ae.wrapper.wrapper_utils.windsoln.wind_solution method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="windsoln.html#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_tau1_radius">calc_tau1_radius() (wind_ae.wrapper.wrapper_utils.windsoln.wind_solution method)</a>
 </li>
       <li><a href="spectrum.html#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.change_date">change_date() (wind_ae.wrapper.wrapper_utils.spectrum.spectrum method)</a>
+</li>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.cleanup">cleanup() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
       <li><a href="plots.html#wind_ae.wrapper.wrapper_utils.plots.collisionality_plot">collisionality_plot() (in module wind_ae.wrapper.wrapper_utils.plots)</a>
 </li>
@@ -172,6 +178,8 @@
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.converge_Rmax">converge_Rmax() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
       <li><a href="plots.html#wind_ae.wrapper.wrapper_utils.plots.coriolis_plot">coriolis_plot() (in module wind_ae.wrapper.wrapper_utils.plots)</a>
+</li>
+      <li><a href="windsoln.html#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.current_metallicity">current_metallicity() (wind_ae.wrapper.wrapper_utils.windsoln.wind_solution method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -186,6 +194,10 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.direct_solve">direct_solve() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="E">E</h2>
@@ -193,6 +205,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.easy_output_file">easy_output_file() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="plots.html#wind_ae.wrapper.wrapper_utils.plots.energy_plot">energy_plot() (in module wind_ae.wrapper.wrapper_utils.plots)</a>
 
       <ul>
@@ -200,19 +214,19 @@
 </li>
       </ul></li>
   </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.erf_velocity">erf_velocity() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
-</li>
-  </ul></td>
 </tr></table>
 
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.flux_norm">flux_norm() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.find_base_bcs">find_base_bcs() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.find_self_consistent_Ncol">find_self_consistent_Ncol() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.flux_norm">flux_norm() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.format_user_spectrum">format_user_spectrum() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
       <li><a href="plots.html#wind_ae.wrapper.wrapper_utils.plots.four_panel_plot">four_panel_plot() (in module wind_ae.wrapper.wrapper_utils.plots)</a>
@@ -342,16 +356,20 @@
 </li>
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_metallicity">ramp_metallicity() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molec_adjust">ramp_molec_adjust() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molecular_erfc">ramp_molecular_erfc() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_rho_rmin">ramp_rho_rmin() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_Rmin">ramp_Rmin() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_spectrum">ramp_spectrum() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
-      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_star">ramp_star() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_star">ramp_star() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_T_rmin">ramp_T_rmin() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_to">ramp_to() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
@@ -379,8 +397,6 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.save_planet">save_planet() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
-</li>
-      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.self_consistent_Ncol">self_consistent_Ncol() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
       <li><a href="spectrum.html#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.set_normalized">set_normalized() (wind_ae.wrapper.wrapper_utils.spectrum.spectrum method)</a>
 </li>
@@ -414,11 +430,19 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="windsoln.html#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.tau_array">tau_array() (wind_ae.wrapper.wrapper_utils.windsoln.wind_solution method)</a>
 </li>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_conduction">turn_off_conduction() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_line_cool">turn_off_line_cool() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_bolo">turn_off_bolo() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_molecular_layer">turn_off_molecular_layer() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
       <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_off_tidal_grav">turn_off_tidal_grav() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_on_conduction">turn_on_conduction() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.turn_on_molecular_layer">turn_on_molecular_layer() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -438,6 +462,8 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.where">where() (wind_ae.wrapper.relax_wrapper.wind_simulation method)</a>
+</li>
       <li>
     wind_ae.wrapper.relax_wrapper
 
@@ -502,9 +528,13 @@
 </li>
       <li><a href="inputs.html#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_flags">write_flags() (wind_ae.wrapper.wrapper_utils.inputs.input_handler method)</a>
 </li>
+      <li><a href="spectrum.html#wind_ae.wrapper.wrapper_utils.spectrum.spectrum.write_mono_spectrum">write_mono_spectrum() (wind_ae.wrapper.wrapper_utils.spectrum.spectrum method)</a>
+</li>
       <li><a href="inputs.html#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_physics_params">write_physics_params() (wind_ae.wrapper.wrapper_utils.inputs.input_handler method)</a>
 </li>
       <li><a href="inputs.html#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_planet_params">write_planet_params() (wind_ae.wrapper.wrapper_utils.inputs.input_handler method)</a>
+</li>
+      <li><a href="inputs.html#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_solver_params">write_solver_params() (wind_ae.wrapper.wrapper_utils.inputs.input_handler method)</a>
 </li>
       <li><a href="inputs.html#wind_ae.wrapper.wrapper_utils.inputs.input_handler.write_spectrum">write_spectrum() (wind_ae.wrapper.wrapper_utils.inputs.input_handler method)</a>
 </li>

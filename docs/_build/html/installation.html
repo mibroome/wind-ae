@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; Wind-AE 0.2.0 documentation</title>
+  <title>Installation &mdash; Wind-AE 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -17,7 +17,7 @@
     <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -28,7 +28,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Quick Start Tutorial" href="Quickstart.html" />
+    <link rel="next" title="Wind-AE Quick Start Tutorial" href="Quickstart.html" />
     <link rel="prev" title="Is Wind-AE the right tool for me?" href="usage.html" /> 
 </head>
 
@@ -67,7 +67,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#future-features-and-known-problems">Future features and known problems</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quick Start Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Wind-AE Quick Start Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relax_wind.html">Relaxation Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="windsoln.html">Analysis Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="additional_modules.html">Additional Modules</a></li>
@@ -174,31 +174,54 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you ever need to interface directly with the C code, it lives in <code class="docutils literal notranslate"><span class="pre">wind_ae/src/</span></code> and can be executed from
-within the <code class="docutils literal notranslate"><span class="pre">wind_ae/</span></code> folder via <code class="docutils literal notranslate"><span class="pre">./bin/relaxed_ae</span></code>. The solution generated will be for a planet with the
-parameters detailed in the input files in the <code class="docutils literal notranslate"><span class="pre">Inputs/</span></code> folder. There is generally no need to interface with the
-C code and most standard tasks can be accomplished by using the Python wrapper.</p>
+<p>If you ever need to interface directly with the C code, it lives in <code class="docutils literal notranslate"><span class="pre">wind_ae/src/</span></code> and is compiled to
+<code class="docutils literal notranslate"><span class="pre">wind_ae/bin/relaxed_ae</span></code>. The solution generated will be for a planet with the parameters detailed in the
+input files in the <code class="docutils literal notranslate"><span class="pre">inputs/</span></code> folder that <code class="docutils literal notranslate"><span class="pre">relaxed_ae</span></code> is run from. There is generally no need to interface
+with the C code and most standard tasks can be accomplished by using the Python wrapper.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2.0: </span>Each <code class="docutils literal notranslate"><span class="pre">sim</span> <span class="pre">=</span> <span class="pre">wind_sim()</span></code> instance now writes its input files to its own isolated temporary working
+directory (<code class="docutils literal notranslate"><span class="pre">sim.workdir</span></code>, see <a class="reference internal" href="relax_wind.html#relax-wind"><span class="std std-ref">Relaxation Module</span></a>) instead of the installed <code class="docutils literal notranslate"><span class="pre">wind_ae/</span></code> folder, so that
+multiple simulations can run simultaneously without overwriting one another’s inputs/outputs. To run
+<code class="docutils literal notranslate"><span class="pre">relaxed_ae</span></code> directly against a given instance’s inputs, <code class="docutils literal notranslate"><span class="pre">cd</span></code> to <em>that instance’s</em> workdir first:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>sim.workdir<span class="w">       </span><span class="c1"># e.g. print(sim.workdir) from Python first</span>
+/Users/your/path/to/wind-ae/wind_ae/bin/relaxed_ae
+</pre></div>
+</div>
+</div>
 </div>
 </section>
 </section>
 <section id="future-features-and-known-problems">
 <h2>Future features and known problems<a class="headerlink" href="#future-features-and-known-problems" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Computation of the complementary error function that governs the drop off of bolometric heating/cooling is not truly self-consistent (<code class="docutils literal notranslate"><span class="pre">converge_mol_atomic_transition(polish=True,width=)</span></code>) and may require visual confirmation via <code class="docutils literal notranslate"><span class="pre">energy_plot()</span></code> (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the <code class="docutils literal notranslate"><span class="pre">width</span></code> parameter</p></li>
+<li><p>Computation of the complementary error function that governs the drop off of bolometric heating/cooling is not truly self-consistent (<code class="docutils literal notranslate"><span class="pre">converge_mol_atomic_transition(polish=True,</span> <span class="pre">width_factor=)</span></code>) and may require visual confirmation via <code class="docutils literal notranslate"><span class="pre">energy_plot()</span></code> (checking whether bolometric heating/cooling impede too far into photoionization heating or fall too short) and manual adjustment of the <code class="docutils literal notranslate"><span class="pre">width_factor</span></code> parameter:</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;path/to/planet/file&#39;</span><span class="p">)</span>
-<span class="n">bcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">windsoln</span><span class="o">.</span><span class="n">bcs_tuple</span><span class="p">)</span>
-<span class="c1"># erf_loc - normalized velocity value at radius where you want the erf to drop</span>
+<span class="c1"># width_factor widens the transition region (in scaleheights); start at 0 and</span>
+<span class="c1"># increase if energy_plot() shows the transition impeding too far into the</span>
+<span class="c1"># photoionization-heated region.</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">converge_mol_atomic_transition</span><span class="p">(</span><span class="n">polish</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">width_factor</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For full manual control over the erfc drop-off location/rate (rarely necessary), use
+<a class="reference internal" href="relax_wind.html#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molecular_erfc" title="wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_molecular_erfc"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ramp_molecular_erfc()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">load_planet</span><span class="p">(</span><span class="s1">&#39;path/to/planet/file&#39;</span><span class="p">)</span>
+<span class="c1"># erf_loc  - normalized velocity value at radius where you want the erf to drop</span>
 <span class="c1"># erf_rate - how quickly the erf drops off in units of Hsc at erf_loc</span>
-<span class="c1"># To get initial estimate, run sim.erf_velocity(polish=True)</span>
-<span class="n">bcs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">erf_loc</span><span class="p">,</span><span class="n">erf_rate</span><span class="p">])</span>
-<span class="n">sim</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">write_bcs</span><span class="p">(</span><span class="o">*</span><span class="n">bcs</span><span class="p">)</span>
-<span class="n">sim</span><span class="o">.</span><span class="n">run_wind</span><span class="p">()</span>
+<span class="c1"># The estimator that converge_mol_atomic_transition() uses internally is available</span>
+<span class="c1"># as sim._erf_velocity(polish=True) if you need a starting estimate, but as an</span>
+<span class="c1"># underscore-prefixed method it is not a stable, supported part of the public API.</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">ramp_molecular_erfc</span><span class="p">(</span><span class="n">v_drop</span><span class="o">=</span><span class="n">erf_loc</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="n">erf_rate</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li><p>Knudsen number calculations currently only contain H-H collisions.</p></li>
-<li><p>Converting spectrum <code class="docutils literal notranslate"><span class="pre">kind</span></code> from <code class="docutils literal notranslate"><span class="pre">'full'</span></code> to <code class="docutils literal notranslate"><span class="pre">'mono'</span></code> occasionally has issues.</p></li>
+<li><p>Converting spectrum <code class="docutils literal notranslate"><span class="pre">kind</span></code> from <code class="docutils literal notranslate"><span class="pre">'mono'</span></code> to <code class="docutils literal notranslate"><span class="pre">'full'</span></code> occasionally has issues. Converting <code class="docutils literal notranslate"><span class="pre">'full'</span></code> to <code class="docutils literal notranslate"><span class="pre">'mono'</span></code> has no issues.</p></li>
+<li><p><strong>[v2.0]</strong> Turning on conduction (<code class="docutils literal notranslate"><span class="pre">sim.turn_on_conduction()</span></code>) introduces numerically
+stiff ODEs; only do so after all other ramping is complete, and expect longer runtimes.
+Ramping to high metallicity with recombination and/or free-free cooling on can also be
+numerically unstable — if a ramp fails, try turning those flags off during ramping and
+back on afterwards.</p></li>
 </ul>
 <p>Check out the <a class="reference external" href="https://github.com/mibroome/wind-ae/issues">open issues</a>.</p>
 </section>
@@ -209,7 +232,7 @@ C code and most standard tasks can be accomplished by using the Python wrapper.<
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="usage.html" class="btn btn-neutral float-left" title="Is Wind-AE the right tool for me?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Quickstart.html" class="btn btn-neutral float-right" title="Quick Start Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Quickstart.html" class="btn btn-neutral float-right" title="Wind-AE Quick Start Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
