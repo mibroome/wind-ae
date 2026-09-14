@@ -84,6 +84,8 @@ Metals functions
 .. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.remove_metals
 .. automethod:: wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_metallicity
 
+.. _heating-and-cooling-flags: 
+
 Heating and Cooling Flags
 -------------------------------
 .. versionadded:: 2.0

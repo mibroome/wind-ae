@@ -10,11 +10,12 @@
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=b6dd1de5" />
       <link rel="stylesheet" type="text/css" href="_static/dark_mode_css/general.css?v=c0a7eb24" />
       <link rel="stylesheet" type="text/css" href="_static/dark_mode_css/dark.css?v=70edf1c7" />
 
   
-    <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
+    <link rel="shortcut icon" href="_static/windae_logo_blue_favicon.png"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=51b770b3"></script>
@@ -653,7 +654,7 @@ Mass fractions must sum to 1, so the difference from 1 is added to the hydrogen 
 
 </section>
 <section id="heating-and-cooling-flags">
-<h2>Heating and Cooling Flags<a class="headerlink" href="#heating-and-cooling-flags" title="Link to this heading"></a></h2>
+<span id="id1"></span><h2>Heating and Cooling Flags<a class="headerlink" href="#heating-and-cooling-flags" title="Link to this heading"></a></h2>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 2.0: </span>Conductive cooling, recombination cooling, and free-free (bremsstrahlung) cooling are
 now independently toggleable, alongside line cooling and the molecular/bolometric
@@ -1117,7 +1118,7 @@ float: goal_total_flux if ramp=False (does not ramp).</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_spectrum">
 <span class="sig-prename descclassname"><span class="pre">wind_simulation.</span></span><span class="sig-name descname"><span class="pre">ramp_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Fnorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_spec_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal_spec_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eV'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.relax_wrapper.wind_simulation.ramp_spectrum" title="Link to this definition"></a></dt>
-<dd><p>Ramps stellar spectrum wavelength/energy range to new wavelength/energy range. To change to a monofrequncy spectrum, e.g., at 20 eV, set goal_spec_range=[20] or [20,20] and kind=’mono’. (Note: for numerical reason, a <a href="#id1"><span class="problematic" id="id2">`</span></a>monofrequency’ spectrum is actually two wavelength bins with the same wavelength and the appropriately normalized wPhi_wl/Ftot.)</p>
+<dd><p>Ramps stellar spectrum wavelength/energy range to new wavelength/energy range. To change to a monofrequncy spectrum, e.g., at 20 eV, set goal_spec_range=[20] or [20,20] and kind=’mono’. (Note: for numerical reason, a <code class="docutils literal notranslate"><span class="pre">monofrequency</span></code> spectrum is actually two wavelength bins with the same wavelength and the appropriately normalized wPhi_wl/Ftot.)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

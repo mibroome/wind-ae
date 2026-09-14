@@ -10,11 +10,12 @@
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=b6dd1de5" />
       <link rel="stylesheet" type="text/css" href="_static/dark_mode_css/general.css?v=c0a7eb24" />
       <link rel="stylesheet" type="text/css" href="_static/dark_mode_css/dark.css?v=70edf1c7" />
 
   
-    <link rel="shortcut icon" href="_static/windae_logo_blue_favicon_16.gif"/>
+    <link rel="shortcut icon" href="_static/windae_logo_blue_favicon.png"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=51b770b3"></script>
@@ -157,7 +158,7 @@ Generates windsoln object which contains the solution data (including postfacto 
 <li><dl class="simple">
 <dt>Heating and Cooling Rates (per unit volume):</dt><dd><ul>
 <li><dl class="simple">
-<dt>Included in the energy equation when their corresponding flag is on (see <a class="reference internal" href="relax_wind.html#relax-wind"><span class="std std-ref">Relaxation Module</span></a>’s <span class="xref std std-ref">Heating and Cooling Flags</span> and the <code class="docutils literal notranslate"><span class="pre">Flags</span></code> variables below):</dt><dd><ul>
+<dt>Included in the energy equation when their corresponding flag is on (see <a class="reference internal" href="relax_wind.html#relax-wind"><span class="std std-ref">Relaxation Module</span></a>’s <a class="reference internal" href="relax_wind.html#heating-and-cooling-flags"><span class="std std-ref">Heating and Cooling Flags</span></a> and the <code class="docutils literal notranslate"><span class="pre">Flags</span></code> variables below):</dt><dd><ul>
 <li><p>Photoionization heating - ‘heat_ion’ (ergs <span class="math notranslate nohighlight">\(s^{-1} cm^{-3}\)</span>) (always on)</p></li>
 <li><dl class="simple">
 <dt>Line cooling (governed by <code class="docutils literal notranslate"><span class="pre">linecool</span></code> flag, formerly <code class="docutils literal notranslate"><span class="pre">lyacool</span></code>):</dt><dd><ul>
@@ -287,13 +288,11 @@ numerically unstable, and ramping to higher metallicities with them on may fail.
 <dt class="sig sig-object py" id="wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_mu">
 <span class="sig-prename descclassname"><span class="pre">wind_solution.</span></span><span class="sig-name descname"><span class="pre">calc_mu</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wind_ae.wrapper.wrapper_utils.windsoln.wind_solution.calc_mu" title="Link to this definition"></a></dt>
 <dd><p>Calculates mean molecular weight (mu in physical units, grams).</p>
-<dl class="simple">
-<dt>1/mu = sum_roots[mr_root * HX_root]  (one atom per atom, roots only)</dt><dd><ul class="simple">
-<li><p>n_e * m_H / rho             (one entry per free electron)</p></li>
-</ul>
-</dd>
-</dl>
-<p>Mirrors the refactored get_mu() in soe.c exactly.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span><span class="o">/</span><span class="n">mu</span> <span class="o">=</span> <span class="n">sum_roots</span><span class="p">[</span><span class="n">mr_root</span> <span class="o">*</span> <span class="n">HX_root</span><span class="p">]</span>  <span class="p">(</span><span class="n">one</span> <span class="n">atom</span> <span class="n">per</span> <span class="n">atom</span><span class="p">,</span> <span class="n">roots</span> <span class="n">only</span><span class="p">)</span>
+    <span class="o">+</span> <span class="n">n_e</span> <span class="o">*</span> <span class="n">m_H</span> <span class="o">/</span> <span class="n">rho</span>             <span class="p">(</span><span class="n">one</span> <span class="n">entry</span> <span class="n">per</span> <span class="n">free</span> <span class="n">electron</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Mirrors the refactored <code class="docutils literal notranslate"><span class="pre">get_mu()</span></code> in <code class="docutils literal notranslate"><span class="pre">soe.c</span></code> exactly.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -397,17 +396,18 @@ DEPRECATED, requires updated Knudsen number calculations for all species.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>Kn</strong> (<em>str</em>) – Knudsen collision number for a given species.
-Default: “Kn_mx_HI”, which is a weighted mix of hardbody and Coulomb Kn for HI.
-Where a Kn &gt; 1 indicates that the flow is collisionless for that species and a
-fluid solution is no longer valid.</p>
+Default: “Kn_mx_HI”, which is a weighted mix of hardbody and Coulomb
+Kn for HI. A Kn &gt; 1 indicates that the flow is collisionless for
+that species and a fluid solution is no longer valid.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><dl class="simple">
-<dt>R_exo: exosphere radius in Rp.</dt><dd><p>If Kn always &lt; 1, then R_exo = NaN (R_exo is outside of the range of the simulation).
-If R_exo &gt; R_sp, then R_exo = Rmax</p>
+<dt>R_exo: exosphere radius in Rp.</dt><dd><p>If Kn always &lt; 1, then R_exo = NaN (R_exo is outside of the range
+of the simulation).
+If R_exo &gt; R_sp, then R_exo = Rmax.</p>
 </dd>
 </dl>
-<p>int: exo_index: index of exosphere radius in soln</p>
+<p>int: exo_index: index of exosphere radius in soln.</p>
 </p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>

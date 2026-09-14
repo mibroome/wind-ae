@@ -33,7 +33,7 @@ Any values that can be computed from velocity, temperature, density, and ionizat
       - Advection rate (per unit volume) - 'advec_HI', etc. (:math:`s^{-1} cm^{-3}`)
 
    - Heating and Cooling Rates (per unit volume):
-      - Included in the energy equation when their corresponding flag is on (see :ref:`relax_wind`'s :ref:`Heating and Cooling Flags <Heating and Cooling Flags>` and the ``Flags`` variables below):
+      - Included in the energy equation when their corresponding flag is on (see :ref:`relax_wind`'s :ref:`heating-and-cooling-flags` and the ``Flags`` variables below):
          - Photoionization heating - 'heat_ion' (ergs :math:`s^{-1} cm^{-3}`) (always on)
          - Line cooling (governed by ``linecool`` flag, formerly ``lyacool``):
             - Lyman-alpha cooling - 'cool_lyman' (ergs :math:`s^{-1} cm^{-3}`)

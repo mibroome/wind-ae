@@ -1212,9 +1212,12 @@ class wind_solution:
     def calc_mu(self):
         '''Calculates mean molecular weight (mu in physical units, grams).
 
-        1/mu = sum_roots[mr_root * HX_root]  (one atom per atom, roots only)
-               + n_e * m_H / rho             (one entry per free electron)
-        Mirrors the refactored get_mu() in soe.c exactly.
+            ::
+
+                1/mu = sum_roots[mr_root * HX_root]  (one atom per atom, roots only)
+                    + n_e * m_H / rho             (one entry per free electron)
+
+            Mirrors the refactored ``get_mu()`` in ``soe.c`` exactly.
         '''
         if (self.species_list[0]).replace(" ", "") != "HI":
             if self.print_warnings is True:
@@ -1472,20 +1475,21 @@ class wind_solution:
 
 
     def calc_R_exo(self, Kn="Kn_mx_HI"):
-        '''Calculating exosphere radius in Rp and index. 
-        DEPRECATED, requires updated Knudsen number calculations for all species. 
-        
+        '''Calculating exosphere radius in Rp and index.
+        DEPRECATED, requires updated Knudsen number calculations for all species.
+
         Args:
-            Kn (str): Knudsen collision number for a given species. 
-                      Default: "Kn_mx_HI", which is a weighted mix of hardbody and Coulomb Kn for HI.
-                      Where a Kn > 1 indicates that the flow is collisionless for that species and a 
-                      fluid solution is no longer valid.
+            Kn (str): Knudsen collision number for a given species.
+                Default: "Kn_mx_HI", which is a weighted mix of hardbody and Coulomb
+                Kn for HI. A Kn > 1 indicates that the flow is collisionless for
+                that species and a fluid solution is no longer valid.
 
         Returns:
-            float: R_exo: exosphere radius in Rp. 
-                If Kn always < 1, then R_exo = NaN (R_exo is outside of the range of the simulation).
-                If R_exo > R_sp, then R_exo = Rmax
-            int: exo_index: index of exosphere radius in soln
+            float: R_exo: exosphere radius in Rp.
+                If Kn always < 1, then R_exo = NaN (R_exo is outside of the range
+                of the simulation).
+                If R_exo > R_sp, then R_exo = Rmax.
+            int: exo_index: index of exosphere radius in soln.
         '''
         try:
             index = self.soln[self.soln[Kn] > 1].index[0]

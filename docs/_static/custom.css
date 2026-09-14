@@ -1,0 +1,15 @@
+.wind-ae-button {
+    display: inline-block;
+    padding: 0.55em 1.1em;
+    border-radius: 0.3em;
+    background-color: #2f6f9f;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-weight: 600;
+    border: 1px solid #2f6f9f;
+}
+
+.wind-ae-button:hover {
+    background-color: #245777;
+    color: #ffffff !important;
+}

@@ -3631,7 +3631,7 @@ class wind_simulation:
     def ramp_spectrum(self,Fnorm=0.0,norm_spec_range=[],
                       goal_spec_range=[],units='eV',normalize=True,plot=False):
         """
-        Ramps stellar spectrum wavelength/energy range to new wavelength/energy range. To change to a monofrequncy spectrum, e.g., at 20 eV, set goal_spec_range=[20] or [20,20] and kind='mono'. (Note: for numerical reason, a `monofrequency' spectrum is actually two wavelength bins with the same wavelength and the appropriately normalized wPhi_wl/Ftot.)
+        Ramps stellar spectrum wavelength/energy range to new wavelength/energy range. To change to a monofrequncy spectrum, e.g., at 20 eV, set goal_spec_range=[20] or [20,20] and kind='mono'. (Note: for numerical reason, a ``monofrequency`` spectrum is actually two wavelength bins with the same wavelength and the appropriately normalized wPhi_wl/Ftot.)
 
         Args:
             Fnorm (float, optional): Flux in ergs/s/cm2 AT SEMIMAJOR AXIS OF PLANET. If 0.0, flux is normalized to the current value in norm_spec_range. Otherwise, ramps to given Fnorm. Defaults to 0.0.

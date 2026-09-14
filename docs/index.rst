@@ -8,9 +8,10 @@ Wind-AE Overview
 .. raw:: html
 
    <a href="https://github.com/mibroome/wind-ae"
-      class="btn btn-primary btn-lg">
+      class="wind-ae-button">
        Wind-AE Github
    </a>
+   <br><br>
 
 **Wind-AE** (pronounced /windy/) stands for "wind atmospheric escape" and is a relatively fast 1D, steady-state, 
 hydrodynamic, non-isothermal, Parker wind relaxation code for modeling atmospheric escape based on 
