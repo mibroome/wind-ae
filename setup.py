@@ -13,7 +13,7 @@ setup(
     name="wind_ae",
     version="1.0",
     author='Madelyn Broome',
-    author_email='mabroome@ucsc.edu',
+    author_email='broome.astro@gmail.com',
     description="1D relaxation Parker wind model based on Murray-Clay et al. (2009)",
     install_requires=[line.strip() for line in
                       open('requirements.txt', 'r').readlines()],

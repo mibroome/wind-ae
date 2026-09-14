@@ -28,7 +28,7 @@ If you use **Wind-AE**, please consider citing `Broome et al. (2025) <https://ui
 .. note::
 
    This project is under active development. Please report any bugs 
-   via `Github <https://github.com/mabroome/wind-ae/issues>`_ or via email to mabroome@ucsc.edu 
+   via `Github <https://github.com/mibroome/wind-ae/issues>`_ or via email to broome.astro@gmail.com 
    and we appreciate your patience as we roll out changes.
  
 

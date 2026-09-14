@@ -6,7 +6,7 @@ Is **Wind-AE** the right tool for me?
 **Wind-AE** is well-suited for users interested in **quickly estimating mass loss rates** or outflow structure. 
 Outflow structure includes bulk temperature and per-species ionization fractions as a function of radius, so can be 
 easily translated into approximating and **predicting observables and transits**, including metastable helium 
-(He 10830:math:`\AA`) transits, though a He transit module is not yet included. Precise modeling of lower atmosphere 
+(He 10830Å) transits, though a He transit module is not yet included. Precise modeling of lower atmosphere 
 (:math:`\lesssim 100` microbar) is considered necessary for highly accurate transit models, but Wind-AE can be easily 
 coupled to lower atmosphere photochemistry models whose outputs (e.g., radius, temperature, abundances, ionization fractions,
 etc. at 1 microbar) can be fed into Wind-AE as inputs.
@@ -60,4 +60,4 @@ Other tools and models:
 - Want a grid of mass loss rates for pure-Hydrogen, high-flux-XUV-irradiated planets? See `Owen & Jackson (2012) <https://ui.adsabs.harvard.edu/abs/2012MNRAS.425.2931O/abstract>`_
 
 .. note::
-   Want your model added to this list or to update the short bio? Email mabroome@ucsc.edu
+   Want your model added to this list or to update the short bio? Email broome.astro@gmail.com
