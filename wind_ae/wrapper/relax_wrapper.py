@@ -100,7 +100,10 @@ class wind_simulation:
 
         """
         new_spec = np.genfromtxt(self.path+'inputs/spectrum.inp',skip_header=9,delimiter=',')
-        E_wl = new_spec[:,0]
+        try:
+            E_wl = new_spec[:,0]
+        except IndexError:
+            E_wl = [new_spec[0]]
         f = open(self.path+'/inputs/spectrum.inp','r')
         ff = f.readlines()
         nspecies = int(ff[1].split(':')[1])

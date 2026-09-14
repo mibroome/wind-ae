@@ -36,4 +36,4 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 html_logo = 'windae_logo_blue.png'
-html_favicon = 'windae_logo_blue_favicon_16.gif'
+html_favicon = 'windae_logo_blue_favicon.png'

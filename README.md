@@ -1,4 +1,4 @@
-<img src="docs/windae_logo_blue_light.png" alt="Wind-AE Logo" width="350"/>
+I <img src="docs/windae_logo_blue_light.png" alt="Wind-AE Logo" width="350"/>
 <h1></h1>
 <h1 style="text-align: center;"><a href="https://wind-ae.readthedocs.io/en/latest/">Read the Docs</a></h1>
 <!-- <button type="button">Click Me!</button> -->
