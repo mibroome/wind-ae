@@ -110,7 +110,13 @@ class atomic_species:
         )
         self.atomic_data = _atomic_masses.loc[(_atomic_masses['Z']==self.Z)
                                               &(_atomic_masses['A']==self.A)]
-        self.mass = self.atomic_data['mass']*const.Da
+        if len(self.atomic_data['mass']) == 0: #if no A = 2*Z slot exists in table
+            rows = _atomic_masses.loc[(_atomic_masses['Z']==self.Z)]
+            idx = (rows['A'] - self.A).abs().idxmin()
+            row = rows.loc[idx]
+            self.mass = row['mass']*const.Da
+        else:
+            self.mass = self.atomic_data['mass'].values[0]*const.Da
 
 
     def sigma_find_E(self, sigma):

@@ -53,6 +53,9 @@ This ensures that `F_tot` is truely the total flux over the given range.
    
    from wind_ae.wrapper.relax_wrapper import wind_simulation as wind_sim
    from wind_ae.wrapper.wrapper_utils.spectrum import spectrum  
+
+   sim = wind_sim()
+   sim.load_planet('path/to/planet.csv') 
    
    # For a scaled solar spectrum, set lisird=True
    spec = spectrum(lisird=False,spectrum_file='hd189733',wl_norm=1e-7)
@@ -67,7 +70,12 @@ This ensures that `F_tot` is truely the total flux over the given range.
    kind = 'full' 
    spec.set_window(*soln_resolved, kind=kind)
    # Can plot via spec.plot() or spec.binning_plot() to confirm before generating
+   #the following step populates the sim.workdir/inputs/spectrum.inp
    spec.generate(kind=kind, savefile='wind_ae/inputs/spectrum.inp')
+   sim.generate_rate_coeffs() #MUST include
+
+   # Optional: to run the relaxation code with the new spectrum just generated
+   sim.run_wind()
 
 .. automodule:: wind_ae.wrapper.wrapper_utils.spectrum
    :members:

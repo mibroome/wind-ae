@@ -23,12 +23,13 @@ class wind_solution:
     planet. Also contains functions for analyzing relaxation result.
     """
 
-    __savepath = pkg_resources.files("wind_ae").joinpath("saves/windsoln.csv")
-
-    def __init__(self, file=__savepath, calc_postfacto=False,  expedite_postfacto=False,print_warnings=True):
+    def __init__(self, file=None, calc_postfacto=False,  expedite_postfacto=False,print_warnings=True):
         '''
         Initialize wind_solution object by reading in solution variables from windsoln.csv.
+        If file is None, defaults to the saves/windsoln.csv inside the installed wind_ae package.
         '''
+        if file is None:
+            file = pkg_resources.files("wind_ae").joinpath("saves/windsoln.csv")
         self.print_warnings = print_warnings
         self.error = 0
         with open(file, "r") as f:
@@ -65,7 +66,13 @@ class wind_solution:
                     self.HX = mass_fractions
                     self.species_list = species_names
                     self.atomic_masses = atom_masses
-                    self.molec_adjust = float(phys_prms[-1])
+                    _molec_idx = 3 * self.nspecies
+                    self.molec_adjust = float(phys_prms[_molec_idx])
+                    # kappa_opt / kappa_IR / gamma: optional for backward compatibility with
+                    # solution files written before these parameters were added.
+                    self.kappa_opt = float(phys_prms[_molec_idx + 1]) if len(phys_prms) > _molec_idx + 1 else 4e-3
+                    self.kappa_IR  = float(phys_prms[_molec_idx + 2]) if len(phys_prms) > _molec_idx + 2 else 1e-2
+                    self.gamma     = float(phys_prms[_molec_idx + 3]) if len(phys_prms) > _molec_idx + 3 else 5.0 / 3.0
                 elif line[0] == "#bcs:":
                     bcs = [float(x) for x in line[1:]]
                     # boundary conditions
@@ -92,11 +99,36 @@ class wind_solution:
                     self.mach_limit = tech[3]
                 elif line[0] == "#flags:":
                     flags = line[1:]
-                    # flags
-                    self.lyacool = int(flags[0])
-                    self.tidalforce = float(flags[1])
-                    self.bolo_heat_cool = float(flags[2])
-                    self.integrate_outward = int(flags[3])
+                    if len(flags) <= 6:
+                        # Legacy (pre-reorder) flags header, in the OLD order:
+                        # [linecool, tidalforce, bolo_heat_cool, integrate_outward,
+                        #  conduction?, molec_layer?]. conduction and molec_layer
+                        # were the only optional trailing fields in that scheme.
+                        self.linecool = int(flags[0])
+                        self.tidalforce = float(flags[1])
+                        self.bolo_heat_cool = float(flags[2])
+                        self.integrate_outward = int(flags[3])
+                        self.conduction = int(flags[4]) if len(flags) > 4 else 0
+                        self.molec_layer = float(flags[5]) if len(flags) > 5 else self.bolo_heat_cool
+                        # recombo_cool and free_free_cool did not exist in the legacy
+                        # scheme at all; default both off per the documented default.
+                        self.recombo_cool = 0
+                        self.free_free_cool = 0
+                    else:
+                        # Current (post-reorder) flags header, in the NEW order:
+                        # [integrate_outward, tidalforce, linecool, bolo_heat_cool,
+                        #  conduction, recombo_cool, free_free_cool, molec_layer]
+                        self.integrate_outward = int(flags[0])
+                        self.tidalforce = float(flags[1])
+                        self.linecool = int(flags[2])
+                        self.bolo_heat_cool = float(flags[3])
+                        # conduction, recombo_cool, free_free_cool were added at
+                        # different times; default each to 0 (off) if absent.
+                        self.conduction = int(flags[4]) if len(flags) > 4 else 0
+                        self.recombo_cool = int(flags[5]) if len(flags) > 5 else 0
+                        self.free_free_cool = int(flags[6]) if len(flags) > 6 else 0
+                        # molec_layer defaults to bolo_heat_cool if absent
+                        self.molec_layer = float(flags[7]) if len(flags) > 7 else self.bolo_heat_cool
                 elif line[0] == "#add_prms:":
                     add_prms = line[1:]
                     self.n_add_prms = int(add_prms[0])
@@ -153,7 +185,28 @@ class wind_solution:
                     self.species = (self.species_list).copy()
                     self.species_list_spaced = McAtom.formatting_species_list(self.species_list)
                     self.species_list_unspaced = [sp.replace(" ", "") for sp in self.species_list_spaced]
+                    # Cache of McAtom.atomic_species objects, keyed by spaced species
+                    # name (e.g. "H I"). Building one of these objects constructs two
+                    # 10,000-point Akima interpolators, so it is expensive; functions
+                    # like tau_array() that need per-species cross sections should
+                    # fetch objects via self._get_atomic_species(sp) rather than
+                    # constructing McAtom.atomic_species(sp) directly, so the cost is
+                    # only paid once per species per wind_solution instance.
+                    self._atomic_species_cache = {}
                     self.element_list = [species.split()[0] for species in self.species_list_spaced]
+                    # Detect ionization chain linkages (mirrors io.c chain_parent logic).
+                    # chain_parent[j] = p if species j is a higher ionization state of species p
+                    # (same element Z, one more electron stripped: Ne[j] == Ne[p]-1).
+                    # For independent species chain_parent[j] = -1.
+                    # IMPORTANT: when chains are present HX[j] must equal HX[p] in phys_params.inp.
+                    self.chain_parent = [-1] * self.nspecies
+                    _Z  = [McAtom.spectroscopy_to_atomic_notation(sp)[0] for sp in self.species_list_spaced]
+                    _Ne = [McAtom.spectroscopy_to_atomic_notation(sp)[1] for sp in self.species_list_spaced]
+                    for _j in range(self.nspecies):
+                        for _p in range(_j - 1, -1, -1):
+                            if _Z[_j] == _Z[_p] and _Ne[_j] == _Ne[_p] - 1:
+                                self.chain_parent[_j] = _p
+                                break
                 elif line[0] == "##":
                     spec_data = [float(x) for x in line[1:]]
                     self.E_wl[i_spec] = spec_data[0]
@@ -186,6 +239,12 @@ class wind_solution:
         # self.Z = np.array([int(x.strip()) for x in lines[4].split(':')[1].split('#')[0].split(',')])
         # self.Ne = np.array([int(x.strip()) for x in lines[5].split(':')[1].split('#')[0].split(',')])
 
+        #Numerical weirdness requires two spectrum points, so this fixes monofrequency
+        # if self.spec_kin`d.lower() == "mono":
+        #     self.E_wl = np.array([self.E_wl[0]])
+        #     self.wl_cm = np.array([self.wl_cm[0]])
+        #     #this is photon number flux over F_tot, so doubling it keeps the right normalization 
+        #     self.wPhi_wl = np.array([2*self.wPhi_wl[0]]) 
         self.F_wl = (
             self.E_wl * self.wPhi_wl * self.Ftot
         )  # flux in ergs/s/cm2 in each wavelength bin
@@ -218,6 +277,9 @@ class wind_solution:
             self.species_list,
             self.molec_adjust,
             self.atomic_masses,
+            self.kappa_opt,
+            self.kappa_IR,
+            self.gamma,
         ]
         self.bcs_tuple = [
             self.Rmin,
@@ -229,10 +291,14 @@ class wind_solution:
             self.erf_drop,
         ]
         self.flags_tuple = [
-            self.lyacool,
-            self.tidalforce,
-            self.bolo_heat_cool,
             self.integrate_outward,
+            self.tidalforce,
+            self.linecool,
+            self.bolo_heat_cool,
+            self.conduction,
+            self.recombo_cool,
+            self.free_free_cool,
+            self.molec_layer,
         ]
         self.tech_tuple = [self.breezeparam, self.rapidity, self.erfn, self.mach_limit]
         self.add_tuple = [self.n_add_prms, self.add_param_name, self.add_param_val]
@@ -254,8 +320,8 @@ class wind_solution:
         #reading in table of ionization coefficients for secondary and direct ionizations from Dere et al. (2007) 
         self.dere_df = pd.read_csv(pkg_resources.files("wind_ae").joinpath("wrapper/wrapper_utils/dere_table29.dat"), sep=r'\s+', names=list(range(45)))
         self.dere_df = self.dere_df.rename(columns={0: 'Z', 1: 'Ion', 2: 'NS',3:'I',4:'Tmin'})
-        #reading in table of ionization potentials for all species up to Z=30, N_e=30 from Verner et al. (1996)
-        self.all_ion_pots = pd.read_csv(pkg_resources.files("wind_ae").joinpath("wrapper/wrapper_utils/ion_pots.dat"), sep=r',')
+        # #reading in table of ionization potentials for all species up to Z=30, N_e=30 from Verner et al. (1996)
+        # self.all_ion_pots = pd.read_csv(pkg_resources.files("wind_ae").joinpath("wrapper/wrapper_utils/ion_pots.dat"), sep=r',')
         #Reading in coefficients for caculating temperature-dependent recombination coefficients (adapted from CLOUDY Fortran rrfit algorithm (Ferland et al. 2013))
         filepath = pkg_resources.files("wind_ae.wrapper.wrapper_utils").joinpath("recombo_vars.dat")
         self._fe = np.genfromtxt(filepath, delimiter=",", usecols=(0, 1, 2, 3))[0:10]
@@ -272,6 +338,18 @@ class wind_solution:
         self.R_sp = (
             1.0 + self.soln_norm["z"][0]
         )  # sonic point radius, critical point BC in Parker Wind
+
+        #Bolometrically driven wind (Core-powered Mass Loss) sonic point for comparison
+        F_opt = self.Lstar/(4*np.pi*self.semimajor**2)
+        T_skin = (F_opt*(self.kappa_opt+self.kappa_IR/4)/(2*const.sig_SB*self.kappa_IR))**0.25
+        cs2 = const.kB*T_skin / (self.molec_adjust*const.mH)
+        self.R_bolo = const.G*self.Mp/(2*cs2)/self.Rp
+
+        if print_warnings:
+            if self.R_sp >= self.R_bolo:
+                print(f"Wind may be core-powered mass loss, not photoevap.",
+                      f"\nXUV driven wind sonic point ({self.R_sp:.2f} Rp) < Bolometric (T_skin) driven wind sonic point ({self.R_bolo:.2f} Rp).")
+
         self.R_hill = (self.semimajor / self.Rp) * (self.Mp / (3.0 * self.Mstar)) ** (
             1.0 / 3.0
         )
@@ -281,9 +359,13 @@ class wind_solution:
         #             f"Warning: Sonic point ({self.R_sp:.2f} Rp) close to R_hill ({self.R_hill:.2f} Rp)."
         #         )
         self.crit_index = len(self.soln[self.soln_norm["r"] < self.R_sp]) - 1
-        self.v_crit = self.soln["v"][self.crit_index]
+        self.v_crit = self.soln["v"].iloc[self.crit_index]
         # Mass loss
         self.calc_massloss()
+        #frequently called values that need to be populated by add_user_vars
+        #This way, we get nan instead of IndexErrors
+        self.R_cori = np.nan
+        self.R_exo = np.nan
         # Skip unnecessary calculations when users is expediting windsoln
         if calc_postfacto:
             self.add_user_vars(expedite = expedite_postfacto)
@@ -330,18 +412,28 @@ class wind_solution:
         Returns:
             float or array: The current metallicity in units of solar metallicity. If not a function of solar metallicity, returns custom mass fractions.
         """
-        if (self.nspecies == 1) & (self.species[0].replace(" ", "") == 'HI'):
-            # print("For an atmosphere of H only, metallicity Z has no meaning. To alter the mass fraction of H, use sim.ramp_metallicity(custom_mfs=[]).")
-            return None
-        if (self.nspecies == 2) & (self.species[0].replace(" ", "") == 'HI') & (self.species[1].replace(" ", "") == 'HeI'):
+        if (self.nspecies == 2) and (self.species[0] == 'HI') and (self.species[1] == 'HeI'):
             # print("For an atmosphere of H and He only, metallicity Z has no meaning. To alter the mass fractions of H and He, use sim.ramp_metallicity(custom_mfs=[]).")
             return None
         grid = pd.read_csv(pkg_resources.files("wind_ae").joinpath("wrapper/wrapper_utils/metallicity_grid.csv"))
-        
-        Z_array = grid[self.element_list].to_numpy()
-        solar_mass_fracs = Z_array/np.sum(Z_array,axis=1)[:,None]
-        nearest = np.sum(abs(solar_mass_fracs - self.HX), axis=1)
-        current_Z = np.argmin(nearest)+1
+
+        # When chain ionization states are present (e.g. CI and CII both listed),
+        # element_list contains duplicates.  Deduplicate for the grid lookup, then
+        # compare using per-unique-element HX values (chain slots share HX with
+        # their parent, so duplicates would double-count the element mass fraction).
+        unique_els = []
+        seen = set()
+        for el in self.element_list:
+            if el not in seen:
+                unique_els.append(el)
+                seen.add(el)
+        unique_idx = [self.element_list.index(el) for el in unique_els]
+        unique_HX  = self.HX[unique_idx]
+
+        Z_array = grid[unique_els].to_numpy()
+        solar_mass_fracs = Z_array / np.sum(Z_array, axis=1)[:, None]
+        nearest = np.sum(abs(solar_mass_fracs - unique_HX), axis=1)
+        current_Z = np.argmin(nearest) + 1
 
         return current_Z
         
@@ -358,6 +450,44 @@ class wind_solution:
         # start_Z = np.where(grid==min(grid))[0][0]+1
         # return float(start_Z)
 
+    def _get_child_species(self, j):
+        """Return index of the child species of slot j in the ionization chain, or -1 if none.
+        A child c satisfies chain_parent[c] == j (c is one ionization level above j).
+        """
+        for c in range(self.nspecies):
+            if self.chain_parent[c] == j:
+                return c
+        return -1
+
+    def _get_eff_ntot_over_rho(self, j, Ys):
+        """Effective sub-pool total number density divided by rho for species j.
+
+        Mirrors get_eff_ntot_over_rho() in soe.c with the full ancestor walk.
+        For an independent species (chain_parent == -1) returns HX[j]/m[j].
+        For a child at any depth walks the full chain to the root, accumulating
+        (1-Ys[ancestor]) at every level:
+          depth-1 (CII):  (1-Ys[CI])  * HX[CI]/m[CI]
+          depth-2 (CIII): (1-Ys[CII]) * (1-Ys[CI]) * HX[CI]/m[CI]
+
+        Args:
+            j   (int):  species index
+            Ys  (dict): {species_unspaced: array} of ionization fractions from soln
+        Returns:
+            array: effective sub-pool density / rho  (same shape as Ys arrays)
+        """
+        if self.chain_parent[j] < 0:
+            return self.HX[j] / self.atomic_masses[j]
+        prod = 1.0
+        cur  = j
+        root = j
+        while self.chain_parent[cur] >= 0:
+            anc  = self.chain_parent[cur]
+            sp_anc = self.species_list_unspaced[anc]
+            prod = prod * (1.0 - Ys[sp_anc])
+            root = anc
+            cur  = anc
+        return prod * self.HX[root] / self.atomic_masses[root]
+
     def add_user_vars(self, expedite=False,print_warnings=True):
         '''Computes postfacto variables for the loaded solution. 
 
@@ -366,8 +496,21 @@ class wind_solution:
         Returns:
             None
         '''
-        self.soln = self.soln.drop(columns=self.soln.columns[6 + 2 * self.nspecies :])
-        self.gamma = 5.0 / 3.0  # Read this in from somewhere?
+        self.soln = self.soln.drop(columns=self.soln.columns[8 + 2 * self.nspecies :])
+        # self.gamma is read in from the #phys_prms: line of the solution/guess file
+
+        def _assign_soln_cols(cols):
+            """Assign many columns at once to avoid DataFrame fragmentation."""
+            if not cols:
+                return
+            cols_df = pd.DataFrame(cols, index=self.soln.index)
+            self.soln = pd.concat(
+                [
+                    self.soln.drop(columns=list(cols.keys()), errors="ignore"),
+                    cols_df,
+                ],
+                axis=1,
+            )
 
         #Converting back to numpy arrays to avoid overhead of pandas dataframes when doing calcs
         rho = self.soln["rho"].to_numpy()
@@ -381,13 +524,6 @@ class wind_solution:
 
         if expedite is False:
             self.metallicity = self.current_metallicity()
-            
-            # filepath = pkg_resources.files("wind_ae.McAstro.atoms").joinpath(
-            #     "Verner.csv"
-            # )
-            # Verner = pd.read_csv(filepath, comment="#")
-
-
             self.Omega = np.sqrt(const.G * (self.Mp + self.Mstar) / self.semimajor**3)
             self.semimajor_normed = self.semimajor / self.Rp
             self.R_hill = self.semimajor_normed * (self.Mp / (3.0 * self.Mstar)) ** (1/3)
@@ -402,60 +538,84 @@ class wind_solution:
             self.nu0 = const.c / self.wl0
 
         # number densities
-
         n_tot = np.zeros_like(rho)
         n_tot_neutral = np.zeros_like(rho)
         n_tot_ion = np.zeros_like(rho)
         n_e = np.zeros_like(rho)
+        density_cols = {}
         all_species = []
         for j in range(self.nspecies):
             ma = McAtom.atomic_species(self.species_list_spaced[j])
             element_name = ((self.species_list_spaced[j]).split())[0]
-            lowest_state = ((self.species_list_spaced[j]).split())[1]  # will have to adapt for elements with more than 1 ionization state
-            # converting to arabic numbers to make future multiple-ionization-state version of the code easier
+            lowest_state = ((self.species_list_spaced[j]).split())[1]
             highest_state = McAtom.arabic_to_roman(
                 McAtom.roman_to_arabic(lowest_state) + 1
             )
-            total = "n_" + element_name
-            neutral = "n_" + element_name + lowest_state
-            ionized = "n_" + element_name + highest_state
-            all_species = np.append(all_species,element_name+lowest_state)
-            all_species = np.append(all_species, element_name+highest_state)
+            total   = "n_" + element_name
+            neutral = "n_" + element_name + lowest_state   # e.g. n_CI
+            ionized = "n_" + element_name + highest_state  # e.g. n_CII (set here; overwritten by child j+1 if chain)
+            all_species = np.append(all_species, element_name + lowest_state)
+            all_species = np.append(all_species, element_name + highest_state)
 
-            total_n = self.HX[j] * rho / self.atomic_masses[j]
-            self.soln[total] = total_n
-            neutral_n = Ys[self.species_list_unspaced[j]] * total_n
-            ionized_n = total_n - neutral_n
-            electrons_per_species = abs(ma.Z - ma.Ne) #number of electrons released by species
-            
-            n_e += ionized_n*(electrons_per_species+1) + neutral_n*electrons_per_species
-            n_tot += total_n
+            sp_j    = self.species_list_unspaced[j]
+            p       = self.chain_parent[j]
+            child_j = self._get_child_species(j)
+            electrons_per_species = abs(ma.Z - ma.Ne)
+
+            # Effective sub-pool density (per unit rho).
+            # Independent species: HX[j]/m[j].
+            # Chain child:        (1-Ys[parent]) * HX[parent]/m[parent].
+            eff_ntot_over_rho = self._get_eff_ntot_over_rho(j, Ys)
+            eff_ntot = eff_ntot_over_rho * rho
+
+            # Element total density — only set for root (independent) species.
+            # Child species share the same HX/m as their parent, so the value
+            # is identical; writing it again would be harmless but we skip it
+            # to make the cascade semantics explicit.
+            if p < 0:
+                density_cols[total] = self.HX[j] / self.atomic_masses[j] * rho
+
+            neutral_n = Ys[sp_j] * eff_ntot
+            ionized_n = (1.0 - Ys[sp_j]) * eff_ntot
+
+            # Electron count — mirrors get_dYsdr() in soe.c.
+            # For a parent species that has a child (e.g. CI→CII): the "ionised"
+            # pool of this slot IS the neutral pool of the child, so its electrons
+            # are counted when the child slot is processed.  Only count electrons
+            # from the neutral (lower) state of this slot here.
+            if child_j >= 0:
+                n_e += neutral_n * electrons_per_species
+            else:
+                n_e += neutral_n * electrons_per_species + ionized_n * (electrons_per_species + 1)
+
+            # Background ionization fraction accumulators (mirrors calc_gql_rates).
+            n_tot         += eff_ntot
             n_tot_neutral += neutral_n
-            n_tot_ion += ionized_n
+            n_tot_ion     += ionized_n
 
-            self.soln[neutral] = neutral_n
-            self.soln[ionized] = ionized_n
+            density_cols[neutral] = neutral_n
+            density_cols[ionized] = ionized_n
         n_e[0] = n_e[1]
-        self.soln["n_e"] = n_e
-        self.soln["n_tot"] = n_tot
+        density_cols["n_e"] = n_e
+        density_cols["n_tot"] = n_tot
+        _assign_soln_cols(density_cols)
 
         # Mean molecular weight
         self.calc_mu()
 
         # Gas pressure
-        self.soln["P"] = rho * const.kB * T / self.soln["mu"]
+        thermo_cols = {"P": rho * const.kB * T / self.soln["mu"]}
         if expedite is False:
             # Ram pressure
-            self.soln["ram"] = (
-                0.5 * rho * v ** 2 + self.soln["P"]
-            )
+            thermo_cols["ram"] = 0.5 * rho * v ** 2 + thermo_cols["P"]
             # velocities
-            self.soln["cs"] = np.sqrt(self.gamma * self.soln["P"] / rho)
-            self.soln["Mach"] = v / self.soln["cs"]
+            thermo_cols["cs"] = np.sqrt(self.gamma * thermo_cols["P"] / rho)
+            thermo_cols["Mach"] = v / thermo_cols["cs"]
 
             # Pressure scaleheight
-            self.soln["Hsc"] = const.kB * T * (r ** 2)
-            self.soln["Hsc"] /= self.soln["mu"] * const.G * self.Mp
+            thermo_cols["Hsc"] = const.kB * T * (r ** 2)
+            thermo_cols["Hsc"] /= self.soln["mu"] * const.G * self.Mp
+        _assign_soln_cols(thermo_cols)
 
         # Multifrequency calculations
         background_ioniz_frac = n_tot_ion / n_tot
@@ -563,8 +723,12 @@ class wind_solution:
         
         #Total photoionization heating rate for all species
         total_heating = np.sum(heating_rate, axis=1)
-        self.soln["heat_ion"] = total_heating
-        self.soln["heat_no2nd"] = np.sum(heat_rate_no_2nd,axis=1)
+        _assign_soln_cols(
+            {
+                "heat_ion": total_heating,
+                "heat_no2nd": np.sum(heat_rate_no_2nd, axis=1),
+            }
+        )
   
         #Per-species ionization rates
         ionization_rate = primary_ion_rate + secondary_ion_rate
@@ -655,26 +819,36 @@ class wind_solution:
             #             self.soln[Kn_ion_name] = self.soln[L_ion_name]/self.soln['DlnP']
             # Rates
             for s, sp in enumerate(self.species_list_unspaced):
-                # species_name_spaced = McAtom.formatting_species_list([species])[0]
                 Z,Ne = McAtom.spectroscopy_to_atomic_notation(self.species_list_spaced[s])
                 species = sp.replace(" ", "")
                 alpha = self.alpha_rec(Z, Ne, self.soln['T'])
                 rec_coeff[:,s] = alpha
+            transport_cols = {}
+            for s, sp in enumerate(self.species_list_unspaced):
+                Z,Ne = McAtom.spectroscopy_to_atomic_notation(self.species_list_spaced[s])
+                species = sp.replace(" ", "")
+                alpha = self.alpha_rec(Z, Ne, self.soln['T'])
 
-                element_name = self.species_list_spaced[s].split(' ')[0]
-                n_tot = self.soln["n_" + element_name]
-                # n+ = n_tot*(1-Ys) = (n_0/Ys)*(1-Ys) <--in this form for ease of coding 'n_'+species
-                self.soln["recomb_" + species] = (
-                    alpha
-                    * n_e
-                    * n_tot * (1 - Ys[species]) #n+
-                )
+                sp_j    = self.species_list_unspaced[s]
+                child_s = self._get_child_species(s)
 
-                self.soln["advec_" + species] = (
-                    - n_tot #total number density of species, s, e.g., n_H
-                    * v
-                    * np.gradient(Ys[species], r)
-                )
+                # Effective sub-pool density for this species slot.
+                eff_ntot_s = self._get_eff_ntot_over_rho(s, Ys) * rho
+
+                # Recombination source: for a parent with a child, the population
+                # recombining back into this slot is the lower (neutral) state of the
+                # child (e.g. n_CII recombines into CI).  For an independent or
+                # final-chain species it is simply the ionised pool of this slot.
+                if child_s >= 0:
+                    sp_child = self.species_list_unspaced[child_s]
+                    n_ion_this = (Ys[sp_child] * (1.0 - Ys[sp_j])
+                                  * self.HX[s] / self.atomic_masses[s] * rho)
+                else:
+                    n_ion_this = (1.0 - Ys[sp_j]) * eff_ntot_s
+
+                transport_cols["recomb_" + species] = alpha * n_e * n_ion_this
+                transport_cols["advec_" + species] = -eff_ntot_s * v * np.gradient(Ys[sp_j], r)
+            _assign_soln_cols(transport_cols)
             self.alpha = rec_coeff
 
             # generic cooling
@@ -692,179 +866,202 @@ class wind_solution:
             ) 
 
         ##Metal line cooling
-        if any(el=='C' or el=='O' for el in self.element_list):
+        if any(elem in self.element_list for elem in ['O','C','Fe','Mg','Ca','Ne']):
+
             filepath = pkg_resources.files("wind_ae.wrapper.wrapper_utils").joinpath(
                 "line_cooling_coeffs.dat"
             )
-            C = pd.read_csv(filepath, comment="#", delimiter=" ")
-            ne = n_e
-            for s, species in enumerate(self.species):
-                if species == "CI":  # CII line cooling
-                    line_names = [
-                        "cool_CII_1570000A",
-                        "cool_CII_2326A",
-                        "cool_CII_1334A",
-                    ]
-                    start = 8
-                    stop = 11
-                    A, T_line, nc = (
-                        C["A"][start:stop],
-                        C["T_line"][start:stop],
-                        C["n_c"][start:stop],
+            coeff_table = pd.read_csv(filepath, comment="#", delimiter=" ")
+            # ne = n_e
+            line_cool_cols = {}
+            def compute_line_cool(species):
+                species_spaced = McAtom.formatting_species_list([species])[0]
+                element_name = (species_spaced.split())[0]
+                lowest_state = (species_spaced.split())[1]
+                highest_state = McAtom.arabic_to_roman(
+                    McAtom.roman_to_arabic(lowest_state) + 1
+                )
+
+                ion_name = element_name + highest_state
+                mask = (coeff_table['Species'] == ion_name)
+                line, A, T_line, nc = (
+                    coeff_table[mask]["Line"],
+                    coeff_table[mask]["A"],
+                    coeff_table[mask]["T_line"],
+                    coeff_table[mask]["n_c"],
+                )
+                nIONj = self.soln["n_"+ion_name]
+                for idx in range(len(A.T)):
+                    line_cool_cols[f'cool_{ion_name}_{line.iloc[idx]:.0f}A'] = (
+                        -nIONj
+                        * n_e
+                        * A.iloc[idx]
+                        * np.exp(-T_line.iloc[idx] / T)
+                        / (n_e * (1 + nc.iloc[idx] / n_e))
                     )
-                    nIONj = self.soln["n_CII"]
-                    for idx in range(len(A.T)):
-                        self.soln[line_names[idx]] = (
-                            -nIONj
-                            * ne
-                            * A.iloc[idx]
-                            * np.exp(-T_line.iloc[idx] / T)
-                            / (ne * (1 + nc.iloc[idx] / ne))
-                        )
-                if species == "CII":  # CIII line cooling
-                    line_names = ["cool_CIII_1910A", "cool_CIII_977A"]
-                    start = 11
-                    stop = 13
-                    A, T_line, nc = (
-                        C["A"][start:stop],
-                        C["T_line"][start:stop],
-                        C["n_c"][start:stop],
-                    )
-                    nIONj = self.soln["n_CIII"]
-                    for idx in range(len(A.T)):
-                        self.soln[line_names[idx]] = (
-                            -nIONj
-                            * ne
-                            * A.iloc[idx]
-                            * np.exp(-T_line.iloc[idx] / T)
-                            / (ne * (1 + nc.iloc[idx] / ne))
-                        )
-                if species == "OI":  # OII line cooling
-                    line_names = [
-                        "cool_OII_834A",
-                        "cool_OII_2741A",
-                        "cool_OII_3727A",
-                        "cool_OII_7320A",
-                    ]
-                    start = 0
-                    stop = 4
-                    A, T_line, nc = (
-                        C["A"][start:stop],
-                        C["T_line"][start:stop],
-                        C["n_c"][start:stop],
-                    )
-                    nIONj = self.soln["n_OII"]
-                    for idx in range(len(A.T)):
-                        self.soln[line_names[idx]] = (
-                            -nIONj
-                            * ne
-                            * A.iloc[idx]
-                            * np.exp(-T_line.iloc[idx] / T)
-                            / (ne * (1 + nc.iloc[idx] / ne))
-                        )
-                if species == "OII":  # OIII line cooling
-                    line_names = [
-                        "cool_OIII_520000A",
-                        "cool_OIII_5000A",
-                        "cool_OIII_166A",
-                        "cool_OIII_84A",
-                    ]
-                    start = 4
-                    stop = 8
-                    A, T_line, nc = (
-                        C["A"][start:stop],
-                        C["T_line"][start:stop],
-                        C["n_c"][start:stop],
-                    )
-                    nIONj = self.soln["n_OIII"]
-                    for idx in range(len(A.T)):
-                        self.soln[line_names[idx]] = (
-                            -nIONj
-                            * ne
-                            * A.iloc[idx]
-                            * np.exp(-T_line.iloc[idx] / T)
-                            / (ne * (1 + nc.iloc[idx] / ne))
-                        )
+
+            for species in ['OI', 'OII', 'CI', 'CII', 'FeI', 'MgI', 'CaI', 'NeII']:
+                if species in self.species_list_unspaced:
+                    compute_line_cool(species)
+                
+            _assign_soln_cols(line_cool_cols)
 
         ## PdV work
         self.soln["cool_PdV"] = self.soln["P"] * v / rho
         self.soln["cool_PdV"] *= np.gradient(rho, r)
         ## Estimate of the tau(XUV)=1 surface
+        tau1_array, _ = self.calc_tau1_radius(self.E_wl/const.eV)
+        self.R_absorb = np.dot(tau1_array, self.F_wl)/np.sum(self.F_wl)
         try:
-            drop_index = np.where(self.soln["heat_ion"] > -self.soln["cool_PdV"])[0][0]
-            self.R_XUV = self.soln_norm["r"][drop_index]
+            self.drop_index = np.where(self.soln["heat_ion"] > -self.soln["cool_PdV"])[0][0]
+            self.R_launch = self.soln_norm["r"][self.drop_index]
         except IndexError:
-            drop_index = 0
-            self.R_XUV = 0
-        ## conduction
-        kappa = 4.45e4 * (T / 1e3) ** (0.7)
+            self.drop_index = 0
+            self.R_launch = 0
+        self.R_XUV = self.R_launch #LEGACY - for backwards compatibility with notebooks
+        ## conduction — Banks & Kockarts (1973)
+        # If the solution was produced by the conduction-enabled C build, dTdr is
+        # self-consistently solved; otherwise we estimate it by finite difference of T.
+        # if "dTdr" in self.soln.columns:
+        #     print("\n\ndTdr column found in solution. Conduction: %d\n" %self.conduction)
+        # _dTdr_c = (self.soln["dTdr"].to_numpy().copy()
+        #            if "dTdr" in self.soln.columns else None)
+
+        # Electron number density (already computed above as n_e)
+        n_neut = np.zeros_like(rho)
+        for s in range(self.nspecies):
+            sp_s = self.species_list_unspaced[s]
+            ma  = McAtom.atomic_species(self.species_list_spaced[s])
+            eps = abs(ma.Z - ma.Ne)
+            if eps == 0: #only add truly neutral species to n_neut
+                n_neut += Ys[sp_s] * self._get_eff_ntot_over_rho(s, Ys) * rho
+
+        # --- electron-neutral conductivity: kappa_en,j = 6e4 * T^(1/2) * n_e/n0_j ---
+        kappa_en  = np.zeros((len(r), self.nspecies))
+        kappa_nn  = np.zeros((len(r), self.nspecies))
+        for s in range(self.nspecies):
+            sp_s  = self.species_list_unspaced[s]
+            n0_s  = Ys[sp_s] * self._get_eff_ntot_over_rho(s, Ys) * rho
+            safe_n0 = np.where(n0_s > 0.0, n0_s, 1.0)
+            kappa_en[:, s] = 6.0e4 * np.sqrt(T) * (n_e / safe_n0)
+            # Neutral-neutral conductivity from species-specific coefficients
+            sp_name = self.species_list_unspaced[s]
+            if sp_name == "HI":   mu_nn = 1.22e-6 * T**0.69
+            elif sp_name == "HeI": mu_nn = 3.84e-6 * T**0.69
+            elif sp_name == "OI":  mu_nn = 3.9e-6  * T**0.69
+            else:                  mu_nn = 1.22e-6 * T**0.69
+            m_s = self.atomic_masses[s]
+            kappa_nn[:, s] = (15.0/4.0) * (const.kB / m_s) * mu_nn * n0_s
+
+        # Electron thermal conductivity (Banks & Kockarts 1973, eq. 9)
+        kappa_ei = 1.2e-6 * T ** 2.5
+        safe_ken = np.where(kappa_en > 0.0, kappa_en, np.inf)
+        kappa_e  = kappa_ei / (1.0 + kappa_ei * np.sum(1.0 / safe_ken, axis=1))
+
+        # Neutral-neutral conductivity (sum over neutrals, normalised by total neutral density)
+        safe_neut = np.where(n_neut > 0.0, n_neut, 1.0)
+        kappa_n   = np.sum(kappa_nn, axis=1) / safe_neut
+
+        # Total conductivity weighted by electron / neutral fractions
+        n_tot_cond = n_e + n_neut
+        safe_tot   = np.where(n_tot_cond > 0.0, n_tot_cond, 1.0)
+        kappa = kappa_e * (n_e / safe_tot) + kappa_n * (n_neut / safe_tot)
+        self.soln["cond_coeff"] = kappa
+
+        # Q_cond = -div(kappa*grad(T)) = -kappa*d2T/dr2 - dT/dr*(2*kappa/r + dkappa/dr)
         grad_T = np.gradient(T, r)
         grad_T[0] = grad_T[1]
-        self.soln["cool_cond"] = kappa * np.gradient(grad_T, r)
-        self.soln["cool_cond"] += grad_T * (
-            2 * kappa / r + np.gradient(kappa, r)
+        self.soln["cool_cond"] = -kappa * np.gradient(grad_T, r)
+        self.soln["cool_cond"] += -grad_T * (
+            2.0 * kappa / r + np.gradient(kappa, r)
         )
+        # if _dTdr_c is not None:
+        #     self.soln["dTdr_c"] = _dTdr_c       # physical dT/dr from C solver (K/cm)
+
         try:
+            # If conductive cooling is >70% of photoion heating WITHIN wind
             cond_idx = len(
-                np.where(abs(self.soln["cool_cond"][drop_index+50:] / self.soln["heat_ion"][drop_index+50:]) > 0.1)[0]
+                np.where(
+                    abs(self.soln["cool_cond"][self.drop_index + 100:]
+                        / self.soln["heat_ion"][self.drop_index + 100:]) > 0.7
+                )[0]
             )
             if cond_idx > 10:
                 if self.print_warnings is True:
-                    print(
-                        "Warning: Post-facto calculations indicate conductive cooling may be significant in this planet.\n         Wind-AE does not currently model conductive cooling. \n         Plot energy_plot(all_terms=True) to check."
-                    )
+                    # if self.conduction == 1:
+                    #     print(
+                    #         "Warning: Conductive cooling is significant in this planet.\n"
+                    #         "         It is included self-consistently (conduction: 1 in flags.inp)."
+                    #     )
+                    # else:
+                    if self.conduction == 0:
+                        print(
+                            "Warning: Post-facto calculations indicate conduction may be significant. (Plot sim.energy_plot() to check).\n"
+                            "         To turn on conduction, run sim.turn_on_conduction(). Note: will introduce stiffness, so run as last step.\n"
+                        )
         except IndexError:
             pass
 
-        self.soln["cool_rec"] = np.zeros_like(rho)
-        #looping over ALL ionization states (rewrite with Z and Ne someday)
+        cool_rec = np.zeros_like(rho)
+        # Recombination cooling — mirrors the chain-aware get_spQ() in soe.c.
         for s, species in enumerate(self.species_list):
-            Z,Ne = McAtom.spectroscopy_to_atomic_notation(self.species_list_spaced[s])
+            Z, Ne = McAtom.spectroscopy_to_atomic_notation(self.species_list_spaced[s])
+            sp_j    = self.species_list_unspaced[s]
+            child_s = self._get_child_species(s)
 
-            element_name = self.species_list_spaced[s].split(' ')[0]
+            # Effective sub-pool density for this slot.
+            eff_ntot_s = self._get_eff_ntot_over_rho(s, Ys) * rho
+            nION = (1.0 - Ys[sp_j]) * eff_ntot_s   # ionised fraction of sub-pool
+            n0   =        Ys[sp_j]  * eff_ntot_s   # neutral fraction of sub-pool
 
             if Z == 1:
-                component = ( -2.85e-27 * (n_e) * (self.soln["n_HII"]) * np.sqrt(T) * (5.914 - 0.5 * np.log(T) + 0.01184 * (T) ** (1.0 / 3.0)))
-                self.soln["cool_rec"] += component
+                # Case-B recombination cooling for HII (no chain for hydrogen)
+                component = (-2.85e-27 * n_e * nION * np.sqrt(T)
+                             * (5.914 - 0.5 * np.log(T) + 0.01184 * T ** (1.0 / 3.0)))
+                cool_rec += component
+            elif Ne == Z:
+                # Neutral lowest state (e.g. CI, HeI, OI): cool from ionised pool.
+                alpha = self.alpha_rec(Z, Ne, self.soln['T'])
+                component = -alpha * n_e * nION * (1.5 * const.kB * self.soln['T'])
+                cool_rec += component
             else:
-                if Ne == Z:
-                    nION = self.soln['n_'+element_name]*(1-Ys[self.species_list_unspaced[s]]) 
-                    alpha = self.alpha_rec(Z,Ne,self.soln['T'])
-                    
-                    component = - alpha * n_e * nION * (3.0/2.0) * const.kB * self.soln['T']
-                    self.soln["cool_rec"] += component
-                else:
-                    nION = self.soln['n_'+element_name]*(1-Ys[self.species_list_unspaced[s]]) 
-                    alpha = self.alpha_rec(Z,Ne,self.soln['T'])
-                    component = - alpha * n_e  * nION * (3.0/2.0) * const.kB * self.soln['T']
-                    self.soln["cool_rec"] += component
-                    
-                    #Temporary patch = commenting out b/c postfacto calcs show that high recombo rates at base create lots of CI from CII, 
-                    # thus CII is not as abundnant as sim would have us believe
-                    # nION = self.soln['n_'+element_name]*(Ys[self.species_list_unspaced[s]])  
-                    # #our "neutral" is really an ionized, so need to take into accoutn in calc
-                    # alpha = self.alpha_rec(Z,Ne+1,self.soln['T'])
-                    # component = - alpha * n_e  * nION * (3.0/2.0) * const.kB * self.soln['T']
-                    # self.soln["cool_rec"] += component
+                # Already-ionised lowest state (e.g. CII, OII):
+                # cool from the lower (neutral) state of this slot back toward parent.
+                alpha = self.alpha_rec(Z, Ne, self.soln['T'])
+                component = -alpha * n_e * n0 * (1.5 * const.kB * self.soln['T'])
+                cool_rec += component
 
-        ## Bolometric heating and cooling #FIX should be read in from somewhere
+        self.soln["cool_rec"] = cool_rec
+        ## Bolometric heating and cooling
         P = self.soln["P"]
 
         boloheat = np.zeros_like(rho)
         bolocool = np.zeros_like(rho)
-        if self.bolo_heat_cool != 0:
-            kappa_opt = 4e-3 * self.smoothing_erf
-            kappa_IR = (
-                1e-2 * self.smoothing_erf
-            )  # need pressure BC (smooth using erf) because kappas are not valid in wind
-            F_opt = self.Lstar / (4 * np.pi * self.semimajor**2)
-            boloheat = F_opt * (kappa_opt + 0.25 * kappa_IR) * rho
-            bolocool = -2 * const.sig_SB * T**4 * kappa_IR * rho
+        # if self.bolo_heat_cool != 0:
+        kappa_opt = self.kappa_opt * self.smoothing_erf
+        kappa_IR = self.kappa_IR * self.smoothing_erf 
+        F_opt = self.Lstar / (4 * np.pi * self.semimajor**2)
+        boloheat = F_opt * (kappa_opt + 0.25 * kappa_IR) * rho * self.bolo_heat_cool
+        bolocool = -2 * const.sig_SB * T**4 * kappa_IR * rho * self.bolo_heat_cool
 
-        #         ## free-free emission
-        #         self.soln['cool_free'] = -1.426e-27*1.3*(self.HX[0]/const.mH)**2          #FIX ,. Make sure that ne-ne is actually what doms
-        #         self.soln['cool_free'] *= (np.sqrt(self.soln['T'])
-        #                                    *(self.soln['rho']*(1.-self.soln['Ys_HI']))**2)
+        ## Free-free (bremsstrahlung) cooling
+        # Λ_ff = -1.426e-27 * g_ff * T^{1/2} * n_e * Σ_j Z_j^2 * n_j
+        # Multispecies generalisation of rmc2009 eq. A3 (Rybicki & Lightman §5.3).
+        # Each slot j contributes: (eps+1)^2 * n_ion_j + eps^2 * n_0_j
+        # where eps = Z[j] - N_e[j] is the charge of the lower (neutral) state.
+        Z2n = np.zeros_like(rho)
+        for j in range(self.nspecies):
+            ma  = McAtom.atomic_species(self.species_list_spaced[j])
+            eps = abs(ma.Z - ma.Ne)   # charge of lower state
+            sp_j     = self.species_list_unspaced[j]
+            eff_ntot = self._get_eff_ntot_over_rho(j, Ys) * rho
+            n_ion_j  = (1.0 - Ys[sp_j]) * eff_ntot
+            n0_j     =        Ys[sp_j]  * eff_ntot #lower state, not truly neutral
+            Z2n += (eps + 1)**2 * n_ion_j
+            if eps > 0:
+                Z2n += eps**2 * n0_j
+        self.soln["cool_free"] = -1.426e-27 * 1.3 * np.sqrt(T) * n_e * Z2n
+
         ## gravitational cooling
         cool_grav = -const.G * self.Mp * (v * rho / r**2)
 
@@ -875,8 +1072,10 @@ class wind_solution:
         heat_advect = v * rho * grad
 
         postfacto_cols = {
-            "boloheat": boloheat,
+            "boloheat": boloheat, #for backward compatibility with notebooks
             "bolocool": bolocool,
+            "cool_bolo": bolocool, #better syntax for users
+            "heat_bolo": boloheat,
             "cool_grav": cool_grav,
             "e_therm": e_therm,
             "heat_advect": heat_advect,
@@ -994,38 +1193,57 @@ class wind_solution:
             self._calc_fits()
             self.calc_Coriolis()
         #             self.calc_vert_extent()
-            if expedite is False:
-                self.Kn_hb_crit = self.soln['Kn_hb_HI'][self.crit_index]
-                self.Kn_Co_crit = self.soln['Kn_Co_HI'][self.crit_index]
-                if self.integrate_outward:
-                    self.calc_R_exo()
-                    if self.R_exo < self.R_sp:
-                        if self.print_warnings is True:
-                            print(f"Warning: Exobase ({self.R_exo:.2f}Rp) may be below sonic point ({self.R_sp:.2f}Rp). If so, a transonic wind (Wind-AE) solution is not valid.\n   Use sim.windsoln.calc_Jeans() to get Jean's escape mass loss rate instead.")
-                    self.calc_Jeans()
-                    self.calc_roche_lobe()
-                    if self.R_sp > self.R_roche:
-                        if self.print_warnings is True:
-                            print(f"WARNING: Sonic point ({self.R_sp:.2f}Rp) is outside of Roche lobe ({self.R_roche:.2f}Rp). If R_sp >> R_roche, then a transonic wind (Wind-AE) solution is not valid.")
+            if expedite is False:                
+                self.Kn_hb_crit = self.soln['Kn_hb_HI'].iloc[self.crit_index]
+                self.Kn_Co_crit = self.soln['Kn_Co_HI'].iloc[self.crit_index]
+                self.calc_R_exo()
+                if self.R_exo < self.R_sp:
+                    if self.print_warnings is True:
+                        print(f"Warning: Exobase ({self.R_exo:.2f}Rp) may be below sonic point ({self.R_sp:.2f}Rp). If so, a transonic wind (Wind-AE) solution is not valid.\n   Use sim.windsoln.calc_Jeans() to get Jean's escape mass loss rate instead.")
+                self.calc_Jeans()
+                self.calc_roche_lobe()
+                if self.R_sp > self.R_roche:
+                    if self.print_warnings is True:
+                        print(f"WARNING: Sonic point ({self.R_sp:.2f}Rp) is outside of Roche lobe ({self.R_roche:.2f}Rp). If R_sp >> R_roche, then a transonic wind (Wind-AE) solution is not valid.")
                     # self.calc_ballistic()
         return
 
 
     def calc_mu(self):
-        '''Calculates dimensionless mean molecular weight (mu).'''
+        '''Calculates mean molecular weight (mu in physical units, grams).
+
+        1/mu = sum_roots[mr_root * HX_root]  (one atom per atom, roots only)
+               + n_e * m_H / rho             (one entry per free electron)
+        Mirrors the refactored get_mu() in soe.c exactly.
+        '''
         if (self.species_list[0]).replace(" ", "") != "HI":
             if self.print_warnings is True:
-                print(
-                    "WARNING: Calculation of dimensionless mean molecular weight, mu, assumes Hydrogen is the first species listed."
-                )
-        mu_denominator = 0
+                print("WARNING: mu calculation assumes Hydrogen is the first species listed.")
+
+        Ys_dict = {sp: self.soln['Ys_'+sp] for sp in self.species_list_unspaced}
+
+        # Atoms: one per atom, roots only
+        mu_denominator = 0.0
         for j in range(self.nspecies):
-            col_name = "Ys_" + (self.species_list[j]).replace(" ", "")
-            mu_denominator += (
-                (self.atomic_masses[0] / self.atomic_masses[j])
-                * self.HX[j]
-                * (2 - self.soln[col_name])
-            )
+            if self.chain_parent[j] < 0:
+                mr = self.atomic_masses[0] / self.atomic_masses[j]
+                mu_denominator += mr * self.HX[j]
+
+        # Electrons: n_e * m_H / rho (same accumulation as get_spQ / add_user_vars)
+        ne_over_rho = 0.0
+        for j in range(self.nspecies):
+            ma      = McAtom.atomic_species(self.species_list_spaced[j])
+            eps     = abs(ma.Z - ma.Ne)
+            child_j = self._get_child_species(j)
+            sp_j    = self.species_list_unspaced[j]
+            eff     = self._get_eff_ntot_over_rho(j, Ys_dict)
+            n0      =        Ys_dict[sp_j]  * eff
+            n_ion   = (1.0 - Ys_dict[sp_j]) * eff
+            if child_j >= 0:
+                ne_over_rho += n0 * eps
+            else:
+                ne_over_rho += n0 * eps + n_ion * (eps + 1)
+        mu_denominator += ne_over_rho * self.atomic_masses[0]
 
         v = self.soln_norm["v"]
         # Approximate pressure scaleheight in units of Rp at the base of the sim
@@ -1040,14 +1258,15 @@ class wind_solution:
                 (v[i] - self.erf_drop[0]) / self.erf_drop[1]
             )
             self.smoothing_erf_mu[i] = 1 - math.erf(
-                (v[i] - self.erf_drop[0]) / (self.erf_drop[1] / 4)
+                (v[i] - self.erf_drop[0]) / (self.erf_drop[1])
             )
         
         if np.max(self.smoothing_erf) != 0:
             self.smoothing_erf /= np.max(self.smoothing_erf)
         if np.max(self.smoothing_erf_mu) != 0:
             self.smoothing_erf_mu /= np.max(self.smoothing_erf_mu)
-        self.smoothing_erf_mu *= self.bolo_heat_cool
+        # molec_layer controls the mu erfc independently from bolo_heat_cool
+        self.smoothing_erf_mu *= self.molec_layer
 
         # erf set above. Drops mu from molec_adjust (usually 2.3 mH) below wind to mu inside wind
         mu_atom = (
@@ -1118,55 +1337,105 @@ class wind_solution:
 
         return r[0]
 
-    def tau_array(self, photon, units="eV"):
-        """Returns an array with the optical depth for the provided photon energy (or wavelength) for each radius in the windsoln.
+    def _get_atomic_species(self, sp):
+        """Returns the (cached) McAtom.atomic_species object for spaced species
+        name sp (e.g. "H I"), constructing and caching it on first request.
+
+        Anything that needs per-species cross sections repeatedly (e.g. across many photon
+        energies) should go through this cache rather than instantiating McAtom.atomic_species(sp) directly.
 
         Args:
-            photon (float): energy or wavelength of photon of units units
+            sp (str): spaced species name, e.g. "H I"
+
+        Returns:
+            McAtom.atomic_species: cached atomic_species object for sp
+        """
+        if sp not in self._atomic_species_cache:
+            self._atomic_species_cache[sp] = McAtom.atomic_species(sp)
+        return self._atomic_species_cache[sp]
+
+
+    def tau_array(self, photon, units="eV"):
+        """Returns the optical depth for the provided photon energy (or
+        wavelength), for each radius in the windsoln. Vectorized: photon may
+        be a scalar or an array of photon energies/wavelengths, in which case
+        the optical depth is computed for every (radius, photon) pair at once.
+
+        Args:
+            photon (float or array-like): energy or wavelength(s) of photon(s), in units units
             units (str): cm, nm, or eV
 
         Returns:
-            tau (array): optical depth array of size len(r)
+            tau (array): optical depth array.
+                If photon is scalar: shape (len(r),).
+                If photon is array-like of length n: shape (len(r), n).
         """
-        if photon <= 0:
+        photon = np.asarray(photon, dtype=float)
+        scalar_input = (photon.ndim == 0)
+        photon = np.atleast_1d(photon)
+
+        if np.any(photon <= 0):
             raise ValueError("Photon energy or wavelength must be positive.")
         if units == "cm":
-            photon = const.hc / (photon) / const.eV
+            photon = const.hc / photon / const.eV
         elif units == "nm":
             photon = const.hc / (photon * 1e-7) / const.eV
         elif units == "eV":
-            photon = photon
+            pass
         else:
             print("Valid units are 'cm', 'nm', 'eV'.")
-        spec_max_E = const.hc / self.spec_normalized[0] / const.eV
-        if photon > spec_max_E:
+        spec_max_E = const.hc / (self.spec_normalized[0] * 1e-7) / const.eV
+        if np.any(photon > spec_max_E):
+            E_over = photon[photon > spec_max_E]
             print(
-                f"Note: Stellar spectrum in current sim has max energy of {spec_max_E:.0f} eV, so simulated atmosphere is not recieving {photon:.0f} eV photns."
+                f"Note: Stellar spectrum in current sim has max energy of {spec_max_E:.0f} eV, "
+                f"so simulated atmosphere is not recieving up to {E_over.max():.0f} eV photons."
             )
 
-        tau = np.zeros_like(self.soln["r"])
-        # spaced_species = McAtom.formatting_species_list(self.species_list)
+        r_len = len(self.soln["r"])
+        tau = np.zeros((r_len, len(photon)))
         for sp in self.species_list_spaced:
-            sigma = McAtom.atomic_species(sp).cross_section(photon)
-            Ncol = self.soln["Ncol_" + sp.replace(" ", "")]
-            tau += Ncol * sigma
+            species_obj = self._get_atomic_species(sp)
+            sigma = species_obj.cross_section(photon)  # shape (n_photon,)
+            Ncol = self.soln["Ncol_" + sp.replace(" ", "")].to_numpy()  # shape (r_len,)
+            tau += np.outer(Ncol, sigma)
+
+        if scalar_input:
+            return tau[:, 0]
         return tau
 
 
     def calc_tau1_radius(self, photon, units="eV"):
-        """Returns radius in Rp and index where tau=1 surface is for the photon of the provided energy (or wavelength).
+        """Returns radius in Rp and index where tau=1 surface is for the
+        photon of the provided energy (or wavelength). Vectorized: photon may
+        be a scalar or an array of photon energies/wavelengths.
 
         Args:
-            photon (float): energy or wavelength of photon of units units
+            photon (float or array-like): energy or wavelength(s) of photon(s), in units units
             units (str): cm, nm, or eV
 
         Returns:
-            tuple: (r, idx) where r is the radius in Rp and idx is the index where tau=1 surface is located.
+            tuple: (r, idx).
+                If photon is scalar: r (float) and idx (int).
+                If photon is array-like of length n: r (array of shape (n,))
+                and idx (array of shape (n,)).
         """
         taus = self.tau_array(photon, units)
-        idx = len(taus) - np.searchsorted(np.flip(taus), 1)
-        r = self.soln_norm["r"][idx]
-        return r, idx
+        r_arr = self.soln_norm["r"].to_numpy()
+
+        if taus.ndim == 1:
+            idx = len(taus) - np.searchsorted(np.flip(taus), 1)
+            if idx == len(r_arr):
+                idx -= 1
+            return r_arr[idx], idx
+
+        r_len, n_photon = taus.shape
+        idx = np.empty(n_photon, dtype=int)
+        for j in range(n_photon):
+            idx[j] = r_len - np.searchsorted(np.flip(taus[:, j]), 1)
+            if idx[j] == r_len:
+                idx[j] -= 1
+        return r_arr[idx], idx
     
 
     def calc_roche_lobe(self, tol=1e-12, max_iter=20):
@@ -1239,6 +1508,27 @@ class wind_solution:
         #     self.R_exo = self.R_sp
         #     self.exo_index = self.crit_index
         return self.R_exo, self.exo_index
+    
+    def _calc_delta_mcrossover_over_b(self,r_idx):
+        """IN PROGRESS:
+        Two-component crossover mass is m_crossover = m1 + (const.kB * T * F_01)/(g * X_1 * b). Here we computed just (const.kB * T * F_01)/(g * X_1), so we can multiply by different binary diffusion coefficients.
+        This assumes H and He are acting as the primary component (not a good assump for high gravity planets).
+
+        Note to self: The current method canceled X_1 out because I assuming F_01 is the flux of just the primary component so times X_1.
+        """
+        idx = r_idx
+        T = self.soln['T'].iloc[idx]
+        R = self.soln['r'].iloc[idx]
+        g = const.G*self.Mp/R**2
+
+        ratio = self.HX/self.atomic_masses
+        nfs = ratio/sum(ratio)
+        X_1 = sum(nfs[:2]) #summing H and He number fractions to get X_1
+
+        F_01 = sum(self.HX[:2])*self.Mdot/ (4*np.pi*R**2*const.mH)
+
+        delta_mcross_times_b = (const.kB * T * F_01)/(g * X_1)
+        return delta_mcross_times_b,T
 
 
     def calc_Jeans(self):
@@ -1246,10 +1536,6 @@ class wind_solution:
         If R_exo is outside of the bounds of the simulation, R_exo is NaN, so result will be NaN.
         Currently uses R_exo computed only from HI collisionality. 
         """
-        if self.R_exo is None:
-            if self.print_warnings is True:
-                print("Exobase is outside of the bounds of the simulation, so Jeans escape mass loss rate will not be calculated.")
-            return None
         self.Jeans_param = (
             const.G
             * self.Mp
@@ -1323,71 +1609,58 @@ class wind_solution:
             return dyds
 
         # Start integration from r_sonic, where you "lose" pressure support
-        self.cori = integrate.solve_ivp(
-            cori_dvds,
-            (self.R_sp, self.soln_norm["r"].iloc[-1]),
-            [-self.v_fit(self.R_sp), 0],
-            method="RK45",
-            dense_output=True,
-        )
-        if self.cori.status:
-            print(f"Coriolis ivp failuare: {self.cori.status}")
-        else:
-            # Calculate the x and y coordinates of streamline
-            s_int = np.linspace(self.R_sp, self.soln_norm["r"].iloc[-1], 10000)
-            cori_x = -s_int[0] + integrate.cumulative_trapezoid(
-                self.cori.sol(s_int)[0] / self.v_fit(s_int), x=s_int, initial=0
-            )
-            cori_y = integrate.cumulative_trapezoid(
-                self.cori.sol(s_int)[1] / self.v_fit(s_int), x=s_int, initial=0
-            )
-            fit_cori_x = interpolate.InterpolatedUnivariateSpline(s_int, cori_x, ext=0)
-            fit_cori_y = interpolate.InterpolatedUnivariateSpline(s_int, cori_y, ext=0)
+        try:
+            self.cori = integrate.solve_ivp(
+                cori_dvds,
+                (self.R_sp, self.soln_norm["r"].iloc[-1]),
+                [-self.v_fit(self.R_sp), 0],
+                method="RK45",
+                dense_output=True,
+            )            
+            if self.cori.status:
+                print(f"Coriolis ivp failure: {self.cori.status}")
+            else:
+                # Calculate the x and y coordinates of streamline
+                s_int = np.linspace(self.R_sp, self.soln_norm["r"].iloc[-1], 10000)
+                cori_x = -s_int[0] + integrate.cumulative_trapezoid(
+                    self.cori.sol(s_int)[0] / self.v_fit(s_int), x=s_int, initial=0
+                )
+                cori_y = integrate.cumulative_trapezoid(
+                    self.cori.sol(s_int)[1] / self.v_fit(s_int), x=s_int, initial=0
+                )
+                fit_cori_x = interpolate.InterpolatedUnivariateSpline(s_int, cori_x, ext=0)
+                fit_cori_y = interpolate.InterpolatedUnivariateSpline(s_int, cori_y, ext=0)
 
-            def cori_pos_tuple(s):
-                return np.array([fit_cori_x(s), fit_cori_y(s)])
+                def cori_pos_tuple(s):
+                    return np.array([fit_cori_x(s), fit_cori_y(s)])
 
-            # Set velocity and position tuple (both return vectors [x, y])
-            self.cori_vel = self.cori.sol
-            self.cori_pos = cori_pos_tuple
+                # Set velocity and position tuple (both return vectors [x, y])
+                self.cori_vel = self.cori.sol
+                self.cori_pos = cori_pos_tuple
 
-            def calc_vel_deflect_one_rad(s, phi_0):
-                if phi_0 < np.pi / 2.0:
-                    return np.pi / 4.0 - (
-                        np.pi
-                        + phi_0
-                        - np.arctan2(-self.cori_vel(s)[1], -self.cori_vel(s)[0])
-                    )
-                else:
-                    return np.pi / 4.0 - (
-                        phi_0 - np.arctan2(self.cori_vel(s)[1], self.cori_vel(s)[0])
-                    )
+                def calc_vel_deflect_one_rad(s, phi_0):
+                    if phi_0 < np.pi / 2.0:
+                        return np.pi / 4.0 - (
+                            np.pi
+                            + phi_0
+                            - np.arctan2(-self.cori_vel(s)[1], -self.cori_vel(s)[0])
+                        )
+                    else:
+                        return np.pi / 4.0 - (
+                            phi_0 - np.arctan2(self.cori_vel(s)[1], self.cori_vel(s)[0])
+                        )
 
-            phi_0 = np.arctan2(self.cori_vel(s_int[0])[1], self.cori_vel(s_int[0])[0])
-            self.R_cori = optimize.fsolve(
-                calc_vel_deflect_one_rad, self.R_sp, args=(phi_0)
-            )[0]
-        return
-
-    # def calc_vert_extent(self):
-    #     def vertical_extent(h, e_int_leftover=0.0):
-    #         therm_term = (
-    #             (self.gamma - 1.0 + 2.0 * (1.0 - e_int_leftover))
-    #             / (2 * (self.gamma - 1.0))
-    #             * self.soln["cs"][self.crit_index] ** 2
-    #             / (const.G * self.Mstar)
-    #         ) * self.Rp
-    #         q = self.Mp / self.Mstar
-    #         return (
-    #             therm_term
-    #             + q * (1.0 / h - 1.0 / self.R_sp)
-    #             + 1.0 / np.sqrt(h**2 + self.semimajor_normed**2)
-    #             - 1.0 / np.sqrt(self.R_sp**2 + self.semimajor_normed**2)
-    #         )
-
-    #     self.vert_extent = optimize.fsolve(vertical_extent, self.R_sp)[0]
-    #     return
-
+                phi_0 = np.arctan2(self.cori_vel(s_int[0])[1], self.cori_vel(s_int[0])[0])
+                self.R_cori = optimize.fsolve(
+                    calc_vel_deflect_one_rad, self.R_sp, args=(phi_0)
+                )[0]
+            return
+        except ValueError:
+            if self.print_warnings is True:
+                print("Warning: Coriolis radius calculation failed. This is rare, but can occur when no real sonic point has been found.\n    Check that sim.windsoln.soln['v'] and sim.windsoln.soln['cs'] intersect.")
+                self.R_cori = np.nan
+            return
+        
     def calc_ballistic(self, n_ball=31):
         '''
         '''
@@ -1468,17 +1741,19 @@ class wind_solution:
         )
         return
 
-    def regrid(self, q_arr=None, simple=True):
+    def regrid(self, dq=8e-3, write_to_guess=False,q_arr=None, simple=True):
         '''
         Regrid the solution onto a new set of q values, where q is a radius-like parameter that ranges from 0 to 1 (Murray-Clay et al. 2009).
         Where radius, r = R_min + q*z and z is a dependent variable because R_sp is not know apriori (z := R_sp - R_min) 
 
-        Basically never necessary.
+        Smaller dq gives finer resolution.
+
+        Rarely necessary.
         '''
         self._calc_norm_fits()
         if simple:
             dq0 = 1e-4
-            dq1 = 8e-3
+            dq1 = dq
             dq2 = 1e-4
 
             q0 = 0.00
@@ -1582,6 +1857,8 @@ class wind_solution:
                     np.linspace(q_arr[-1], q4, int((q4 - (q3 + dq1)) / dq1 + 1.99))[1:],
                 )
             )
+        idx = np.where(np.diff(q_arr) <= 0)[0]+1
+        q_arr[idx] = q_arr[idx] + ( q_arr[idx+1]-q_arr[idx])/2
 
         # Create regrided solution, ensure r[0] = Rmin exactly, cannot allow
         # any rounding error, i.e, 9.99999999999999778e-01 != 1.0 in relaxation
@@ -1589,7 +1866,7 @@ class wind_solution:
         def Ys_q_norm_fit(q, degree=1):
             Ys_normed_fit = np.zeros((len(q), self.nspecies))
             for j in range(self.nspecies):
-                Ys_name = "Ys_" + self.species_list[j]
+                Ys_name = "Ys_" + self.species_list[j].replace(" ", "")
                 s = interpolate.InterpolatedUnivariateSpline(
                     self.soln_norm["q"], self.soln_norm[Ys_name], ext=2, k=degree
                 )
@@ -1599,18 +1876,14 @@ class wind_solution:
         def Ncol_q_norm_fit(q, degree=1):
             Ncol_normed_fit = np.zeros((len(q), self.nspecies))
             for j in range(self.nspecies):
-                Ncol_name = "Ncol_" + self.species_list[j]
+                Ncol_name = "Ncol_" + self.species_list[j].replace(" ", "")
                 s = interpolate.InterpolatedUnivariateSpline(
                     self.soln_norm["q"], self.soln_norm[Ncol_name], ext=2, k=degree
                 )
                 Ncol_normed_fit[:, j] = s(q)
             return Ncol_normed_fit
 
-        #         Ncol_normed_fit = np.zeros((len(q_arr),self.nspecies))
-        #         Ys_normed_fit = np.zeros((len(q_arr),self.nspecies))
-        #         for j in range(self.nspecies):
-        #             Ys_normed_fit[:,j] = Ys_q_norm_fit('Ys_'+self.species_list[j], q_arr)
-        #             Ncol_normed_fit[:,j] = Ncol_normed_fit('Ncol_'+self.species_list[j], q_arr)
+
         df = pd.DataFrame(
             np.column_stack(
                 (
@@ -1621,8 +1894,6 @@ class wind_solution:
                     self.T_q_norm_fit(q_arr),
                     Ys_q_norm_fit(q_arr),
                     Ncol_q_norm_fit(q_arr),
-                    #             self.Ys_q_norm_fit(q_arr),
-                    #             self.Ncol_q_norm_fit(q_arr),
                     q_arr,
                     self.z_q_norm_fit(q_arr),
                 )
@@ -1671,7 +1942,24 @@ class wind_solution:
                 "#tech: " + (",".join("%.17e" % i for i in self.tech_tuple)) + "\n"
             )
             file_.write(
-                "#flags: " + (",".join("%d" % i for i in self.flags_tuple)) + "\n"
+                "#flags: "
+                + ",".join(
+                    ("%.5f" if isinstance(i, float) else "%d") % i
+                    for i in self.flags_tuple
+                )
+                + "\n"
             )
             df.to_csv(file_, header=False, index=False, float_format="%.17e")
+
+        if write_to_guess:
+            guesspath = pkg_resources.files("wind_ae").joinpath("saves/windsoln.csv")
+            with open(guesspath, 'r') as f_in:
+                headers = [ln for ln in f_in.readlines() if ln.lstrip().startswith('#')]
+            with open(guesspath, 'w+') as f_out:
+                f_out.writelines(headers)
+                df.to_csv(f_out, header=False, index=False, float_format="%.17e")
+
+            print(r"To run this regridded solution, first run `sim.load_planet(sim.workdir +'/saves/windsoln.csv')`, then `sim.run_wind()`")
+        
+
         return df

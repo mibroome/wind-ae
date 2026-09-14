@@ -8,6 +8,9 @@ import wind_ae.McAstro.atoms.atomic_species as McAtom
 from matplotlib.lines import Line2D
 from wind_ae.wrapper.wrapper_utils import constants as const
 from wind_ae.wrapper.wrapper_utils.spectrum import spectrum
+import pandas as pd
+import importlib.resources as pkg_resources
+
 
 from IPython import display
 
@@ -227,7 +230,7 @@ def _custom_rc_params(line_color,nspecies):
 
 
 def quick_plot(soln, Mdot_legend=True, c='k', ls='-', label='',label_dim=[0,1.3,2],
-             ion_label=True,first_plotted=True, ax=0): 
+             ion_label=True, ax=None): 
     """
     Plots density (g/cm³), temperature (K), velocity (10 km/s), and ionization fraction as a function of r (Rp).
 
@@ -239,16 +242,15 @@ def quick_plot(soln, Mdot_legend=True, c='k', ls='-', label='',label_dim=[0,1.3,
         label (str, optional): Label for the plot. Defaults to ''.
         label_dim (list, optional): Location of label and ncols [x, y, ncols]. Defaults to [0, 1.3, 2].
         ion_label (bool, optional): If True, show ionization legend. Defaults to True.
-        first_plotted (bool, optional): True if this is the first of many plots on the same axes. Defaults to True.
-        ax (matplotlib.axes.Axes, optional): Axes object to plot on. Defaults to 0.
+        ax (matplotlib.axes.Axes, optional): Axes object to plot on. Defaults to None. If None, a new figure will be created.
 
     Returns:
-        matplotlib.axes.Axes: Axes object (if first_plotted=True).
+        matplotlib.axes.Axes: Axes object (if ax=None).
         str: Title string summarizing species and mass fractions.
     """
-    try: # Check if R_cori has be calculated. If not, calculate all post-facto user variables
-        soln.R_cori
-    except AttributeError:
+    # try: # Check if R_cori has be calculated. If not, calculate all post-facto user variables
+    #     soln.R_cori
+    if np.isnan(soln.R_cori):
         if soln.integrate_outward == 0:
             soln.R_cori = 1e10
         else:
@@ -270,6 +272,10 @@ def quick_plot(soln, Mdot_legend=True, c='k', ls='-', label='',label_dim=[0,1.3,
     colormap,custom_cycler,fontsize,columns = _custom_rc_params(c,nspecies)
 
     stack=2
+    if ax is None:
+        first_plotted = True
+    else:
+        first_plotted = False
     if first_plotted==True:
         fig, ax = plt.subplots(stack,2,sharex=True,figsize=[11,6])
         fig.subplots_adjust(hspace=0)
@@ -344,7 +350,7 @@ def quick_plot(soln, Mdot_legend=True, c='k', ls='-', label='',label_dim=[0,1.3,
 
     
 def six_panel_plot(soln,Mdot_legend=True,c='k',ls='-',label='',
-                   label_dim=[0,1.3,2],ion_label=True,first_plotted=True,ax=0): 
+                   label_dim=[0,1.3,2],ion_label=True,ax=None): 
     '''
     Plots density (g/cm3), temperature (K), velocity (10 km/s), ionization fraction, column density (g/cm2), and number density (1/cm2), as a function of r (Rp).
         
@@ -355,21 +361,16 @@ def six_panel_plot(soln,Mdot_legend=True,c='k',ls='-',label='',
         ls - str; line style
         label - str; line label 
         label_dim - list; default=[0,1.3,2]. Location of label and ncols [x,y,ncols]. 
-        first_plotted - Bool; True if this the first of many OR the ONLY SixPlot 
-                        to be plotted on the same axes. 
-        ax - matplotlib axis obj; if first_plotted=False, provide axis object so this 
-             will be be plotted on desired figure with other simulations for comparison
+        ax - matplotlib axis obj; default is None. If None, a new figure will be created.
     Returns:
-        ax - axes object (if first_plotted=True)
+        ax - axes object (if ax=None)
         
     Example:
-        ax1 = SixPlot(sim1.windsoln, first_plotted=True)
+        ax1 = SixPlot(sim1.windsoln)
         SixPlot(sim2.windsoln, ax=ax1)
         SixPlot(sim3.windsoln, ax=ax1)
     '''
-    try: # Check if R_cori has be calculated
-        soln.R_cori
-    except AttributeError:
+    if np.isnan(soln.R_cori):
         if soln.integrate_outward == 0:
             soln.R_cori = 1e10
         else:
@@ -391,6 +392,10 @@ def six_panel_plot(soln,Mdot_legend=True,c='k',ls='-',label='',
     colormap,custom_cycler,fontsize,columns = _custom_rc_params(c,nspecies)
 
     stack=3
+    if ax is None:
+        first_plotted = True
+    else:
+        first_plotted = False
     if first_plotted==True:
         fig, ax = plt.subplots(stack,2,sharex=True,figsize=[11,9])
         fig.subplots_adjust(hspace=0)
@@ -512,9 +517,8 @@ def six_panel_plot(soln,Mdot_legend=True,c='k',ls='-',label='',
         return ax    
     
 
-def energy_plot(windsoln, ax=0, alpha=0.8, all_terms=False, 
-                CII_line_cool=False, CIII_line_cool=False, OII_line_cool=False,OIII_line_cool=False, 
-                legend=True,sub_sonic=True):
+def energy_plot(windsoln, ax=None, alpha=1, plot_dom_lines=True, N_top_lines=2,
+                legend=True):
     """ Plots energy balance terms used in the energy equation (Broome et al. 2025)
 
     Args: 
@@ -522,13 +526,9 @@ def energy_plot(windsoln, ax=0, alpha=0.8, all_terms=False,
         ax: The axis to plot on (default is 0, which creates a new figure)
         alpha: Transparency level for the plot lines (default is 0.8). 
                 Useful when overplotting multiple on same axes
-        all_terms: If True, plot terms not included in Wind-AE, e.g., free-free cooling, (default is False)
-        CII_line_cool: If True, include CII line cooling terms (default is False)
-        CIII_line_cool: If True, include CIII line cooling terms (default is False)
-        OII_line_cool: If True, include OII line cooling terms (default is False)
-        OIII_line_cool: If True, include OIII line cooling terms (default is False)
+        plot_dom_lines: If True, plots the N_top_lines dominant cooling lines at each of 10 sample radii (default is True)
+        N_top_lines: (default 2) plots the top two lines at each of the 10 sample radii
         legend: If True, display the legend (default is True)
-        sub_sonic: If True, sets x-axis upper limit at sonic point radius
 
     Returns:
         None
@@ -541,23 +541,21 @@ def energy_plot(windsoln, ax=0, alpha=0.8, all_terms=False,
 #     display.display(plt.gcf())
 #     display.clear_output(wait=True)
 #     plt.clf()
-#     if ax==0:
-#         fig,ax = plt.subplots()
-    if ax==0:
+    if ax is None:
         fig,ax = plt.subplots()
     ncols=1
     fontsize=14
     r = windsoln.soln_norm['r'][1:]
-    ax.plot(r, windsoln.soln['heat_ion'][1:], '-',
+    ax.plot(r, windsoln.soln['heat_ion'][1:], '-',lw=2,
             alpha=alpha, c='red',label='ionization heating')
-    if windsoln.lyacool != 0:
+    if windsoln.linecool != 0:
         try:
             windsoln.soln['cool_lyman']
         except KeyError:
             windsoln.add_user_vars()
-        ax.plot(r, -windsoln.soln['cool_lyman'][1:], '--',
+        ax.plot(r, -windsoln.soln['cool_lyman'][1:], '--',lw=2,
                 alpha=alpha, c='tab:cyan', label='Lyman-alpha cooling')
-    ax.plot(r, -windsoln.soln['cool_PdV'][1:], '--',
+    ax.plot(r, -windsoln.soln['cool_PdV'][1:], '--',lw=2,
             alpha=alpha, c='darkblue',label='PdV cooling')
     if windsoln.bolo_heat_cool != 0:
         ax.plot(r, windsoln.soln['boloheat'][1:], ls=(0, (3, 1, 1, 1, 1, 1)),
@@ -571,56 +569,110 @@ def energy_plot(windsoln, ax=0, alpha=0.8, all_terms=False,
     # if all_terms:
     ncols=2
     fontsize=12
+    if windsoln.recombo_cool == 1:
+        label_rec = 'recombination cooling'
+    else:
+        label_rec = 'recombination cooling (OFF)'
     ax.plot(r, -windsoln.soln['cool_rec'][1:], ':',
-        alpha=alpha, c='teal',label='recombination cooling')
-    if all_terms:
-        ax.plot(r, windsoln.soln['cool_cond'][1:], ':',
-            alpha=alpha, c='navy',label='conductive cooling')
+        alpha=alpha, c='teal',label=label_rec)
+    # if all_terms:
+    if windsoln.conduction == 1:
+        label1 = 'conductive cooling'
+        label2 = 'conductive heating'
+    else:
+        label1 = 'conductive cooling (OFF)'
+        label2 = 'conductive heating (OFF)'
+
+    ax.plot(r, windsoln.soln['cool_cond'][1:], ':',
+        alpha=alpha, c='navy',label=label1)
     ax.plot(r, -windsoln.soln['cool_cond'][1:], ':',
-        alpha=alpha, c='lightsalmon',label='conductive heating')
-#         ax.plot(r, -windsoln.soln['cool_free'][1:], ':',
-#             alpha=alpha, c='paleturquoise',label='free-free cooling')
-    if CII_line_cool:
-        ncols=2
-        fontsize=12
-        line_str = ['1570000','2326','1334']
-        for i,line in enumerate(line_str):
-            alpha = ((len(line_str))-i)/len(line_str)
-            ax.plot(r, -windsoln.soln['cool_CII_'+line+'A'][1:], '-',c='indigo',
-                    alpha=alpha, label=r'CII %s$\mathrm{\AA}$'%line)
-    if CIII_line_cool:
-        ncols=2
-        fontsize=12
-        line_str = ['1910','977']
-        for i,line in enumerate(line_str):
-            alpha = ((len(line_str))-i)/len(line_str)
-            ax.plot(r, -windsoln.soln['cool_CIII_'+line+'A'][1:], '-',c='tab:purple',
-                    alpha=alpha, label=r'CIII %s$\mathrm{\AA}$'%line)
-    if OII_line_cool:
-        ncols=2
-        fontsize=12
-        line_str = ['7320','3727','2741','834']
-        for i,line in enumerate(line_str):
-            alpha = ((len(line_str))-i)/len(line_str)
-            ax.plot(r, -windsoln.soln['cool_OII_'+line+'A'][1:], '-',c='slategrey',
-                    alpha=alpha, label=r'OII %s$\mathrm{\AA}$'%line)
-    if OIII_line_cool:
-        ncols=2
-        fontsize=12
-        line_str = ['520000','5000','166','84']
-        for i,line in enumerate(line_str):
-            alpha = ((len(line_str))-i)/len(line_str)
-            ax.plot(r, -windsoln.soln['cool_OIII_'+line+'A'][1:], '-',c='slateblue',
-                    alpha=alpha, label=r'OIII %s$\mathrm{\AA}$'%line)
- 
+        alpha=alpha, c='lightsalmon',label=label2)
+    
+    if windsoln.free_free_cool == 1:
+        label_free = 'free-free cooling'
+    else:
+        label_free = 'free-free cooling (OFF)'
+    ax.plot(r, -windsoln.soln['cool_free'][1:], ':',
+            alpha=alpha, c='paleturquoise',label=label_free)
+    
+    if plot_dom_lines==True and windsoln.linecool != 0:
+        __coeff_table = pkg_resources.files("wind_ae").joinpath("wrapper/wrapper_utils/line_cooling_coeffs.dat")
+
+        coeff_table = pd.read_csv(__coeff_table, comment="#", delimiter=" ")
+        r_arr = np.asarray(r)
+        sample_r = np.linspace(r_arr.min(), r_arr.max(), 10)
+        sample_idx = np.array([np.abs(r_arr - rv).argmin() for rv in sample_r], dtype=int)
+        r = windsoln.soln_norm['r']
+
+        profiles = {}
+        for species in ['OI', 'OII', 'CI', 'CII', 'FeI', 'MgI','CaII', 'NeII']:
+            if species in windsoln.species_list_unspaced:
+                species_spaced = McAtom.formatting_species_list([species])[0]
+                element_name, lowest_state = species_spaced.split()
+                highest_state = McAtom.arabic_to_roman(McAtom.roman_to_arabic(lowest_state) + 1)
+                ion_name = element_name + highest_state
+
+                lines = coeff_table.loc[coeff_table['Species'] == ion_name, 'Line'].astype(int).tolist()
+                for line_num in lines:
+                    key = f'cool_{ion_name}_{line_num:.0f}A'
+                    if key in windsoln.soln:
+                        profiles[f'{ion_name}_{line_num:.0f}A'] = -windsoln.soln[key].to_numpy()
+
+        try:
+            labels = list(profiles.keys())
+            vals = np.vstack([profiles[k][sample_idx] for k in labels])
+
+            top_labels = set()
+            top_idx = np.argsort(vals, axis=0)[-N_top_lines:, :]  # top N_top_lines at each of the sampled radius points
+            for j in range(top_idx.shape[1]):
+                for i in top_idx[:, j]:
+                    top_labels.add(labels[i])
+
+            # Family color is fixed; linestyle cycles within each family.
+            family_colors = {
+                'O': "#01501E",
+                'C': "#a5e0d5",
+                'Fe': '#022040',
+                'Mg': '#6EB602',
+                'Ne': "#7761A7",
+                'Ca': '#FFD700',
+                'other': '#808080'
+            }
+
+            linestyle_cycle = ['-', '--', '-.', ':']
+
+            top_sorted = sorted(top_labels)
+            labels_by_elem = {}
+            for lbl in top_sorted:
+                elem = McAtom.formatting_species_list([lbl.split('_')[0]])[0].split()[0]
+                labels_by_elem.setdefault(elem, []).append(lbl)
+
+            style_map = {}
+            for elem, elem_labels in labels_by_elem.items():
+                for i, lbl in enumerate(sorted(elem_labels)):
+                    style_map[lbl] = linestyle_cycle[i % len(linestyle_cycle)]
+
+            for lbl in top_sorted:
+                elem = McAtom.formatting_species_list([lbl.split('_')[0]])[0].split()[0]
+                wvl = int(lbl.split('_')[1][:-1])
+                if wvl >= 1e4:
+                    wvl_label = r'%.1f $\mu$m' % (wvl / 1e4)
+                    label = lbl.split('_')[0] + ' ' + wvl_label
+                else:
+                    label = (lbl.replace('_',' ')).replace('A', r'\AA')
+                plt.plot(r,profiles[lbl],label=label,
+                        color=family_colors.get(elem, family_colors['other']),
+                        linestyle=style_map[lbl]) 
+        except ValueError:
+            pass
         
-    peak = 10**np.ceil(np.log10(1.1*windsoln.soln['heat_ion'].max()))
+    peak = 10**np.ceil(np.log10(1.3*windsoln.soln['heat_ion'].max()))
     ax.set_yscale('log')
     ax.set_xscale('log')
     ax.set_ylabel(r'Energy Rates (erg s$^{-1}$ cm$^{-3}$)')
     ax.set_xlabel(r'Radius ($R_p$)')
     xlo, xhi = windsoln.Rmin-0.02, windsoln.Rmax
-    if sub_sonic or not windsoln.integrate_outward:
+    if not windsoln.integrate_outward:
         xhi = windsoln.R_sp
     ax.set_xlim([xlo, xhi])
     ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())

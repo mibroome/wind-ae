@@ -13,11 +13,13 @@
 #define SQR(x) ((x)*(x))
 
 /* Relaxation code parameters */
-#define NSPECIES 2
-#define NE (4+2*NSPECIES)         /* number of equations */
-#define M 1501            /* number of points */
-#define NB (2+NSPECIES)          /* number of boundary conditions at first point */
-#define ITMAX 100     /* max number of iterations */
+/* NSPECIES is now a runtime variable read from inputs/phys_params.inp.
+ * Use NSPECIES_MAX for static/stack array bounds; loop with g_nspecies at runtime. */
+#define NSPECIES_MAX 50            /* compile-time upper bound on species count */
+#define NE_MAX (5+2*NSPECIES_MAX)  /* compile-time upper bound on equation count */
+#define M_MAX 2000                 /* compile-time upper bound on relaxation grid points */
+#define TOTALPTS_MAX (INPTS+M_MAX+ADDPTS)  /* compile-time upper bound on total points */
+/* NB, NUM_EQNS computed at runtime from g_nspecies; see globals.h */
 #define CONV 1.0E-10  /* convergence criterion */
 #define SLOWC 1.0E-2  /* slow down when far from convergence */
 #define N_ADD_PARAMS 0
@@ -27,14 +29,12 @@
 #define RIN 0.9     /* migrate this parameter in bc inputs */
 #define INPTS 0  /* number of extra points inwards of Rmin */
 #define ADDPTS 1000 /* number of extra points past the relaxation range */
-#define NUM_EQNS (3+2*NSPECIES) /*formerly 5 in single species version*/
 #define ACCURACY 1.0E-13
 #define STEP_GUESS 1.0E-1
 #define STEP_MIN 0.0
 #define MAX_STORED_STEPS 10
 
 /* total number of grid points */
-#define TOTALPTS (INPTS+M+ADDPTS)
 
 /* Constants */
 #define PI 3.141592653589793
@@ -68,19 +68,21 @@
 #define LYACOOL_TEMP (118348.0/T0)      /* units of T0 */
 #define RECCOOL_COEFF 8.44E-26          /* erg/cm^3/s/K^0.11 */
 
-#define RHOSCALE 100.0
 #define VSCALE 2.0                      /* units of CS0 */
 #define TEMPSCALE 1.0                   /* units of T0 */
 #define NCOLSCALE 100.0
-#define FPSCALE 1.0
+#define FPSCALE 1e-4                    /* F = kappa*dT/dr in code units */
+#define FSCALE  FPSCALE                 /* alias: solvde scale for F variable */
+#define YSSCALE 1.0                     /* solvde scale for Ys (neutral fraction, O(1)) */
 #define ZSCALE 3.0                      /* z = rs-rmin; units of RP */
 
 #define PLANET_PARAM_FILE "inputs/planet_params.inp"
 #define BC_PARAM_FILE "inputs/bcs.inp"
-#define TERM_PARAM_FILE "inputs/term_ind.inp"
+#define TERM_PARAM_FILE "inputs/flags.inp"
 #define TECH_PARAM_FILE "inputs/tech_params.inp"
 #define PHYS_PARAM_FILE "inputs/phys_params.inp"
 #define SPECTRUM_FILE "inputs/spectrum.inp"
+#define RATE_COEFF_FILE "inputs/rate_coeffs.inp"
 #define GUESS_FILE "inputs/guess.inp"
 #define ADD_PARAM_FILE "inputs/additional_params.inp"
 

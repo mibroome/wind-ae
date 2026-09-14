@@ -14,8 +14,6 @@
 #include "wind.h"
 #include "prototypes.h"
 #include "globals.h"
-#include "rate_coeffs.h"
-
 
 /* static global variables */
 static char *glq_table_header, *date, *kind, *src_file;
@@ -24,11 +22,76 @@ static double *ion_pot;
 static double wndw_lob, wndw_upb, rslv_lob, rslv_upb, norm_lob, norm_upb;
 static double *Phi, *ionization_rate,  *heating_rate;
 static double *last_N, *hc_over_wl, *tau_array, *f_denom, *wPhi_wl, **sigma_wl;
+/* Secondary ionization rate coefficients: R[j*nspecies+m][i]
+ * = rate for photoelectron from species j to ionize species m at energy index i.
+ * Heap-allocated in load_rate_coeffs() after nspecies and npts are known. */
+static double **R;
 
 /*----------------------------------------------------------------------------*
  *======================== PRIVATE FUNCTION PROTOTYPES =======================*
  *----------------------------------------------------------------------------*/
 static void calc_gql_rates(double *N, double *Ys, double rho, double k);
+static void load_rate_coeffs(void);
+
+/*============================================================================*
+ *! \fn static void load_rate_coeffs(void)                                   *
+ *  \brief Reads secondary ionization rate coefficients from                  *
+ *         inputs/rate_coeffs.inp into the heap-allocated R[nrows][npts]      *
+ *         array.  Must be called after npts and nspecies are set by          *
+ *         init_glq().  Format: comment lines starting with '#', then         *
+ *         nspecies*nspecies rows of npts comma-separated floats.              *
+ *         Row index is j*nspecies+m (photoelectron from j,                   *
+ *         target species m).                                                  *
+ *----------------------------------------------------------------------------*/
+#define RC_BUFSIZE 65536
+static void load_rate_coeffs(void) {
+  int nrows = nspecies * nspecies;  /* only nspecies^2 rows written; +nspecies in old .h was unused padding */
+  int i, row;
+  char *dline, *tok;
+  FILE *filep;
+
+  if ((filep = fopen(RATE_COEFF_FILE, "r")) == NULL) {
+    fprintf(stderr, "ERROR: Cannot open %s\n", RATE_COEFF_FILE);
+    exit(215);
+  }
+
+  /* allocate R[nrows][npts] */
+  R = (double **)calloc_1d_array(nrows, sizeof(double *));
+  for (row = 0; row < nrows; row++) {
+    R[row] = (double *)calloc_1d_array(npts, sizeof(double));
+  }
+
+  dline = (char *)malloc(RC_BUFSIZE * sizeof(char));
+  if (dline == NULL) { fprintf(stderr, "ERROR: malloc failed in load_rate_coeffs\n"); exit(216); }
+
+  /* skip comment lines */
+  while (fgets(dline, RC_BUFSIZE, filep) && dline[0] == '#')
+    ;
+
+  /* first non-comment line is already in dline; parse it, then loop */
+  row = 0;
+  do {
+    if (dline[0] == '#' || dline[0] == '\n') continue;
+    tok = strtok(dline, ",\n");
+    for (i = 0; i < npts && tok != NULL; i++) {
+      R[row][i] = atof(tok);
+      tok = strtok(NULL, ",\n");
+    }
+    row++;
+  } while (row < nrows && fgets(dline, RC_BUFSIZE, filep));
+
+  if (row != nrows) {
+    fprintf(stderr, "ERROR: %s has %d rows but expected %d (nspecies=%d)\n",
+            RATE_COEFF_FILE, row, nrows, nspecies);
+    exit(217);
+  }
+
+  free(dline);
+  fclose(filep);
+  printf("  Loaded rate coefficients: %d rows x %d pts from %s\n",
+         nrows, npts, RATE_COEFF_FILE);
+}
+#undef RC_BUFSIZE
 
 /*============================================================================*
  *=========================== PUBLIC FUNCTIONS ===============================*
@@ -204,6 +267,10 @@ void init_glq(void) {
   printf("  npts:%d, nspecies:%d\n", npts, nspecies);
   printf("Successfully loaded Gauss-Legendre quadrature data.\n");
 
+  /* Load secondary ionization rate coefficients from inputs/rate_coeffs.inp.
+   * Must come after npts and nspecies are set above. */
+  load_rate_coeffs();
+
   return;
 }
 #undef BUFSIZE
@@ -229,6 +296,14 @@ void free_glq(void) {
     free_1d_array(sigma_wl[i]);
   }
   free_1d_array(sigma_wl);
+  /* free R[nspecies*nspecies][npts] */
+  {
+    int nrows = nspecies * nspecies;
+    for (i = 0; i < nrows; i++) {
+      free_1d_array(R[i]);
+    }
+    free_1d_array(R);
+  }
   free(glq_table_header);
   free(kind);
   free(src_file);
@@ -417,11 +492,17 @@ static void calc_gql_rates(double *N, double *Ys, double rho, double k) {
   }
   else {
     /* Need total column density across species to calculate background ionization fraction */
-    // for (e=0;e<100;e++){ R_tot[e] = 0;}
     for (j = 0; j < nspecies; j++) {
-      n_j = parameters.HX[j]/parameters.atomic_mass[j]; //over rho
-      n_tot += n_j;
-      n_ion_tot += n_j*(1-Ys[j]);
+      int parent_j = parameters.chain_parent[j];
+      /* Effective sub-pool density (over rho): scale child species by (1-Ys[parent]) */
+      if (parent_j >= 0) {
+        n_j = (1.0 - Ys[parent_j]) * parameters.HX[parent_j]/parameters.atomic_mass[parent_j];
+      } else {
+        n_j = parameters.HX[j]/parameters.atomic_mass[j];
+      }
+      n_tot     += n_j;
+      n_ion_tot += n_j * (1.0 - Ys[j]);
+    }
 
       /*Calculating the number density weighted sum of the rate coefficients for all species j*/
       /*Rate coefficients from Dere (2007) Table 29*/
@@ -432,7 +513,6 @@ static void calc_gql_rates(double *N, double *Ys, double rho, double k) {
       //     }
       //   }
       // }
-    }
     n_H = parameters.HX[0]/parameters.atomic_mass[0]; //over rho
     n_HII = (1-Ys[0])*n_HII; 
     (void)Ncol;
@@ -443,8 +523,17 @@ static void calc_gql_rates(double *N, double *Ys, double rho, double k) {
       tau = 0.;
       denom = 0.;
       for (j = 0; j < nspecies; j++) {
-        tau += sigma_wl[i][j]*N[j]*NCOL0;
-        denom += sigma_wl[i][j]*parameters.HX[j]*Ys[j]/parameters.atomic_mass[j]; //over rho
+        /* Effective absorbing (lower-state) density for this species / rho.
+         * For child species j with parent p: scale by (1-Ys[p]) since the
+         * sub-pool itself is (1-Ys[p])*n_base, and the absorbing fraction
+         * within it is Ys[j], giving Ys[j]*(1-Ys[p])*HX[p]/m[p].
+         * For independent species: Ys[j]*HX[j]/m[j] as before.            */
+        double chain_scale = (parameters.chain_parent[j] >= 0)
+                             ? (1.0 - Ys[parameters.chain_parent[j]])
+                             : 1.0;
+        tau   += sigma_wl[i][j]*N[j]*NCOL0;
+        denom += sigma_wl[i][j] * parameters.HX[j]*Ys[j]/parameters.atomic_mass[j]
+                 * chain_scale; //over rho
       }
       tau_array[i] = tau;
       f_denom[i] = denom; //populating denominator of on-the-spot opacity fraction
@@ -489,9 +578,20 @@ static void calc_gql_rates(double *N, double *Ys, double rho, double k) {
           for (m=0;m<nspecies;m++){          
             R_tot = 0;
             for (jj=0; jj<nspecies; jj++){
-              R_tot += R[nspecies*jj+m][i]*Ys[jj]*parameters.HX[jj]/parameters.atomic_mass[jj];
+              /* chain-aware neutral density for species jj */
+              double chain_scale_jj = (parameters.chain_parent[jj] >= 0)
+                                      ? (1.0 - Ys[parameters.chain_parent[jj]])
+                                      : 1.0;
+              R_tot += R[nspecies*jj+m][i]*Ys[jj]
+                       * parameters.HX[jj]/parameters.atomic_mass[jj]
+                       * chain_scale_jj;
             }
-            n0_m = Ys[m]*parameters.HX[m]/parameters.atomic_mass[m]; //over rho
+            /* chain-aware absorbing-state density for species m */
+            double chain_scale_m = (parameters.chain_parent[m] >= 0)
+                                   ? (1.0 - Ys[parameters.chain_parent[m]])
+                                   : 1.0;
+            n0_m = Ys[m]*parameters.HX[m]/parameters.atomic_mass[m]
+                   * chain_scale_m; //over rho
             frac_in_ion_m = R[nspecies*j+m][i]*n0_m/R_tot;
 
             // frac_in_ion_m = R[r_index][e_index+2]*n0_m / R_tot[e_index];

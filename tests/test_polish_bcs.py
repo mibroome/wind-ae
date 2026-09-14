@@ -24,11 +24,15 @@ def test_Rmax_convergence():
 
 def test_Ncol_convergence():
     sim.run_wind(expedite=True)
-    Ncol_no_out = sim.self_consistent_Ncol()[1][1]
+    Ncol_no_out = sim.find_self_consistent_Ncol()[1][1]
     sim.integrate_out()
-    Ncol_int_out = sim.self_consistent_Ncol()[1][1]
+    Ncol_int_out = sim.find_self_consistent_Ncol()[1][1]
     assert Ncol_no_out != Ncol_int_out
 
-def test_turn_off_bolo():
-    sim.turn_off_bolo()
-    assert sim.windsoln.flags_tuple[-2] == 0 
+def test_turn_off_molecular_layer():
+    sim.turn_off_molecular_layer()
+    assert sim.windsoln.flags_tuple[3] == 0 and sim.windsoln.flags_tuple[7] == 0
+
+def test_turn_on_molecular_layer():
+    sim.turn_on_molecular_layer()
+    assert sim.windsoln.flags_tuple[3] == 1 and sim.windsoln.flags_tuple[7] == 1

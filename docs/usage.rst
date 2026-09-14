@@ -22,9 +22,18 @@ Because **Wind-AE** runs on the order of seconds to minutes, it can be (and has 
 ----------------------
 
 - Multiple atomic species
+- Multiple ionization states of the same species (e.g., simultaneously tracking C I and C II as a linked ionization chain) **[NEW in v2.0]**
 - X-ray physics (secondary ionizations and K-shell ionization cross-sections for relevant metals)
 - Both low and high stellar XUV flux
-- **Heating & Cooling**: Ionization heating, bolometric heating & cooling (negligible in wind), PdV cooling (work done due to expansion of gas), radiative / atomic line cooling (Lyman-\alpha, OI, OII, OIII, CI, CII), recombination cooling
+- **Heating & Cooling**: Ionization heating, bolometric heating & cooling (negligible in wind), PdV cooling (work done due to expansion of gas), radiative / atomic line cooling (Lyman-:math:`\alpha`; O, C, Fe, Mg, Ca, and Ne lines), recombination cooling, free-free (bremsstrahlung) cooling, and, optionally, self-consistent conductive cooling (see note below).
+
+.. note::
+   As of v2.0, conductive, recombination, and free-free cooling are each independently
+   toggleable via flags (see :ref:`windsoln`). Turning on conduction
+   (``sim.turn_on_conduction()``) introduces numerically stiff ODEs and should only be
+   done after all other ramping is complete. The temperature dependence of free-free and
+   recombination cooling can make ramping to higher metallicities numerically unstable;
+   if so, try ramping with them off and turning them back on afterwards.
 
 **Wind-AE** does not (currently) include:
 -----------------------------------------
@@ -33,13 +42,9 @@ Because **Wind-AE** runs on the order of seconds to minutes, it can be (and has 
 - **Time dependence**
 - **Diffusion/drag** - the atomic species set by the user are assumed to be entrained in the outflow and in thermal equilibrium. This is an appropriate assumption for species below the `crossover mass <https://ui.adsabs.harvard.edu/abs/1987Icar...69..532H>`_ and a warning will be raised.
 - **Heating & Cooling**: 
-   - Conduction (warning raised if relevant, **planned**)
    - H3+ line cooling (not planned)
-   - Fe & Ca line cooling (relevant at high Z only, **planned**)
-   - Free-free cooling (warning raised if relevant, not planned)
-- Multiple ionization states of the same species (**planned**)
 
-See Broome et al. (submitted) for more details.
+See `Broome et al. (2025) <https://ui.adsabs.harvard.edu/abs/2025ApJ...995..198B/abstract>`_ for more details.
 
 Other tools and models:
 -----------------------
@@ -50,7 +55,7 @@ Other tools and models:
 - Want to leverage Cloudy and the hydrodynamic code PLUTO for more thorough XUV-irradiated, but slightly more expensive calculations? Check out `TPCI <https://ui.adsabs.harvard.edu/abs/2015A%26A...576A..21S/abstract>`_ (`Salz et al. 2015`)
 - That sound great, but you prefer to code in Python over C/C++? Check out `pyTPCI <https://ascl.net/2506.012>`_ (`Riley, Zhang, & Bean 2025 <https://ui.adsabs.harvard.edu/abs/2025ApJ...980...34R/abstract>`)
 - Do you care about diffusion throughout the wind? Check out `AIOLIS <https://github.com/Schulik/aiolos>`_ (`Schulik & Booth, 2022 <https://ui.adsabs.harvard.edu/abs/2023MNRAS.523..286S/abstract>`)
-- Want to model the lower atmosphere in more detail? Check out CETIMB (Koskinen et al. 2022)
+- Want to model the lower atmosphere in more detail? Check out CETIMB (Koskinen et al. 2022, closed source)
 - Just want a grid of mass loss rates for pure-Hydrogen, low-flux-EUV-irradiated planets? See `Kubyshkina & Fossati <https://ui.adsabs.harvard.edu/abs/2021RNAAS...5...74K/abstract>`_
 - Want a grid of mass loss rates for pure-Hydrogen, high-flux-XUV-irradiated planets? See `Owen & Jackson (2012) <https://ui.adsabs.harvard.edu/abs/2012MNRAS.425.2931O/abstract>`_
 

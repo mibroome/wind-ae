@@ -22,8 +22,16 @@ from scipy.interpolate import CubicSpline
 from scipy.special import exp1
 
 class metal_class:
-    def __init__(self,windsoln_object):
+    def __init__(self, windsoln_object, workdir=None):
         self.path = str(pkg_resources.files('wind_ae'))+'/'
+        # wpath: writable path for inputs/ (spectrum.inp, guess.inp, etc.)
+        # Inherits the wind_simulation's workdir so parallel instances stay isolated.
+        if workdir is None:
+            self.workdir = None
+            self.wpath = self.path
+        else:
+            self.workdir = str(workdir).rstrip('/')
+            self.wpath = self.workdir + '/'
         self.windsoln = windsoln_object
         self.df = pd.read_csv(pkg_resources.files('wind_ae.wrapper.wrapper_utils').joinpath('dere_table29.dat'),
                               sep=r'\s+', names=list(range(45)))  
@@ -49,6 +57,21 @@ class metal_class:
                                      wl_norm=wl_norm)
         else:
             self.spectrum = spectrum(date=self.windsoln.spec_date, wl_norm=wl_norm)
+        for j in range(self.windsoln.nspecies):
+            self.windsoln.species_list[j] = (self.windsoln.species_list[j]).replace(' ','')
+        # A monofrequency windsoln has a degenerate (single-wavelength)
+        # spec_resolved/spec_normalized/spec_window, which the glq_spectrum
+        # smoothing/binning pipeline underneath add_species()/set_resolved()/
+        # set_normalized()/set_window()/generate() cannot handle (see
+        # spectrum.write_mono_spectrum() for details). Skip all of that and
+        # write the (possibly updated) species' cross sections directly at the
+        # existing wavelength instead.
+        if self.windsoln.spec_kind.lower() == 'mono':
+            if generate:
+                mono_nm = self.windsoln.spec_resolved[0]/wl_norm
+                self.spectrum.write_mono_spectrum(mono_nm, self.windsoln.species_list,
+                                                  savefile=self.wpath+'inputs/spectrum.inp')
+            return
         for name in self.windsoln.species_list:
             self.spectrum.add_species(name)
         soln_resolved = self.windsoln.spec_resolved/wl_norm
@@ -57,22 +80,20 @@ class metal_class:
         self.spectrum.set_normalized(*soln_normalized)
         soln_window = self.windsoln.spec_window/wl_norm
         self.spectrum.set_window(*soln_window, kind=self.windsoln.spec_kind)
-        for j in range(self.windsoln.nspecies):
-            self.windsoln.species_list[j] = (self.windsoln.species_list[j]).replace(' ','')
         if generate:
-            self.spectrum.generate(kind=self.windsoln.spec_kind, savefile=self.path+'inputs/spectrum.inp')
+            self.spectrum.generate(kind=self.windsoln.spec_kind, savefile=self.wpath+'inputs/spectrum.inp')
         return
     
     def _generate_rate_coeffs(self):
         """ Identical to the _generate_rate_coeffs() function in relax_wrapper.py.
         
         Generates rate coefficients for secondary ionization and populates 
-        array in src/rate_coeffs.h. Rate coefficients are generated from interpolation 
+        array in inputs/rate_coeffs.inp. Rate coefficients are generated from interpolation 
         over the Dere (2007) table.
         """
-        new_spec = np.genfromtxt(self.path+'inputs/spectrum.inp',skip_header=9,delimiter=',')
+        new_spec = np.genfromtxt(self.wpath+'inputs/spectrum.inp',skip_header=9,delimiter=',')
         E_wl = new_spec[:,0]
-        f = open(self.path+'/inputs/spectrum.inp','r')
+        f = open(self.wpath+'inputs/spectrum.inp','r')
         ff = f.readlines()
         nspecies = int(ff[1].split(':')[1])
         species_new = [sp[:-2] for sp in ff[9].split(',')[2:][1::2]]
@@ -109,21 +130,22 @@ class metal_class:
             E0 = E_wl - ion_pot_m #energy left after ionizing species m
             return spline(E0)
 
-        # with open(self.path+'inputs/add_params.inp', 'w') as f:
-        f = open(self.path+'src/rate_coeffs.h','w')
-        f.write('/*Array of rate coefficients (cm3/s) from Dere (2007)*/\n')
-        f.write('/*of species m being secondarily ionized (Col 1) by a photoelectron released after impacting species j (Col 2)*/\n')
-        f.write('/*as a function of E0 = E - I[j] (ergs) from the spectrum.*/\n')
-
+        # Write rate coefficients to inputs/rate_coeffs.inp (read at runtime by
+        # load_rate_coeffs() in glq_rates.c) instead of src/rate_coeffs.h.
+        # Format: comment header then nspecies^2 rows of npts comma-separated
+        # floats; row index j*nspecies+m is the rate for a photoelectron
+        # released from species j to secondarily ionize species m.
+        # (The old rate_coeffs.h declared nspecies^2+nspecies rows but only
+        # filled nspecies^2; the extra were zero-padding, never accessed.)
         nspecies = len(species_new)
-        f.write("double R[%d][%d] = {"%(nspecies**2+nspecies,len(E_wl)))
-        # for species in sim.windsoln.species:
+        f = open(self.wpath+'inputs/rate_coeffs.inp', 'w')
+        f.write('# Rate coefficients (cm^3/s) from Dere (2007)\n')
+        f.write('# Row j*nspecies+m: photoelectron from species j ionizes species m\n')
+        f.write('# NSPECIES: %d, NPTS: %d, NROWS: %d\n' % (nspecies, len(E_wl), nspecies**2))
         for j in range(nspecies):
             for m in range(nspecies):
-                # f.write("{%s,%s," %(sim.windsoln.species[j],sim.windsoln.species[m]))
-                Rs = Interpolater(j,m,)
-                f.write("{"+(','.join('%.4e' %rs for rs in Rs))+"},\n")
-        f.write('};\n')
+                Rs = Interpolater(j, m)
+                f.write(','.join('%.4e' % rs for rs in Rs) + '\n')
         f.close()
     
 
@@ -162,7 +184,7 @@ class metal_class:
     #     McAtom.formatting_species_list(self.windsoln.species_list) #reintroduces space
         #generate new spectrum
         self.load_spectrum_add_metals(generate=True)
-        new_spec = np.genfromtxt(self.path+'inputs/spectrum.inp',skip_header=8,delimiter=',')
+        new_spec = np.genfromtxt(self.wpath+'inputs/spectrum.inp',skip_header=8,delimiter=',')
         #rewriting the newly generated spectrum columns to add new species column
         try:
             self.windsoln.E_wl     = new_spec[:,0]
@@ -184,21 +206,32 @@ class metal_class:
             self.windsoln.soln_norm.insert(4+prior_nspecies, 'Ys_'+new_species_unspaced, 
                                           self.windsoln.soln_norm.iloc[:,3+prior_nspecies], 
                                           allow_duplicates=True) 
-            #takes last Ncol column and *1e-10 it for new species
-            if len(new_species_unspaced) == 1:
-                self.windsoln.soln_norm.insert(5+2*prior_nspecies, 'Ncol_'+new_species_unspaced, 
-                                            self.windsoln.soln_norm.iloc[:,4+2*prior_nspecies]*1e-10,
-                                            allow_duplicates=True) 
-            elif len(new_species_unspaced) > 1: #if adding multiple species at once
-                self.windsoln.soln_norm.insert(5+2*prior_nspecies, 'Ncol_'+new_species_unspaced, 
-                                            last_Ncol*1e-10,
-                                            allow_duplicates=True) 
+            #takes last Ncol column (snapshotted once before this loop, so every
+            #new species in a multi-species add is seeded from the same
+            #pre-existing column rather than chaining off each other's
+            #already-tiny 1e-10 seed) and *1e-10 it for the new species
+            self.windsoln.soln_norm.insert(5+2*prior_nspecies, 'Ncol_'+new_species_unspaced, 
+                                        last_Ncol*1e-10,
+                                        allow_duplicates=True) 
             #Adding other species details
             ma = McAtom.atomic_species(new_species_spaced)
 
-            self.windsoln.HX = np.append(self.windsoln.HX,1e-10) #near 0 because mass fraction is ramped up in another function
+            # Detect whether this new species is a chain child of an existing species.
+            # A chain child shares the same element Z and has one more electron stripped
+            # (Ne_new == Ne_existing - 1).  If so, its HX must equal the parent's HX
+            # (both refer to the full element mass fraction); otherwise start near 0.
+            new_Z, new_Ne = McAtom.spectroscopy_to_atomic_notation(new_species_spaced)
+            chain_hx = 1e-10  # default: tiny seed for a truly new element
+            for _p_idx, _p_sp in enumerate(self.windsoln.species_list[:-1]):  # excludes just-appended entry
+                _p_sp_spaced = McAtom.formatting_species_list([_p_sp])[0]
+                _p_Z, _p_Ne = McAtom.spectroscopy_to_atomic_notation(_p_sp_spaced)
+                if new_Z == _p_Z and new_Ne == _p_Ne - 1:
+                    chain_hx = self.windsoln.HX[_p_idx]
+                    break
+
+            self.windsoln.HX = np.append(self.windsoln.HX, chain_hx)
             self.windsoln.ion_pot = np.append(self.windsoln.ion_pot,ma.verner_data['E_th']*const.eV)
-            self.windsoln.atomic_masses = np.append(self.windsoln.atomic_masses,ma.mass.iloc[0]) 
+            self.windsoln.atomic_masses = np.append(self.windsoln.atomic_masses,ma.mass) 
 
             self.windsoln.Ys_rmin = np.append(self.windsoln.Ys_rmin,1.) #Neutral fraction
             self.windsoln.Ncol_sp = np.append(self.windsoln.Ncol_sp,1e-10) #0 mass fraction in the new species for now
@@ -210,7 +243,10 @@ class metal_class:
             self.windsoln.physics_tuple = [self.windsoln.HX, 
                                            self.windsoln.species_list,
                                            self.windsoln.molec_adjust,
-                                           self.windsoln.atomic_masses] 
+                                           self.windsoln.atomic_masses,
+                                           self.windsoln.kappa_opt,
+                                           self.windsoln.kappa_IR,
+                                           self.windsoln.gamma] 
             self.windsoln.bcs_tuple = [self.windsoln.Rmin, 
                                        self.windsoln.Rmax, 
                                        self.windsoln.rho_rmin, 
@@ -233,69 +269,22 @@ class metal_class:
                                             self.windsoln.species_list]
 
         #Rewriting guess with new species, next step is ramping up the mass fraction
-        inputs = input_handler()
+        inputs = input_handler(workdir=self.workdir)
         inputs.write_physics_params(*self.windsoln.physics_tuple)
         inputs.write_bcs(*self.windsoln.bcs_tuple)
         inputs.write_spectrum(*self.windsoln.spectrum_tuple)
         self.rewrite_guess()
 
-        #Changing Nspecies, M (# pts in relaxation region), RHOSCALE (convergence condition) and remaking C code    
-        f = open(self.path+'src/defs.h', 'r') 
-        for line in f.readlines():
-            splitline = line.split()
-            if len(splitline) >= 2:
-                line_var = splitline[0]+' '+splitline[1]
-            if line_var == '#define NSPECIES':
-                nspecies_def = int(line.split()[2])
-            elif line_var == '#define M':
-                og_length = int(line.split()[2]) 
-    #         elif line_var == '#define RHOSCALE':
-    #             og_RHOSCALE = float(line.split()[2])
-        f.close()
-
-        #rewriting
         new_length = len(self.windsoln.soln['q'][self.windsoln.soln['q']<=1])
-    #     new_RHOSCALE = 10**np.floor(np.log10(self.rho_rmin*0.01))
-        nspecies_new = int(self.windsoln.nspecies)
 
         #writing rate coefficient file
         self._generate_rate_coeffs()
 
-        f = open(self.path+'src/defs.h','w')
-        h = (open(self.path+'src/defs-master.h','r')).readlines()
-        for idx,hline in enumerate(h):
-            splitline = hline.split()
-            if len(splitline) >= 2:
-                line_var = splitline[0]+' '+splitline[1]
-            if line_var == '#define NSPECIES':
-                index1 = idx
-            elif line_var == '#define M':
-                index2 = idx
-    #         elif line_var == '#define RHOSCALE':
-    #             index3 = idx
-        h[index1] = '#define NSPECIES %d\n' %nspecies_new
-        h[index2] = '#define M %d            /* number of points */\n' %new_length
-        f.writelines(h)
-        f.close()
-
-        remake = False
-        if nspecies_def != nspecies_new:
-            print(f'\rNspecies has changed from {nspecies_def:d} to {nspecies_new:d}. Remaking C code...',
-                 end='                                                                                      ')
-            remake = True
-        #For regridded solutions, the number of points in relaxtion region may change
-        if og_length != new_length:
-            print("Number of points in relaxation region has changed from %d to %d. Remaking C code..." 
-                  %(og_length, new_length))
-            remake=True
-    #     #For solutions with very high rho at the lower boundary, the rho convergence condition should be raised
-    #     if new_RHOSCALE != og_RHOSCALE:
-    #         print("RHOSCALE (convergence condition) has changed from %d to %d. Remaking C code..." 
-    #               %(og_RHOSCALE, new_RHOSCALE)) 
-    #         remake=True
-        if remake == True:
-            sub = Popen('make',cwd=self.path, stdout=PIPE, stderr=PIPE) 
-            output, error_output = sub.communicate()
+        # M is #define M g_m — a runtime global read from tech_params.inp at startup.
+        # No defs.h rewrite or recompile needed; write_solver_params is sufficient.
+        new_RHOSCALE = 10**np.floor(np.log10(self.windsoln.rho_rmin * 0.01))
+        _it = int(1e3) if self.windsoln.conduction == 1 else 100
+        input_handler(workdir=self.workdir).write_solver_params(new_length, _it, new_RHOSCALE)
         return
     
     
@@ -331,7 +320,7 @@ class metal_class:
             self.windsoln.nspecies = len(self.windsoln.species_list)
             
         self.load_spectrum_add_metals(generate=True)
-        new_spec = np.genfromtxt(self.path+'inputs/spectrum.inp',skip_header=8,delimiter=',')
+        new_spec = np.genfromtxt(self.wpath+'inputs/spectrum.inp',skip_header=8,delimiter=',')
         #rewriting the newly generated spectrum columns to add new species column
         self.windsoln.E_wl     = new_spec[:,0]
         self.windsoln.wPhi_wl  = new_spec[:,1]
@@ -344,7 +333,10 @@ class metal_class:
         self.windsoln.physics_tuple = [self.windsoln.HX, 
                                        self.windsoln.species_list, 
                                        self.windsoln.molec_adjust,
-                                       self.windsoln.atomic_masses] 
+                                       self.windsoln.atomic_masses,
+                                       self.windsoln.kappa_opt,
+                                       self.windsoln.kappa_IR,
+                                       self.windsoln.gamma] 
         self.windsoln.bcs_tuple = [self.windsoln.Rmin, 
                                    self.windsoln.Rmax, 
                                    self.windsoln.rho_rmin, 
@@ -367,42 +359,17 @@ class metal_class:
                                         self.windsoln.species_list]
 
         #Rewriting guess with removed species
-        inputs = input_handler()
+        inputs = input_handler(workdir=self.workdir)
         inputs.write_physics_params(*self.windsoln.physics_tuple)
         inputs.write_bcs(*self.windsoln.bcs_tuple)
         inputs.write_spectrum(*self.windsoln.spectrum_tuple)
         self.rewrite_guess()
-        
-        #Remaking code because number of variables has changed
-        nspecies_new = self.windsoln.nspecies
-        f = open(self.path+'src/defs.h', 'r') 
-        for line in f.readlines():
-            splitline = line.split()
-            if len(splitline) >= 2:
-                line_var = splitline[0]+' '+splitline[1]
-            if line_var == '#define NSPECIES':
-                nspecies_def = int(line.split()[2])
-        f.close()
-        
-        f = open(self.path+'src/defs.h','w')
-        h = (open(self.path+'src/defs-master.h','r')).readlines()
-        for idx,hline in enumerate(h):
-            splitline = hline.split()
-            if len(splitline) >= 2:
-                line_var = splitline[0]+' '+splitline[1]
-            if line_var == '#define NSPECIES':
-                index1 = idx
-        h[index1] = '#define NSPECIES %d\n' %nspecies_new
-        f.writelines(h)
-        f.close()
-        
-        if nspecies_def != nspecies_new:
-            print(f'\rNspecies has changed from {nspecies_def:d} to {self.windsoln.nspecies:d}. Remaking C code...',
-                 end='                                                                                      ')
-            sub = Popen('make',cwd=self.path, stdout=PIPE, stderr=PIPE) 
-            output, error_output = sub.communicate()
-            
-        return 
+
+        #writing rate coefficient file (species list/spectrum changed above)
+        self._generate_rate_coeffs()
+
+        # NSPECIES is now read at runtime from phys_params.inp — no defs.h rewrite or make needed here.
+        return
 
         
     def rewrite_guess(self,regrid=False,degree=1,ramping_metals=False):
@@ -417,7 +384,7 @@ class metal_class:
         '''
         for i,sp in enumerate(self.windsoln.species_list):
             self.windsoln.species_list[i] = (sp).replace(' ','')
-        g = open(self.path+"inputs/guess.inp","w")
+        g = open(self.wpath+"inputs/guess.inp","w")
         #Header
         self.windsoln.nspecies = len(self.windsoln.Ys_rmin)
         g.write("#nspecies: %d\n" %self.windsoln.nspecies)
@@ -435,11 +402,12 @@ class metal_class:
         g.write('#plnt_prms: '+(','.join('%.17e' %i for i in (self.windsoln.planet_tuple)))+ '\n')
         g.write('#phys_prms: '+(floats+string+floats).format(*self.windsoln.HX,*self.windsoln.species_list,
                                                              *self.windsoln.atomic_masses)[:-1]
-                +',{:.5f}\n'.format(self.windsoln.molec_adjust))
+                +',{:.5f},{:.2e},{:.2e},{:.5f}\n'.format(self.windsoln.molec_adjust,self.windsoln.kappa_opt,
+                                                          self.windsoln.kappa_IR,self.windsoln.gamma))
         g.write('#bcs: '
                 +(','.join('{:.17e}' for i in range(6+2*self.windsoln.nspecies))).format(*self.windsoln.bcs_tuple[:4], *self.windsoln.Ys_rmin, *self.windsoln.Ncol_sp,self.windsoln.erf_drop[0], self.windsoln.erf_drop[1])+'\n')
         g.write('#tech: '+(','.join('%.17e' %i for i in self.windsoln.tech_tuple))+ '\n')
-        g.write('#flags: {:d},{:.5f},{:.5f},{:d}\n'.format(*self.windsoln.flags_tuple))
+        g.write('#flags: {:d},{:.5f},{:d},{:.5f},{:d},{:d},{:d},{:.5f}\n'.format(*self.windsoln.flags_tuple))
         g.write('#add_prms: %d' %self.windsoln.add_tuple[0])
         if self.windsoln.n_add_prms > 0:
             for i in range(self.windsoln.n_add_prms):
@@ -465,7 +433,7 @@ class metal_class:
             
         if ramping_metals == True:
             factor = self.windsoln.Ncol_sp[-1]/self.windsoln.Ncol_sp[-2]
-            self.windsoln.soln_norm.iloc[:,-3] = factor*self.windsoln.soln_norm.iloc[:,-4]
+            self.windsoln.soln_norm.iloc[:,-5] = factor*self.windsoln.soln_norm.iloc[:,-6]
             self.windsoln.soln_norm.to_csv(g, header=False, index=False, float_format='%.17e')
 
             # for k in range(len(self.windsoln.soln_norm)):
@@ -494,7 +462,9 @@ class metal_class:
            Args:
                species_list (list of str): The list of species for which to compute metallicity
                                             (e.g., ['O3','c1','Ne II'])
-               Z (int): The metallicity (default is 1 for solar).
+               Z (int or float): The metallicity (default is 1 for solar).
+                                  Non-integer values are linearly interpolated
+                                  between adjacent grid rows.
 
             Returns:
                 numpy.ndarray: An array of mass fractions for the species in species_list.
@@ -508,10 +478,33 @@ class metal_class:
                   file=sys.stderr) # Python 3.x
             sys.exit(1)
 
-        Z = int(Z)
         el_list = [species.split()[0] for species in species_list]
-        solar_mass_fracs = self._Zgrid[el_list].to_numpy()
-        Z_array = solar_mass_fracs[Z-1,:] / np.sum(solar_mass_fracs[Z-1,:]) #normalizing to sum to 1
+
+        # When chain ionization states are present (e.g. CI and CII both in the
+        # species list), el_list contains duplicate element names.  Look up the
+        # metallicity grid using only unique elements, then map back to the full
+        # list so that chain-linked slots receive the same mass fraction.
+        unique_els = []
+        seen = set()
+        for el in el_list:
+            if el not in seen:
+                unique_els.append(el)
+                seen.add(el)
+
+        solar_mass_fracs = self._Zgrid[unique_els].to_numpy()
+        # Support fractional Z by linearly interpolating between adjacent grid
+        # rows.  Integer Z follows the original path exactly.
+        Z_lo = int(np.floor(Z))
+        Z_hi = int(np.ceil(Z))
+        if Z_lo == Z_hi:  # integer Z — original behaviour
+            Z_unique = solar_mass_fracs[Z_lo-1, :] / np.sum(solar_mass_fracs[Z_lo-1, :])
+        else:
+            frac = Z - Z_lo
+            mf_lo = solar_mass_fracs[Z_lo-1, :] / np.sum(solar_mass_fracs[Z_lo-1, :])
+            mf_hi = solar_mass_fracs[Z_hi-1, :] / np.sum(solar_mass_fracs[Z_hi-1, :])
+            Z_unique = (1.0 - frac) * mf_lo + frac * mf_hi
+        el_to_mf = dict(zip(unique_els, Z_unique))
+        Z_array = np.array([el_to_mf[el] for el in el_list])
 
         # N_per_N_H = 10**(lodders['A']-12)
         # mn = np.zeros_like(N_per_N_H)
@@ -567,7 +560,7 @@ class metal_class:
 #                                    self.windsoln.Ncol_sp,
 #                                    self.windsoln.erf_drop]
 
-#         inputs = input_handler()
+#         inputs = input_handler(workdir=self.workdir)
 #         inputs.write_physics_params(*self.windsoln.physics_tuple)
 #         inputs.write_bcs(*self.windsoln.bcs_tuple)
 #         self.rewrite_guess() #does not change columns of guess, because just has to be close enough
@@ -583,7 +576,7 @@ class metal_class:
 #                                    Ncol_sp_tot*gmf,
 #                                    self.windsoln.erf_drop]
 
-#         inputs = input_handler()
+#         inputs = input_handler(workdir=self.workdir)
 #         inputs.write_physics_params(*physics_tuple)
 #         inputs.write_bcs(*bcs_tuple)
-#         return 
+#         return

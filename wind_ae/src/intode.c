@@ -28,7 +28,7 @@ static I_EQNVARS critvars;
  *======================== PRIVATE FUNCTION PROTOTYPES =======================*
  *----------------------------------------------------------------------------*/
 static void ode_system(double x, double y[], double dydx[]);
-static void init_odeint(int indx, double **ystart, EQNVARS equationvars);
+static void init_odeint(int indx, double **ystart, EQNVARS *equationvars_p);
 static void free_odeint(double *ystart);
 static void set_odeint_soln(int i, double end, double *ystart,
                             EQNVARS *equationvars_p);
@@ -60,7 +60,7 @@ void integrate_ode(EQNVARS *equationvars_p) {
   if (parameters.integrate_outward) {
     printf("Integrating outwards...\n");
     /* Initialize variables used by odeint */
-    init_odeint(INPTS+M-1, &ystart, *equationvars_p);
+    init_odeint(INPTS+M-1, &ystart, equationvars_p);
     rsp = equationvars_p->r[INPTS+M-1];
     if (parameters.Rmax-rsp < 0.1*rsp) {
       delta = 0.1*rsp/ADDPTS;
@@ -141,7 +141,7 @@ void integrate_ode(EQNVARS *equationvars_p) {
 
 static void ode_system(double x, double y[], double dydx[]) {
   I_EQNVARS vars;
-    double temp_dydx[NSPECIES];
+    double temp_dydx[NSPECIES_MAX];
     int j,k,m;
 
   vars.r    = x;
@@ -158,27 +158,27 @@ static void ode_system(double x, double y[], double dydx[]) {
   vars.z    = thez;
 
   /* d(Ncol)/dr */
-  get_dNcoldr(temp_dydx, vars);
+  get_dNcoldr(temp_dydx, &vars);
   for (j=0; j<NSPECIES; j++){
        m = j+4+NSPECIES;
         dydx[m] = temp_dydx[j]; 
    }
     
       /* d(Ys)/dr */
-  get_dYsdr(temp_dydx, vars,1e4,1); // Must come second.
+  get_dYsdr(temp_dydx, &vars,1e4,1); // Must come second.
   for (j=0; j<NSPECIES; j++){
        k = j+4;
        dydx[k] = temp_dydx[j]; 
    }
 
   /* dv/dr */
-  get_dvdr(&dydx[2], vars);
+  get_dvdr(&dydx[2], &vars);
 
   /* d(rho)/dr */
-  get_drhodr(&dydx[1], vars, dydx[2]);
+  get_drhodr(&dydx[1], &vars, dydx[2]);
 
   /* dT/dr */
-  get_dTdr(&dydx[3], vars, dydx[1], temp_dydx,1e4); //temp must = dYsdr array
+  get_dTdr(&dydx[3], &vars, dydx[1], temp_dydx,1e4); //temp must = dYsdr array
 
   return;
 }
@@ -189,7 +189,7 @@ static void ode_system(double x, double y[], double dydx[]) {
  *  \brief Initalizes the values used for our ode solver routine              *
  *----------------------------------------------------------------------------*/
 
-static void init_odeint(int indx, double **ystart, EQNVARS equationvars) {
+static void init_odeint(int indx, double **ystart, EQNVARS *equationvars_p) {
   /* Number of variables we hardwired assign by hand */
   /* Take care to also modify ode_system() if altering */
   const int assigned = 3+2*NSPECIES; /*CHANGED for multispecies*/
@@ -213,29 +213,29 @@ static void init_odeint(int indx, double **ystart, EQNVARS equationvars) {
     exit(301);
   }
   /* Assign indices 1 thru assigned */
-  (*ystart)[1] = equationvars.rho[indx];
-  (*ystart)[2] = equationvars.v[indx];
-  (*ystart)[3] = equationvars.T[indx];
+  (*ystart)[1] = equationvars_p->rho[indx];
+  (*ystart)[2] = equationvars_p->v[indx];
+  (*ystart)[3] = equationvars_p->T[indx];
    for (j=0; j<NSPECIES; j++){
         k = j+4;
         m = j+4+NSPECIES;
-        (*ystart)[k] = equationvars.Ys[indx][j];
-//        printf("Ncol[%d][%d] = %.2e\n",indx,j,equationvars.Ncol[indx][j]);
-        (*ystart)[m] = equationvars.Ncol[indx][j];
+        (*ystart)[k] = equationvars_p->Ys[indx][j];
+//        printf("Ncol[%d][%d] = %.2e\n",indx,j,equationvars_p->Ncol[indx][j]);
+        (*ystart)[m] = equationvars_p->Ncol[indx][j];
     }
 
-  thez = equationvars.z[indx];
+  thez = equationvars_p->z[indx];
 
-  critvars.r    = equationvars.r[INPTS+M-1];
-  critvars.rho  = equationvars.rho[INPTS+M-1];
-  critvars.v    = equationvars.v[INPTS+M-1];
-  critvars.T    = equationvars.T[INPTS+M-1];
+  critvars.r    = equationvars_p->r[INPTS+M-1];
+  critvars.rho  = equationvars_p->rho[INPTS+M-1];
+  critvars.v    = equationvars_p->v[INPTS+M-1];
+  critvars.T    = equationvars_p->T[INPTS+M-1];
    for (j=0; j<NSPECIES; j++){
-      critvars.Ys[j]   = equationvars.Ys[INPTS+M-1][j];
-      critvars.Ncol[j] = equationvars.Ncol[INPTS+M-1][j];
+      critvars.Ys[j]   = equationvars_p->Ys[INPTS+M-1][j];
+      critvars.Ncol[j] = equationvars_p->Ncol[INPTS+M-1][j];
     }
-  critvars.q    = equationvars.q[INPTS+M-1];
-  critvars.z    = equationvars.z[INPTS+M-1];
+  critvars.q    = equationvars_p->q[INPTS+M-1];
+  critvars.z    = equationvars_p->z[INPTS+M-1];
 
   return;
 }
@@ -278,11 +278,35 @@ static void set_odeint_soln(int i, double end, double *ystart,
 //           equationvars_p->Ys[i][j]   = ystart[k];
 //       }
       equationvars_p->Ys[i][j]   = ystart[k];
-      equationvars_p->Ncol[i][j] = ystart[m];  
+      equationvars_p->Ncol[i][j] = ystart[m];
   }
   equationvars_p->r[i]    = end;
   equationvars_p->z[i]    = equationvars_p->z[INPTS];
   equationvars_p->q[i]    = ((equationvars_p->r[i]-equationvars_p->r[INPTS])
                              /equationvars_p->z[i]);
+
+  /* dT/dr via finite difference (consistent with relaxation cache) */
+  {
+    double dr_code = (end - equationvars_p->r[i-1]) / parameters.Rp;
+    equationvars_p->dTdr[i] = (dr_code > 0.0)
+                               ? (ystart[3] - equationvars_p->T[i-1]) / dr_code
+                               : 0.0;
+  }
+
+  /* F = kappa_norm * dT/dr at this ODE point */
+  {
+    I_EQNVARS gv;
+    gv.q   = equationvars_p->q[i];
+    gv.v   = ystart[2];
+    gv.z   = equationvars_p->z[i];
+    gv.rho = ystart[1];
+    gv.T   = ystart[3];
+    for (j=0; j<NSPECIES; j++) {
+      gv.Ys[j]   = ystart[j+4];
+      gv.Ncol[j] = ystart[j+4+NSPECIES];
+    }
+    equationvars_p->Fp[i] = get_kappa_norm(&gv) * equationvars_p->dTdr[i];
+  }
+
   return;
 }

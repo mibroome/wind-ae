@@ -9,11 +9,17 @@ import importlib.resources as pkg_resources
 
 class input_handler:
     """
-    Class for handling input files (in self.path+'inputs/') for relaxation code
+    Class for handling input files (in self.wpath+'inputs/') for relaxation code.
+    Pass workdir=<path> to redirect all file I/O to an isolated directory,
+    which is required when running multiple wind_simulation instances in parallel.
     """
     path = str(pkg_resources.files('wind_ae'))+'/'
-    def __init__(self):
+    def __init__(self, workdir=None):
         self.path = str(pkg_resources.files('wind_ae'))+'/'
+        if workdir is None:
+            self.wpath = self.path
+        else:
+            self.wpath = str(workdir).rstrip('/') + '/'
         return
 
 
@@ -29,7 +35,7 @@ class input_handler:
             Ftot (float): Total incident flux in erg/cm^2/s
             Lstar (float): Luminosity of the star in erg/s
         '''
-        with open(self.path+'inputs/planet_params.inp', 'w') as f:
+        with open(self.wpath+'inputs/planet_params.inp', 'w') as f:
             f.write('#<parameter>: <value>           #<units>;     <comment>\n')
             f.write(f'Mp:        {Mp:.12e}   #g;          '
                     f'{Mp/const.Mjupiter:8.2f} MJ\n')
@@ -57,7 +63,7 @@ class input_handler:
             additional_param_names (list): List of additional parameter names
             additional_param_vals (list): List of additional parameter values
         '''
-        with open(self.path+'inputs/add_params.inp', 'w') as f:
+        with open(self.wpath+'inputs/add_params.inp', 'w') as f:
             f.write('#<parameter>: <value>           #<units>;     <comment>\n')
             f.write(f'Num_additional_params:        {num_additional_params:d}  ; \n')
 
@@ -69,7 +75,9 @@ class input_handler:
 
 
     def write_physics_params(self, mass_fraction, species_list, molec_adjust,
-                             atomic_masses=np.array([0]),phys_file=path+'inputs/phys_params.inp'):
+                             atomic_masses=np.array([0]),
+                             kappa_opt=4e-3, kappa_IR=1e-2, gamma=5.0/3.0,
+                             phys_file=None):
         '''
         Writes physics parameters to wind_ae/inputs/phys_params.inp input file.
 
@@ -78,8 +86,14 @@ class input_handler:
             species_list (list of str): List of species names (e.g., 'Fe III', 'fe4', etc.)
             molec_adjust (float): Molecular adjustment factor (default = 2.3 for molec. hydrogen)
             atomic_masses (np.array): Atomic masses of each species in g
-            phys_file (str): Path to the physics parameters input file
+            kappa_opt (float): Optical opacity for bolometric heating/cooling. Default 4e-3.
+            kappa_IR (float): IR opacity for bolometric heating/cooling. Default 1e-2.
+            gamma (float): Adiabatic index. Default 5.0/3.0.
+            phys_file (str): Path to the physics parameters input file. Defaults to
+                             self.wpath/inputs/phys_params.inp (honours workdir).
         '''
+        if phys_file is None:
+            phys_file = self.wpath + 'inputs/phys_params.inp'
         with open(phys_file, 'w') as f:
             f.write('#<parameter>: <value>         #<units>;         '
                     '<comment>\n')
@@ -87,14 +101,19 @@ class input_handler:
             atomictable = pd.read_csv(filepath,comment='#')
             if len(mass_fraction) != len(species_list):
                 sys.exit("ERROR: Mass fraction and species list must be the same length.")
-            if np.round(np.sum(mass_fraction),5) != 1:
-                print('WARNING: Total Mass Fraction must sum to 1. sum(ZX) = %.3f' %np.sum(mass_fraction))
+
             try:
                 species_list = McAtom.formatting_species_list(species_list) #adds spaces and converts, e.g., fe6 to Fe IX
             except IndexError:
                 print("ERROR: Species must include an ionization number either in Roman or Arabic numerals (e.g., H1, heIV, Fe 6)", 
                       file=sys.stderr) # Python 3.x
                 sys.exit(1)
+            el_list = [species_list[i].split()[0] for i in range(len(species_list))]
+            indexes = [el_list.index(x) for x in set(el_list)]
+            HX_sum = sum(np.array(mass_fraction)[indexes])
+            if np.round(HX_sum,5) != 1:
+                print('WARNING: Total Mass Fraction for unique elements must sum to 1. sum(ZX) = %.3f' %HX_sum)
+
             Nspecies = len(mass_fraction)
             self.nspecies = Nspecies
             species_list_tight = [(species_list[i]).replace(' ','') for i in range(Nspecies)]
@@ -127,14 +146,34 @@ class input_handler:
                     Nestring+=', %d' %num2
                     massstring+=', %.12e' %num3
                     namestring+=',%s' %(species_list_tight[j])
+            f.write(f"Nspecies:      {Nspecies:d}              #;  Number of species (MUST be first non-comment line)\n")
             f.write("HX:            "+HXstring+"       #;  Mass fractions\n")
             f.write("species_name:"+namestring+"#; Species name in Roman Numeral format\n") #must have no spaces for C readability
             f.write("atomic_mass:      "+massstring+"    #; Atomic mass in gs\n")
             f.write("Z:             "+Zstring+"                                                   #; Atomic number\n")
             f.write("Ne:            "+Nestring+"                                                   #; Number of electrons in species\n")
-            f.write("Molec_adjust:            %.3f   #; Weighting factor to account for molecules below atomic wind" %molec_adjust)
+            f.write("Molec_adjust:            %.3f   #; Weighting factor to account for molecules below atomic wind\n" %molec_adjust)
+            f.write("Kappa_opt:       %.12e  #; Optical opacity for bolometric heating/cooling\n" %kappa_opt)
+            f.write("Kappa_IR:        %.12e  #; IR opacity for bolometric heating/cooling\n" %kappa_IR)
+            f.write("Gamma:           %.12e  #; Adiabatic index" %gamma)
             f.close()
 
+
+
+    def write_solver_params(self, M, itmax, rhoscale):
+        """
+        Append solver parameters (M, ITMAX, RHOSCALE) to tech_params.inp.
+        Call immediately after write_tech() whenever the loaded solution changes.
+
+        Args:
+            M (int): Number of grid points in relaxation region.
+            itmax (int): Max relaxation iterations (use ~10000 for conduction).
+            rhoscale (float): Density convergence scale (~0.01 * rho_rmin).
+        """
+        with open(self.wpath+'inputs/tech_params.inp', 'a') as f:
+            f.write(f'M:              {int(M):d}              #Number of relaxation grid points\n')
+            f.write(f'ITMAX:          {int(itmax):d}             #Max relaxation iterations\n')
+            f.write(f'RHOSCALE:       {float(rhoscale):.1e}       #Density convergence scale\n')
 
     def write_spectrum(self, npts, nspecies, spec_date, spec_file, spec_kind, window,
                        resolved, normalized, ion_pot, E_wl, wPhi_wl, sigma_wl,
@@ -168,10 +207,10 @@ class input_handler:
             wPhi_wl = np.array([wPhi_wl])
             sigma_wl = np.array([sigma_wl])
             
-            if npts != 1:
-                print("ERROR: Spectrum write error, incorrect input sizes. Npts should be 1")
+            if npts != 2:
+                print("ERROR: Spectrum write error, incorrect input sizes. Npts should be 2 (to avoid numerical errors)")
                 return
-        with open(self.path+'inputs/spectrum.inp', 'w') as f:
+        with open(self.wpath+'inputs/spectrum.inp', 'w') as f:
             f.write(f'# NPTS: {npts:d}\n'
                     f'# NSPECIES: {nspecies:d}\n'
                     f'# DATE: {spec_date:s}\n'
@@ -210,7 +249,7 @@ class input_handler:
             erf_drop (list/array): Drop-off parameters for the erf function that transitions from molecular to atomic and bolometric-heating-dominated to photoionization-heating-dominated regions (to compute, run sim.erf_velocity()).
                 Ignored if bolo_heat_cool flag = 0 in inputs/flags.inp.
         """
-        with open(self.path+'inputs/bcs.inp', 'w') as f:
+        with open(self.wpath+'inputs/bcs.inp', 'w') as f:
             f.write('#<parameter>: <value>          #<units>; <comment>\n')
             f.write('Rmin:     %.12e   #R0;\n' % Rmin)
             f.write('Rmax:     %.12e   #R0;\n' % Rmax)
@@ -249,7 +288,7 @@ class input_handler:
         if mach_limit > 1 or mach_limit < 0:
             print("mach_limit must be between 0 and 1")
             return 1
-        with open(self.path+'inputs/tech_params.inp', 'w') as f:
+        with open(self.wpath+'inputs/tech_params.inp', 'w') as f:
             f.write('#<parameter>: <value>                #<comment>\n')
             f.write('breezeparam:    %.12e   #Fraction of sound speed '
                     'at critical point\n'
@@ -265,27 +304,39 @@ class input_handler:
                     % mach_limit)
 
 
-    def write_flags(self, lyacool, tidalforce, bolo_heat_cool,
-                    integrate_outward,integrate_out=True):
-        """Write flags to the wind_ae/inputs/term_ind.inp file. 
+    def write_flags(self, integrate_outward, tidalforce, linecool, bolo_heat_cool,
+                    conduction, recombo_cool=1, free_free_cool=1,
+                    molec_layer=None, integrate_out=True):
+        """Write flags to the wind_ae/inputs/flags.inp file. 
 
         Args:
-            lyacool (int): Flag for Lya and atomic line cooling (0 or 1)
+            integrate_outward (int): If 1, integrates out from sonic point to coriolis radius (0 or 1)
             tidalforce (float): Tidal force scaling factor (1.0 = on, 0 = off)
+            linecool (int): Flag for Lya and atomic line cooling (0 or 1)
             bolo_heat_cool (float): Bolometric heating/cooling scaling factor (1.0 = on, 0 = off). 
                                     If 0, complementary error function is not used and there is no
-                                    bolometric heating/cooling included in the simulation and there is no
-                                    molecular layer below wind (mu is purely atomic).
-            integrate_outward (int): If 1, integrates out from sonic point to coriolis radius (0 or 1)
+                                    bolometric heating/cooling included in the simulation.
+            conduction (int): Self-consistent conductive heat flux (1 = on, 0 = off)
+            recombo_cool (int): Recombination cooling (1 = on, 0 = off). Defaults to 1 (on).
+            free_free_cool (int): Free-free (bremsstrahlung) cooling (1 = on, 0 = off). Defaults to 1 (on).
+            molec_layer (float or None): Separate erfc multiplier for the mu molecular-to-atomic
+                                         transition (1.0 = on, 0 = off).  If None, defaults to
+                                         bolo_heat_cool (preserving pre-v2 behaviour).
             integrate_out (bool): Whether to integrate outward (default: True) 
                                 (implemented to avoid issues with integrate_outward flag being overwritten elsewhere)
         """
-        with open(self.path+'inputs/term_ind.inp', 'w') as f:
+        if molec_layer is None:
+            molec_layer = bolo_heat_cool
+        with open(self.wpath+'inputs/flags.inp', 'w') as f:
             f.write('#<flag>: <boolean or scaling>  #<comment>\n')
-            f.write('lyacool:            {:d}      #\n'.format(lyacool))
-            f.write('tidalforce:         {:.5f}      #\n'.format(tidalforce))
-            f.write('bolo_heat_cool:     {:.5f} #Can also be used to ramp in bolometric heating/cooling \n'.format(bolo_heat_cool))
             if integrate_out == False:    
                 f.write('integrate_outward:  {:d}      #\n'.format(0))
             else:
                 f.write('integrate_outward:  {:d}      #\n'.format(1))
+            f.write('tidalforce:         {:.5f}      #\n'.format(tidalforce))
+            f.write('linecool:            {:d}      #\n'.format(int(linecool)))
+            f.write('bolo_heat_cool:     {:.5f} #Can also be used to ramp in bolometric heating/cooling \n'.format(bolo_heat_cool))
+            f.write('conduction:         {:d}      #\n'.format(int(conduction)))
+            f.write('recombo_cool:        {:d}      #Recombination cooling (1=on, 0=off)\n'.format(int(recombo_cool)))
+            f.write('free_free_cool:      {:d}      #Free-free (bremsstrahlung) cooling (1=on, 0=off)\n'.format(int(free_free_cool)))
+            f.write('molec_layer:     {:.5f} #Separate erfc multiplier for mu adjustment (1.0=on, 0=off; NONE adopts bolo_heat_cool)\n'.format(molec_layer))

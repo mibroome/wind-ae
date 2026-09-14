@@ -12,4 +12,4 @@ def test_run_wind():
 
 def test_run_wind_expedite():
     sim.run_wind(expedite=True)
-    assert sim.windsoln.flags_tuple[-1] == 0
+    assert sim.windsoln.flags_tuple[0] == 0 #integrating out turned off for expedite

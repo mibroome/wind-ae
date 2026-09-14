@@ -32,9 +32,9 @@ void solvde(int itmax, double conv, double slowc, double scalv[], int indexv[],
   jc1   = 1;
   jcf   = ic3;
   for (it = 1; it <= itmax; it++) {
-    FILE *fp = fopen("outputs/ion_rates.txt", "w"); // Open for appending
-    fprintf(fp, "#Iteration %d\n", it);
-    fclose(fp);
+    // FILE *fp = fopen("outputs/ion_rates.txt", "w"); // Open for appending
+    // fprintf(fp, "#Iteration %d\n", it);
+    // fclose(fp);
     k = k1;
     difeq(k, k1, k2, j9, ic3, ic4, indexv, ne, s, y);
     pinvs(ic3, ic4, j5, j9, jc1, k1, c, s);

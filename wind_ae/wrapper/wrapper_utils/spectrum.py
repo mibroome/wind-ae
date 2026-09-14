@@ -147,6 +147,7 @@ class spectrum:
             self.wndw_span = np.asarray([self.mono_wl[0], self.mono_wl[0]])
         else:
             if kind != 'full':
+                print("lower upper",lob, upb)
                 print("ERROR: Kind must be full when window has non-zero span.")
                 return
             self.wndw_span = np.asarray([lob, upb])
@@ -183,7 +184,6 @@ class spectrum:
                 spaced_species = McAtom.formatting_species_list([s])[0]
                 self.glq_spectrum.add_species(spaced_species)
                 if spaced_species[0] in self.kshell_ionpots:
-                    print("triggered")
                     self.glq_spectrum.add_species(spaced_species,kshell=True)
         self.species_list = self.glq_spectrum.species_list
         return
@@ -236,6 +236,83 @@ class spectrum:
         """
         self.table = self.glq_spectrum.write_csv(savefile, kind=kind,mono_wl=None)
         return
+
+
+    def write_mono_spectrum(self, mono_nm, species, savefile=path+'inputs/spectrum.inp'):
+        """Writes a monofrequency inputs/spectrum.inp file directly, bypassing the
+        glq_spectrum smoothing/binning pipeline entirely (i.e. set_resolved(),
+        set_normalized(), set_window(), generate()). That pipeline requires a
+        non-degenerate window to bin/smooth/truncate over, and cannot represent a
+        single-wavelength (lob==upb) window: bin_spectrum() collapses to n_bins==0
+        for a degenerate span, and both set_window()'s 'mono_wl' calculation and
+        glq_spectrum.write_csv()'s non-'full' branch then fail on the resulting
+        empty arrays. Cross sections and ionization potentials are instead looked
+        up directly from McAstro.atoms.atomic_species for the given species, at
+        the single photon energy corresponding to mono_nm.
+
+        For numerical reasons the relaxation code requires two wavelength bins
+        rather than one even for a monofrequency spectrum (see NPTS: 2 below);
+        the two rows are identical, each carrying half the total photon weight.
+
+        Note: this only writes inputs/spectrum.inp. Callers are responsible for
+        calling generate_rate_coeffs() afterwards (rate coefficients depend on the
+        spectrum's photon energies and species, so must be regenerated whenever
+        the spectrum file changes) and, if applicable, for actually re-solving
+        (run_wind()) with the new spectrum.
+
+        Args:
+            mono_nm (float): Wavelength of the monofrequency spectrum, in nm.
+            species (list of str): Species to include, in any format recognized
+                by McAtom.formatting_species_list (e.g. 'fe6', 'Fe VI', 'FeVI').
+            savefile (str, optional): Path to write the spectrum file to.
+                Defaults to wind_ae/inputs/spectrum.inp.
+
+        Returns:
+            str: The formatted spectrum file contents that were written.
+        """
+        # McAtom.formatting_species_list() mutates its argument in place (and
+        # returns that same list) as a documented-by-behavior side effect; pass
+        # it a copy so callers' own species lists (e.g. self.windsoln.species_list,
+        # which is relied on elsewhere as the *unspaced* form) are never silently
+        # rewritten to spaced form by calling this method.
+        spaced_list = McAtom.formatting_species_list(list(species))
+        unspaced_list = [sp.replace(' ', '') for sp in spaced_list]
+        ion_pots = [McAtom.atomic_species(sp).verner_data['E_th']*const.eV
+                    for sp in spaced_list]
+
+        mono_freq = const.hc/(mono_nm*self.wl_norm)/const.eV  # eV
+        range_str = f"{mono_nm:.17e},{mono_nm:.17e}"
+        header = (
+            f"# NPTS: 2 \n"
+            f"# NSPECIES: {len(spaced_list)} \n"
+            f"# DATE: {self.date} \n"
+            f"# FILE: {self.glq_spectrum.src_file} \n"
+            f"# KIND: mono \n"
+            f"# WINDOW: {range_str} \n"
+            f"# RESOLVED: {range_str} \n"
+            f"# NORMALIZED: {range_str} \n"
+            f"# IONPOTS: {','.join(str(ip) for ip in ion_pots)}\n"
+        )
+        header += ('# $hc/\\lambda_i$, $w_i\\Phi_{\\lambda_i}/F_{tot}$, '
+                   + ", ".join(f"$\\sigma_{{\\lambda_i,{sp}}}$" for sp in unspaced_list)
+                   + "\n")
+        row = (f"{mono_freq*const.eV:.17e},{1/(mono_freq*const.eV)/2:.17e}, "
+               + ", ".join(f"{McAtom.atomic_species(sp).cross_section(mono_freq):.17e}"
+                           for sp in spaced_list)
+               + "\n")
+        mono_spec_str = header + row + row
+
+        with open(savefile, 'w') as f:
+            f.write(mono_spec_str)
+
+        # Keep the object's own notion of its span/kind consistent with what was
+        # just written, in case it's used further (e.g. plotting) after this call.
+        self.mono_wl = mono_nm
+        self.wndw_span = np.asarray([mono_nm, mono_nm])
+        self.rslv_span = np.asarray([mono_nm, mono_nm])
+        self.norm_span = np.asarray([mono_nm, mono_nm])
+        self.kind = 'mono'
+        return mono_spec_str
 
 
     def binning_plot(self,var='F_wl',xaxis='wl',semimajor_au=1.0, plot_polys=False):
@@ -314,11 +391,11 @@ class spectrum:
                     xuv_range = [min(wl_range),12.4]
                     ax.axvspan(xuv_range[0],xuv_range[1],color='c',alpha=0.1)
                     F_xuv = sum(flux[(wl_range>xuv_range[0]) & (wl_range<xuv_range[1])])
-                    ax.text(xuv_range[0]+np.diff(xuv_range)/4,max_F,
+                    ax.text(xuv_range[0] + (xuv_range[1] - xuv_range[0])/4, max_F,
                             r'F$_{X\rm{-}ray}\sim$%.0f'%F_xuv,color='darkcyan',
                             fontsize=14,weight='bold')
                 F_euv = sum(flux[(wl_range>euv_range[0])&(wl_range<euv_range[1])])
-                ax.text(euv_range[0]+np.diff(euv_range)/3,max_F,
+                ax.text(euv_range[0] + (euv_range[1] - euv_range[0])/3, max_F,
                          r'F$_{EUV}\sim$%.0f'%F_euv,color='tab:purple',
                         fontsize=14,weight='bold')
 
@@ -351,11 +428,11 @@ class spectrum:
                     xuv_range = [100,max(wl_range)]
                     ax.axvspan(xuv_range[0],xuv_range[1],color='c',alpha=0.1)
                     F_xuv = sum(flux[(wl_range>xuv_range[0]) & (wl_range<xuv_range[1])])
-                    ax.text(xuv_range[0]+np.diff(xuv_range)/4,max_F,
+                    ax.text(xuv_range[0] + (xuv_range[1] - xuv_range[0])/4, max_F,
                             r'F$_{Xray}\sim$%.0f'%F_xuv,color='darkcyan',
                             fontsize=14,weight='bold')
                 F_euv = sum(flux[(wl_range>euv_range[0])&(wl_range<euv_range[1])])
-                ax.text(euv_range[0]+np.diff(euv_range)/5,max_F,
+                ax.text(euv_range[0] + (euv_range[1] - euv_range[0])/5, max_F,
                          r'F$_{EUV}\sim$%.0f'%F_euv,color='tab:purple',
                         fontsize=14,weight='bold')
 

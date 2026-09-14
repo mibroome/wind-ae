@@ -43,7 +43,7 @@ class glq_spectrum:
     def __init__(self, filename='',lisird=True, mission='fism2', date='2002-01-01', wl_norm=1e-7, print_warning=False):
         """
         Keyword arguments:
-            filename: str; if lisird=False, csv file of user spectrum saved in McAstro/stars/spectrum/additional_spectra/.
+            filename: str; if lisird=False, csv file of user spectrum saved in wind_ae/spectra/.
                            File should contain headers of: 'wl' (cm),'F_wl' (erg/s/cm^3),'unc'(???),'nu'(1/s),'F_nu'
             lisird: bool; if True, spectrum will be a scaled version of lisird solar spectrum from selected date.
                           if False, spectrum is user input
@@ -51,10 +51,10 @@ class glq_spectrum:
             date: The date of the stellar observations (format: %Y-%m-%d)
             wl_norm: Normalizes the wavelength, which is in cm if wl_norm=1
             print_warning: bool; True=prints warnings
-            hires_savgol_window: ODD int; Length of window in Savitzky–Golay smoothing. 
+            hires_savgol_window: ODD int; Length of window in Savitzky-Golay smoothing. 
                               Larger=smoother. Should range between 10-1000. 
                               Default=0, reads in from csv file of user spectrum saved in
-                              McAstro/stars/spectrum/additional_spectra/
+                              wind_ae/spectra/
         """          
             
         # Stellar "Observation" info
@@ -70,12 +70,12 @@ class glq_spectrum:
             if len(filename) == 0:
                 print("WARNING: Please specify the name of your custom spectrum file.")
                 print("Reminder, it should contain headers of: 'wl' (cm),'F_wl' (erg/s/cm^3),'unc'(???),'nu'(1/s),'F_nu'.")
-            f = open(filed+'/../../stars/spectrum/additional_spectra/'+filename,'r')
+            f = open(filed+'/../../../spectra/'+filename,'r')
             self.hires_savgol_window = int(f.readlines()[2])
             # print("savgol_window",self.hires_savgol_window)
             f.close()
             
-            spectrum = pd.read_csv(filed+'/../../stars/spectrum/additional_spectra/'+filename,
+            spectrum = pd.read_csv(filed+'/../../../spectra/'+filename,
                                    comment='#',header=2)
             self.spectrum = spectrum
             self.data = spectrum #because read in from csv, this is appropriate
@@ -169,7 +169,7 @@ class glq_spectrum:
         for species_obj in self.species_list:
             element_name = species_name.split()[0]
             if (species_obj.atomic_data.name == species_name) and (element_name not in kshell_ionpots):
-                print('WARNING: Species already in list, returning.')
+                # print('WARNING: Species already in list, returning.')
                 return
 #         print("species name added to add_species:",species_name)
         new_atomic_data = atomic_species(species_name)
@@ -210,7 +210,8 @@ class glq_spectrum:
             self.bin_spectrum(list(self.bin_breaks)+[new_species.threshold_wl])
         else:
             self.bin_spectrum(list(self.bin_breaks))
-        self.n_species += 1
+        if kshell==False:
+            self.n_species += 1
         # Smooth updated spectrum
         self.truncate_spectrum(wl_min=self.spectrum.wl_min,wl_max=self.spectrum.wl_max) 
 
@@ -883,7 +884,7 @@ class glq_spectrum:
             Phi_smth_tot += np.nansum(self.Phi_smth_rslv[b])
         # Construct header strings
         headers = [r'$hc/\lambda_i$']
-        headers += [r'$w_i\Phi_{\lambda_i}/F_{uv}$']
+        headers += [r'$w_i\Phi_{\lambda_i}/F_{tot}$']
         for i, s in enumerate(self.species_list):
             # print("glq_spectrum",s.atomic_data.name)
             name_nospace = s.atomic_data.name.replace(' ', '')

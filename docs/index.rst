@@ -35,6 +35,9 @@ If you use **Wind-AE**, please consider citing `Broome et al. (2025) <https://ui
 Check out the :doc:`usage` section for further information, including
 instructions on :ref:`installation` of the project.
 
+AI Use Statement
+===========================
+We used Claude web (primarily model Sonnet 5.0) in **Wind-AE**'s v2.0 development to assist with refactoring **Wind-AE** for runtime improvements, with the implementation of the conductive cooling scheme in the code, and updating the docs for v2.0 release. All scientific content, methodology, and interpretations are the authors' own. The authors have reviewed and verified all code, outputs, and text, and take full responsibility for the integrity and accuracy of the work.
 
 
 Contents

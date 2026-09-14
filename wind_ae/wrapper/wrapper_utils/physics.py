@@ -11,7 +11,7 @@ class physics:
     Object containing information about the physical parameters of the
     simualation.
     """
-    def __init__(self, HX, species_list, molec_adjust, atomic_masses=np.array([0])):
+    def __init__(self, HX, species_list, molec_adjust, atomic_masses=np.array([0]),kappa_opt=None, kappa_IR=None, gamma=5.0/3.0):
         # phys_params.inp
         filepath = pkg_resources.files('wind_ae.McAstro.atoms').joinpath('atomic_table.txt')
         atomictable = pd.read_csv(filepath,comment='#')
@@ -35,9 +35,12 @@ class physics:
         self.Z = Z
         self.Ne = Ne 
         self.molec_adjust = molec_adjust
+        self.kappa_opt = kappa_opt
+        self.kappa_IR = kappa_IR
+        self.gamma = gamma
         
     def physics_tuple(self):
-        return (self.HX, self.species_list, self.atomic_masses)
+        return (self.HX, self.species_list, self.atomic_masses, self.kappa_opt, self.kappa_IR, self.gamma)
     
     def print_physics(self):
         print('Physics parameters\n'
@@ -65,6 +68,12 @@ class physics:
             return self.Ne
         elif var == "molec_adjust":
             return self.molec_adjust
+        elif var == "kappa_opt":
+            return self.kappa_opt
+        elif var == "kappa_IR":
+            return self.kappa_IR
+        elif var == "gamma":
+            return self.gamma
         else:
             print("Don't recoginze var: %s" % var)
             return
@@ -83,6 +92,12 @@ class physics:
             self.Ne = value
         elif var == "molec_adjust":
             self.molec_adjust = value
+        elif var == "kappa_opt":
+            self.kappa_opt = value
+        elif var == "kappa_IR":
+            self.kappa_IR = value
+        elif var == "gamma":
+            self.gamma = value
         else:
             print("Don't recoginze var: %s" % var)
         return
@@ -94,5 +109,8 @@ class physics:
                             copy.deepcopy(self.atomic_masses),
                             copy.deepcopy(self.Z),
                             copy.deepcopy(self.Ne),
-                            copy.deepcopy(self.molec_adjust))
+                            copy.deepcopy(self.molec_adjust),
+                            copy.deepcopy(self.kappa_opt),
+                            copy.deepcopy(self.kappa_IR),
+                            copy.deepcopy(self.gamma))
         return new

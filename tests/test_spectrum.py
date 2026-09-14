@@ -17,4 +17,4 @@ def test_ramp_spectrum():
 
 def test_ramp_to_user_spectrum():
     sim.load_planet(path+'/saves/test.csv')
-    assert sim.ramp_to_user_spectrum('hd189733', updated_F=sim.windsoln.Ftot,plot=False) == 0
+    assert sim.ramp_to_user_spectrum('hd189733', updated_Ftot=sim.windsoln.Ftot,plot=False) == 0

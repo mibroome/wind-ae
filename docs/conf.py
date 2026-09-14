@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 project = 'Wind-AE'
 copyright = '2025, Madelyn Broome, John McCann, Ruth Murray-Clay'
 author = 'Madelyn Broome, John McCann, Ruth Murray-Clay'
-release = '0.2.0'
+release = '2.0.0'
 root_doc = 'index'
 autodoc_member_order = 'bysource'
 
@@ -36,4 +36,4 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 html_logo = 'windae_logo_blue.png'
-html_favicon = 'windae_logo_blue_favicon.png'
+html_favicon = 'windae_logo_blue_favicon_16.gif'

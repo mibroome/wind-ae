@@ -16,7 +16,7 @@ void check_spec(char *hline);
 /* io.c */
 void set_parameters(void);
 void initial_guess(EQNVARS *equationvars);
-void save_solution(EQNVARS equationvars);
+void save_solution(EQNVARS *equationvars_p);
 
 /* intode.c */
 void integrate_ode(EQNVARS *equationvars_p);
@@ -25,16 +25,20 @@ void integrate_ode(EQNVARS *equationvars_p);
 void relax(EQNVARS *equationvars_p);
 
 /* soe.c */
-double eval_eqn(int k, double *x, double **y, double ymod[NE+1][2], int eqnnum, int species);
-void get_dvdr(double *dvdr, I_EQNVARS vars);
+void init_soe(void);
+double get_kappa_norm(const I_EQNVARS *vars);
+double eval_eqn(int k, double *x, double **y, double (*ymod)[2], int eqnnum, int species);
+void eval_interior_eqns(int k, double *x, double **y, double (*ymod)[2], double res[]);
+void get_dvdr(double *dvdr, const I_EQNVARS *vars);
 void linearize_dvdr_crit(double *x, double **y);
-void get_drhodr(double *drhodr, I_EQNVARS vars, double dvdr);
-void get_dTdr(double *dTdr, I_EQNVARS vars, double drhodr, double dXdr[NSPECIES],double k);
-void get_dYsdr(double *dXdr, I_EQNVARS vars,double k, int print_rates);
-void get_dNcoldr(double *dNdr, I_EQNVARS vars);
-void get_spQ(double *spQ, I_EQNVARS vars,double k,int printout);
-// void Energy_Conservation(int k, double *x, double **y, double ymod[NE+1][2], int species);
-void get_rad(double *rad, I_EQNVARS vars);
+void get_drhodr(double *drhodr, const I_EQNVARS *vars, double dvdr);
+void get_dTdr(double *dTdr, const I_EQNVARS *vars, double drhodr, double *dXdr,double k);
+void get_dYsdr(double *dXdr, const I_EQNVARS *vars,double k, int print_rates);
+void get_dNcoldr(double *dNdr, const I_EQNVARS *vars);
+void get_spQ(double *spQ, const I_EQNVARS *vars,double k,int printout);
+// void Energy_Conservation(int k, double *x, double **y, double (*ymod)[2], int species);
+void get_rad(double *rad, const I_EQNVARS *vars);
+// void print_cond_cool(EQNVARS *ev);
 
 /* utils.c */
 void *calloc_1d_array(size_t nc, size_t size);

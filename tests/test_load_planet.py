@@ -22,10 +22,10 @@ def test_load_uservars():
 def test_generate_rate_coeffs():
     sim.load_uservars(filename)
     sim.generate_rate_coeffs()
-    with open(path+'src/rate_coeffs.h', 'r') as f:
+    with open(sim.workdir+'/inputs/rate_coeffs.inp', 'r') as f:
         lines = f.readlines()
-        output = lines[3][:15]
-    assert output == "double R[6][59]"
+        output = lines[2].split(',')[-1].strip()
+    assert output == "NROWS: 4"
 
 sim.load_planet(filename)
 def test_save_planet():

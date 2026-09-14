@@ -94,7 +94,7 @@ static void init_relax(double ***y_p, double ***s_p, double ****c_p,
   y = calloc_2d_array_gross(1, NE, 1, M);
   s = calloc_2d_array_gross(1, NE, 1, (2*NE+1));
   c = calloc_3d_array_gross(1, NE, 1, (NE-NB+1), 1, (M+1));
-  *itmax_p = ITMAX;
+  *itmax_p = g_itmax;
   *conv_p  = CONV;
   *slowc_p = SLOWC;
 
@@ -133,22 +133,27 @@ static void free_relax(double **y, double **s, double ***c) {
  *----------------------------------------------------------------------------*/
 
 static void setup_indices(int *indexv) {
-    //set such that it is easy to list and index by the indices (e.g., Ys1 and Ys2 are now adjacent in indices [5+j] and the values
-    //of these indices = 2+j as is required by Numerical Recipes so that the interior boundary conditions come first.
-  int i,j,k,m;
+  /* NR solvde convention: y[j] stores the variable for which indexv[j]
+   * is the s-matrix column.  y-slot layout:
+   *   y[1]=v, y[2]=z, y[3]=rho, y[4]=T, y[5]=F,
+   *   y[6+j]=Ys[j], y[6+N+j]=Ncol[j]
+   *
+   * s-column assignments:
+   *   Cols 1..NB   = lower BC vars: rho(1), Ys[j](2..N+1), T(N+2), F(N+3=NB)
+   *   Cols NB+1..NE= upper BC vars: Ncol[j](N+4..2N+3), v(2N+4), z(2N+5)
+   */
+  int i, j;
 
-  for (i = 1; i <= NE; i++) {
-    indexv[i] = i;
-  }
-  indexv[1] = 3+2*NSPECIES;
-  indexv[2] = 4+2*NSPECIES;
-  indexv[3] = 1;
-  indexv[4] = 2+NSPECIES;
-  for (j=0; j<NSPECIES; j++){
-      k = 5+j;
-      m = 5+j+NSPECIES;
-      indexv[k] = 2+j; 
-      indexv[m] = 3+NSPECIES+j;
+  for (i = 1; i <= NE; i++) indexv[i] = i;   /* default identity */
+
+  indexv[1] = 4+2*NSPECIES;   /* v   -> col 4+2N (upper BC) */
+  indexv[2] = 5+2*NSPECIES;   /* z   -> col 5+2N (upper BC) */
+  indexv[3] = 1;               /* rho -> col 1    (lower BC) */
+  indexv[4] = 2+NSPECIES;      /* T   -> col 2+N  (lower BC) */
+  indexv[5] = 3+NSPECIES;      /* F   -> col 3+N  (lower BC, = NB) */
+  for (j = 0; j < NSPECIES; j++) {
+    indexv[6+j]          = 2+j;           /* Ys[j]   -> col 2+j  (lower BC) */
+    indexv[6+NSPECIES+j] = 4+NSPECIES+j;  /* Ncol[j] -> col 4+N+j (upper BC) */
   }
 
   return;
@@ -160,17 +165,15 @@ static void setup_indices(int *indexv) {
  *         Scales are defined in relax.h.                                     *
  *----------------------------------------------------------------------------*/
 static void setup_scales(double *scalv) {
-  int j,k,m;
-  /* Note: not using the indexv's */
+  int j;
   scalv[1] = VSCALE;
   scalv[2] = ZSCALE;
-  scalv[3] = RHOSCALE;
+  scalv[3] = (double)g_rhoscale;
   scalv[4] = TEMPSCALE;
-  for (j=0; j<NSPECIES; j++) {
-      k = 5+j;
-      m = 5+NSPECIES+j;
-      scalv[k] = FPSCALE;
-      scalv[m] = NCOLSCALE;      
+  scalv[5] = FSCALE;              /* F = kappa*dT/dr */
+  for (j = 0; j < NSPECIES; j++) {
+      scalv[6+j]          = YSSCALE;
+      scalv[6+NSPECIES+j] = NCOLSCALE;
   }
 
   return;
@@ -184,19 +187,18 @@ static void setup_scales(double *scalv) {
 
 static void set_initial_guess(double *x, double *y[NE+1],
                               EQNVARS *equationvars_p) {
-  int j,i,k,m;
+  int j,i;
 
   for (j = 1; j <= M; j++) {
-    x[j] = equationvars_p->q[INPTS+j-1];
+    x[j]    = equationvars_p->q[INPTS+j-1];
     y[1][j] = equationvars_p->v[INPTS+j-1];
     y[2][j] = equationvars_p->z[INPTS+j-1];
     y[3][j] = equationvars_p->rho[INPTS+j-1];
     y[4][j] = equationvars_p->T[INPTS+j-1];
-    for (i=0; i<NSPECIES; i++){
-        k=i+5;
-        m=i+5+NSPECIES;
-        y[k][j] = equationvars_p->Ys[INPTS+j-1][i];
-        y[m][j] = equationvars_p->Ncol[INPTS+j-1][i];
+    y[5][j] = 0.0;  /* F = 0: conduction will be ramped in by the wrapper */
+    for (i = 0; i < NSPECIES; i++) {
+      y[6+i][j]          = equationvars_p->Ys[INPTS+j-1][i];
+      y[6+NSPECIES+i][j] = equationvars_p->Ncol[INPTS+j-1][i];
     }
 
   }
@@ -211,21 +213,46 @@ static void set_initial_guess(double *x, double *y[NE+1],
  *----------------------------------------------------------------------------*/
 
 static void set_relax_soln(double *x, double **y, EQNVARS *equationvars_p) {
-  int k,j,l,m;
+  int k, i;
 
   for (k = 0; k < M; k++) {
-    equationvars_p->z[INPTS+k]    = y[2][k+1];
-    equationvars_p->v[INPTS+k]    = y[1][k+1]; //FIX HERE
-    equationvars_p->rho[INPTS+k]  = y[3][k+1];
-    equationvars_p->T[INPTS+k]    = y[4][k+1];
-    for (j=0; j<NSPECIES; j++) {
-        l=j+5;
-        m=j+5+NSPECIES;
-        equationvars_p->Ys[INPTS+k][j]   = y[l][k+1];
-        equationvars_p->Ncol[INPTS+k][j] = y[m][k+1];
+    equationvars_p->z[INPTS+k]   = y[2][k+1];
+    equationvars_p->v[INPTS+k]   = y[1][k+1];
+    equationvars_p->rho[INPTS+k] = y[3][k+1];
+    equationvars_p->T[INPTS+k]   = y[4][k+1];
+    equationvars_p->Fp[INPTS+k]  = y[5][k+1];
+    for (i = 0; i < NSPECIES; i++) {
+      equationvars_p->Ys[INPTS+k][i]   = y[6+i][k+1];
+      equationvars_p->Ncol[INPTS+k][i] = y[6+NSPECIES+i][k+1];
     }
-    equationvars_p->r[INPTS+k]    = x[k+1]*y[2][k+1]+parameters.Rmin;
-    equationvars_p->q[INPTS+k]    = x[k+1];
+    equationvars_p->r[INPTS+k] = x[k+1]*y[2][k+1] + parameters.Rmin;
+    equationvars_p->q[INPTS+k] = x[k+1];
+
+    /* dT/dr: F/kappa_norm when conduction is on; FD of T when off */
+    if (parameters.conduction) {
+      I_EQNVARS gv;
+      gv.q   = x[k+1];
+      gv.v   = y[1][k+1];
+      gv.z   = y[2][k+1];
+      gv.rho = y[3][k+1];
+      gv.T   = y[4][k+1];
+      for (i = 0; i < NSPECIES; i++) {
+        gv.Ys[i]   = y[6+i][k+1];
+        gv.Ncol[i] = y[6+NSPECIES+i][k+1];
+      }
+      double kn = get_kappa_norm(&gv);
+      equationvars_p->dTdr[INPTS+k] = y[5][k+1] / kn;
+    } else {
+      if (k > 0) {
+        double z_avg   = 0.5*(y[2][k+1] + y[2][k]);
+        double delta_r = z_avg * (x[k+1] - x[k]);
+        equationvars_p->dTdr[INPTS+k] = (delta_r > 0.0)
+                                        ? (y[4][k+1] - y[4][k]) / delta_r
+                                        : 0.0;
+      } else {
+        equationvars_p->dTdr[INPTS+k] = 0.0;
+      }
+    }
   }
 
   return;
