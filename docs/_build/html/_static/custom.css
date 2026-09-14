@@ -13,3 +13,9 @@
     background-color: #245777;
     color: #ffffff !important;
 }
+
+/* API function names */
+.sig-name.descname,
+.sig-prename.descclassname {
+    color: #5c7fa3 !important;
+}
