@@ -23,7 +23,7 @@ the solution in order to numerically converge to the final solution.
 With that in mind, we provide a number of starting points for simulations in the ``saves/`` folder and include 
 a python wrapper (:ref:`relax_wind`) which handles ramping from the initial guess to the goal solution.
 
-If you use **Wind-AE**, please consider citing `Broome et al. (2025) <https://ui.adsabs.harvard.edu/abs/2025ApJ...995..198B/abstract>`_.
+If you use **Wind-AE**, please cite `Broome et al. (2025) <https://ui.adsabs.harvard.edu/abs/2025ApJ...995..198B/abstract>`_.
 
 .. note::
 

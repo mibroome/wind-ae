@@ -8,7 +8,7 @@ I <img src="docs/windae_logo_blue_light.png" alt="Wind-AE Logo" width="350"/>
 `Wind-AE` updates [Murray-Clay et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009ApJ...693...23M/abstract) to allow for the modeling of atomic metals and multifrequency XUV stellar spectra (Broome et al. 2025). If you use `Wind-AE`, please cite [Broome et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...995..198B/abstract). 
 
 
-Take advantage of `Notebooks/Quickstart.ipynb` to get a quick orientation to `Wind-AE` and please report any bugs via [Github](https://github.com/mabroome/wind-ae/issues) or via email to broome.astro@gmail.com.
+Take advantage of `Notebooks/Quickstart.ipynb` to get a quick orientation to `Wind-AE` and please report any bugs via [Github](https://github.com/mibroome/wind-ae/issues) or via email to broome.astro@gmail.com.
 
 ![Build Status](https://github.com/mibroome/wind-ae/actions/workflows/python-pkg.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/mibroome/wind-ae/badge.svg?branch=main)](https://coveralls.io/github/mibroome/wind-ae?branch=main)
@@ -37,11 +37,11 @@ Because `Wind-AE` runs on the order of seconds to minutes, it can be (and has be
 - Multiple ionization states of the same species (e.g., simultaneously tracking C I and C II as a linked ionization chain)
 - X-ray physics (secondary ionizations and K-shell ionization cross-sections for relevant metals)
 - Both low and high stellar XUV flux
-- **Heating & Cooling**: Ionization heating, bolometric heating & cooling (negligible in wind), PdV cooling (work done due to expansion of gas), radiative / atomic line cooling (Lyman-$\alpha$; O, C, Fe, Mg, Ca, and Ne lines), recombination cooling, free-free (bremsstrahlung) cooling, and, optionally, self-consistent conductive cooling (see note below)
+- **Heating & Cooling**: Ionization heating, bolometric heating & cooling (negligible in wind), PdV cooling (work done due to expansion of gas), radiative / atomic line cooling (Lyman-alpha; O, C, Fe, Mg, Ca, and Ne lines), recombination cooling, free-free (bremsstrahlung) cooling, and, optionally, self-consistent conductive cooling (see note below)
 #### `Wind-AE` does not (currently) include:
 - **Magnetic fields**
 - **Time dependence**
-- **Diffusion/drag** - the atomic species set by the user are assumed to be entrained in the outflow and in thermal equilibrium. This is an appropriate assumption for species below the [crossover mass](https://ui.adsabs.harvard.edu/abs/1987Icar...69..532H) and a warning will be raised.
+- **Fractionation/diffusion/drag** - the atomic species set by the user are assumed to be entrained in the outflow and in thermal equilibrium. This is an appropriate assumption for species below the [crossover mass](https://ui.adsabs.harvard.edu/abs/1987Icar...69..532H) and a warning will be raised.
 - **Heating & Cooling**: H3+ line cooling (not planned)
 
 > **Note (v2.0+):** Conductive, recombination, and free-free cooling are each independently toggleable via flags. Turning on conduction (`sim.turn_on_conduction()`) introduces numerically stiff ODEs and should only be done after all other ramping is complete. The temperature dependence of free-free and recombination cooling can make ramping to higher metallicities numerically unstable — if so, try ramping with them off and turning them back on afterwards.
@@ -58,7 +58,7 @@ See [Broome et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...995..198B
 - Just want a grid of mass loss rates for pure-Hydrogen, low-flux-EUV-irradiated planets? See [Kubyshkina & Fossati](https://ui.adsabs.harvard.edu/abs/2021RNAAS...5...74K/abstract) 
 - Want a grid of mass loss rates for pure-Hydrogen, high-flux-XUV-irradiated planets? See [Owen & Jackson (2012)](https://ui.adsabs.harvard.edu/abs/2012MNRAS.425.2931O/abstract)
 
->Want your model added to this list or to update the short bio? Email mabroome@ucsc.edu
+>Want your model added to this list or to update the short bio? Email broome.astro@gmail.com
 
 Requirements
 ------------
@@ -172,7 +172,7 @@ sim.ramp_molecular_erfc(v_drop=erf_loc, rate=erf_rate)
 - **(v2.0)** Ramping to high metallicity with recombination and/or free-free cooling on can be numerically unstable in some cases — see the cooling-flags note above.
 
 --------
-### Check out the [open issues](https://github.com/mabroome/wind-ae/issues).
+### Check out the [open issues](https://github.com/mibroome/wind-ae/issues).
 
 --------
 ## AI Use Statement
