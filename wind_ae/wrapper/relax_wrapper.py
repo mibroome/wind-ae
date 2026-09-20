@@ -485,7 +485,7 @@ class wind_simulation:
         sub = Popen(self.path+'bin/relaxed_ae',cwd=self.workdir, stdout=PIPE, stderr=PIPE,bufsize=1, universal_newlines=True) 
         output, error_output = sub.communicate()
         if error_output:
-            if verbose:
+            if verbose is True:
                 print(output)
                 print(error_output)
             if error_output[0:55] == 'Numerical Recipes run-time error...\nstep size underflow':
@@ -573,7 +573,7 @@ class wind_simulation:
         return self.run_wind(expedite,calc_postfacto,verbose)
     
     def ramp_to(self, system=None, intermediate_converge_bcs=False, final_polish=False,
-                integrate_out=True, static_bcs=False, make_plot=False):
+                integrate_out=True, static_bcs=False, make_plot=False,verbose=False):
         """
         Ramps the current wind solution to a new system. Wrapper for ramp_Ftot(), ramp_grav(), ramp_star().
 
@@ -611,7 +611,7 @@ class wind_simulation:
                 result = self.ramp_var("Ftot", system.value("Ftot"),
                                     converge_bcs=intermediate_converge_bcs, make_plot=make_plot,
                                     expedite=True,static_bcs=static_bcs,
-                                    integrate_out=False)
+                                    integrate_out=False,verbose=verbose)
                 fail = result
                 
                 if (fail != 0) and (fail != 5):
@@ -620,7 +620,7 @@ class wind_simulation:
                 # Ramps Mp and Rp simultaneously, ~constant surface gravity
                 result = self.ramp_grav(system, converge_bcs=intermediate_converge_bcs,
                                     make_plot=make_plot, expedite=True,static_bcs=static_bcs,
-                                    integrate_out=False)
+                                    integrate_out=False,verbose=verbose)
                 fail = result 
                 
                 if (fail != 0) and (fail != 5):
@@ -629,7 +629,7 @@ class wind_simulation:
                 # Ramps Mstar and semimajor simultaneously, ~constant Hill radius
                 result = self.ramp_star(system, converge_bcs=intermediate_converge_bcs,
                                     make_plot=make_plot, expedite=True,static_bcs=static_bcs,
-                                    integrate_out=False)
+                                    integrate_out=False,verbose=verbose)
                 fail = result
 
         if final_polish == True:
@@ -666,7 +666,7 @@ class wind_simulation:
     
     def ramp_var(self, var, var_end, var_class=None, delta=0.02,
                  delta_additive=False, converge_bcs=False, make_plot=True,
-                 expedite=False, integrate_out=True, static_bcs=False):
+                 expedite=False, integrate_out=True, static_bcs=False,verbose=False):
         """
         Ramps a variable in the system or physics class to a target value with adaptive stepsizes.
 
@@ -880,7 +880,7 @@ class wind_simulation:
             self.inputs.write_flags(*expedite_flag_tuple,integrate_out) #user defined integrate out will override
         if integrate_out == True:
             self.inputs.write_flags(*self.windsoln.flags_tuple,integrate_out) 
-        result = self.run_wind(verbose=True,calc_postfacto=False)
+        result = self.run_wind(verbose=verbose,calc_postfacto=False)
 
         if result == 0:
             if converge_bcs:
@@ -901,6 +901,7 @@ class wind_simulation:
     
 
     def ramp_grav(self, system, delta=0.02, converge_bcs=False, make_plot=True,
+                  verbose=False,
                   expedite=False, integrate_out=True, static_bcs=False):
         """
         Ramps planet mass and radius along lines of constant surface gravity with adaptive stepsizes.
@@ -1140,7 +1141,7 @@ class wind_simulation:
             expedite_flag_tuple[3] = self.windsoln.bolo_heat_cool 
             expedite_flag_tuple[0] = 1
             self.inputs.write_flags(*expedite_flag_tuple,integrate_out) #user defined integrate out will override
-        result = self.run_wind(verbose=True,calc_postfacto=False)
+        result = self.run_wind(verbose=verbose,calc_postfacto=False)
 
         if result == 0:
             if converge_bcs:
@@ -1161,7 +1162,7 @@ class wind_simulation:
         
 
     def ramp_star(self, system, delta=0.02, converge_bcs=True, make_plot=True,
-                  expedite=False, integrate_out=True, static_bcs=False):
+                  expedite=False, integrate_out=True, static_bcs=False,verbose=False):
         """
         Ramps stellar mass (Mstar), semimajor axis (semimajor), and stellar bolometric luminosity (Lstar).
         If Mstar and semimajor axis change, ramps linearly along Hill radius rate of change.
@@ -1403,7 +1404,7 @@ class wind_simulation:
                 return 1
             # Write ramped variables to input file and try updating relaxation
             self.inputs.write_planet_params(*temp.system_tuple())
-            result = self.run_wind(expedite=True,verbose=True,calc_postfacto=False)
+            result = self.run_wind(expedite=True,verbose=verbose,calc_postfacto=False)
             fail=0
             while result == 4:
                 fail+=1
@@ -3594,7 +3595,7 @@ class wind_simulation:
     
 #Spectrum tools    
     def flux_norm(self,goal_flux_in_range,eV_range=[13.6,100],ramp=False,plot=True,
-                 integrate_out=True,converge_bcs=True):
+                 integrate_out=True,converge_bcs=True,verbose=False):
         """
         Computes the total flux (across the loaded spectrum range) necessary to achieve the goal_flux_in_range in the eV_range identified. If ramp=True, also ramps the solution to that Ftot.
 
@@ -3619,7 +3620,7 @@ class wind_simulation:
         if ramp == True:
             if abs(goal_total_flux-self.windsoln.Ftot)/self.windsoln.Ftot > 0.01:
                 return self.ramp_var("Ftot",goal_total_flux,make_plot=plot,
-                                    converge_bcs=converge_bcs,integrate_out=integrate_out)
+                                    converge_bcs=converge_bcs,integrate_out=integrate_out,verbose=verbose)
             else:
                 self._normal_print("  Flux ramping already done.")
                 return 0
