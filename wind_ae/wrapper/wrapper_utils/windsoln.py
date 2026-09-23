@@ -368,7 +368,7 @@ class wind_solution:
         self.R_exo = np.nan
         # Skip unnecessary calculations when users is expediting windsoln
         if calc_postfacto:
-            self.add_user_vars(expedite = expedite_postfacto)
+            self.add_user_vars(expedite = expedite_postfacto, print_warnings=print_warnings)
             
 
     def _rate_coeff_interpolater(self,species):
@@ -881,8 +881,12 @@ class wind_solution:
                 highest_state = McAtom.arabic_to_roman(
                     McAtom.roman_to_arabic(lowest_state) + 1
                 )
-
-                ion_name = element_name + highest_state
+                lower_ion = element_name + lowest_state
+                higher_ion = element_name + highest_state
+                if lower_ion in coeff_table['Species'].values:
+                    ion_name = lower_ion
+                else:
+                    ion_name = higher_ion
                 mask = (coeff_table['Species'] == ion_name)
                 line, A, T_line, nc = (
                     coeff_table[mask]["Line"],
@@ -892,6 +896,7 @@ class wind_solution:
                 )
                 nIONj = self.soln["n_"+ion_name]
                 for idx in range(len(A.T)):
+                    # print(ion_name)
                     line_cool_cols[f'cool_{ion_name}_{line.iloc[idx]:.0f}A'] = (
                         -nIONj
                         * n_e
@@ -900,8 +905,9 @@ class wind_solution:
                         / (n_e * (1 + nc.iloc[idx] / n_e))
                     )
 
-            for species in ['OI', 'OII', 'CI', 'CII', 'FeI', 'MgI', 'CaI', 'NeII']:
+            for species in ['OI', 'OII', 'CI', 'CII', 'FeI', 'FeII', 'MgI', 'MgII', 'CaI', 'CaII', 'NeII', 'NeIII']:
                 if species in self.species_list_unspaced:
+                    # print(f"Computing line cooling for species: {species}")
                     compute_line_cool(species)
                 
             _assign_soln_cols(line_cool_cols)

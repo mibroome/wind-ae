@@ -605,13 +605,17 @@ def energy_plot(windsoln, ax=None, alpha=1, plot_dom_lines=True, N_top_lines=2,
         r = windsoln.soln_norm['r']
 
         profiles = {}
-        for species in ['OI', 'OII', 'CI', 'CII', 'FeI', 'MgI','CaII', 'NeII']:
+        for species in ['OI', 'OII', 'CI', 'CII', 'FeI','FeII', 'MgI','MgII','CaI','CaII','NeII','NeIII']:
             if species in windsoln.species_list_unspaced:
                 species_spaced = McAtom.formatting_species_list([species])[0]
                 element_name, lowest_state = species_spaced.split()
                 highest_state = McAtom.arabic_to_roman(McAtom.roman_to_arabic(lowest_state) + 1)
-                ion_name = element_name + highest_state
-
+                lower_ion = element_name + lowest_state
+                higher_ion = element_name + highest_state
+                if lower_ion in coeff_table['Species'].values:
+                    ion_name = lower_ion
+                else:
+                    ion_name = higher_ion
                 lines = coeff_table.loc[coeff_table['Species'] == ion_name, 'Line'].astype(int).tolist()
                 for line_num in lines:
                     key = f'cool_{ion_name}_{line_num:.0f}A'
