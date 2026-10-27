@@ -735,7 +735,7 @@ class wind_solution:
 
         total = np.sum(ionization_rate*self.ion_pot,axis=1)
         Lya_energy = const.hc/(1215.67*1e-8)
-        total += frac_in_excite_He*Lya_energy
+        total += frac_in_excite_H*Lya_energy
         total += total_heating
 
         #Total heating efficiency (frac of total photon energy that goes into heating)

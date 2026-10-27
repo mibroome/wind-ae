@@ -6,3 +6,5 @@ include wind_ae/saves/*.csv
 include wind_ae/inputs/*
 include wind_ae/src/*
 include wind_ae/bin/*
+include wind_ae/wrapper/wrapper_utils/*.csv
+include wind_ae/spectra/*
