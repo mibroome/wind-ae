@@ -1,10 +1,13 @@
+include README.md
+include LICENSE
+graft wind_ae/src
+graft wind_ae/ext
+graft wind_ae/inputs
+graft wind_ae/saves
 include wind_ae/wrapper/wrapper_utils/*.dat
-include wind_ae/McAstro/atoms/Lodders.dat
+include wind_ae/wrapper/wrapper_utils/*.csv
 include wind_ae/McAstro/atoms/*.txt
 include wind_ae/McAstro/atoms/*.csv
-include wind_ae/saves/*.csv
-include wind_ae/inputs/*
-include wind_ae/src/*
-include wind_ae/bin/*
-include wind_ae/wrapper/wrapper_utils/*.csv
-include wind_ae/spectra/*
+include wind_ae/McAstro/atoms/Lodders.dat
+prune wind_ae/bin
+global-exclude *.o *.pyc __pycache__

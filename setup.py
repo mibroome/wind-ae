@@ -1,30 +1,42 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
-import sys
+import subprocess
 
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, Distribution
+from setuptools.command.build_py import build_py
 
-setup(
-    name="wind_ae",
-    version="1.0",
-    author='Madelyn Broome',
-    author_email='broome.astro@gmail.com',
-    description="1D relaxation Parker wind model based on Murray-Clay et al. (2009)",
-    install_requires=[line.strip() for line in
-                      open('requirements.txt', 'r').readlines()],
-    packages=find_packages(),
-    package_data={
-        'wind_ae': ['wind_ae/wrapper/wrapper_utils/*.dat',
-                    'wind_ae/saves/*.csv',
-                    'wind_ae/inputs/*', 
-                    'wind_ae/McAstro/atoms/*.csv',
-                    'wind_ae/McAstro/atoms/*.txt',
-                    'wind_ae/McAstro/atoms/Lodders.dat'],  # include all .txt files in the data folder
-    },
-    include_package_data=True,
-)
+
+class BuildWithExecutable(build_py):
+    """Normal Python build, then compile the C solver for this machine."""
+
+    def run(self):
+        super().run()
+        if getattr(self, "editable_mode", False):
+            return  # developers compile by hand: cd wind_ae/src && make compile
+        self._compile_executable()
+
+    def _compile_executable(self):
+        here = os.path.abspath(os.path.dirname(__file__))
+        src_dir = os.path.join(here, "wind_ae", "src")
+        out_dir = os.path.abspath(os.path.join(self.build_lib, "wind_ae", "bin"))
+        os.makedirs(out_dir, exist_ok=True)
+        dest = os.path.join(out_dir, "relaxed_ae")
+        try:
+            subprocess.run(["make", "compile", "BIN=" + dest], cwd=src_dir, check=True)
+        except (FileNotFoundError, subprocess.CalledProcessError) as err:
+            raise RuntimeError(
+                "Wind-AE could not compile its C solver (relaxed_ae). "
+                "You need `make` and a C compiler. Original error: " + str(err)
+            )
+        if not os.path.exists(dest):
+            raise RuntimeError("make finished but relaxed_ae was not produced.")
+        os.chmod(dest, 0o755)
+
+
+class PlatformDistribution(Distribution):
+    """Tag wheels built on the user's machine as platform-specific."""
+
+    def has_ext_modules(self):
+        return True
+
+
+setup(cmdclass={"build_py": BuildWithExecutable}, distclass=PlatformDistribution)
